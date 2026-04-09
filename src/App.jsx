@@ -383,7 +383,7 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
 }
 
 // ── TV Match Row ──────────────────────────────────────────────────────────────
-function TVMatchRow({ match, isSingles, onOpen }) {
+function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
   const s = computeMatchStatus(match.scores);
   const aWin    = s.state==="complete" && s.leader==="A";
   const bWin    = s.state==="complete" && s.leader==="B";
@@ -418,7 +418,7 @@ function TVMatchRow({ match, isSingles, onOpen }) {
     else if (bWin)   { badgeBg=TEAM_B_COLOR; badgeTop="WIN"; badgeBot=s.sublabel; }
     else if (halved) { badgeBg="#334455";    badgeTop="HALVED"; badgeBot="½pt"; }
     return (
-      <div onClick={onOpen} style={{display:"flex",alignItems:"stretch",cursor:"pointer",borderBottom:`1px solid #0a1628`}}>
+      <div onClick={canEdit?onOpen:undefined} style={{display:"flex",alignItems:"stretch",cursor:canEdit?"pointer":"default",borderBottom:`1px solid #0a1628`,opacity:canEdit?1:0.85}}>
         <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
           {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
@@ -440,7 +440,7 @@ function TVMatchRow({ match, isSingles, onOpen }) {
   // LIVE — names pinned to outer edges, badge floats halfway into leading side
   // We use a single relative container with absolutely-positioned badge
   return (
-    <div onClick={onOpen} style={{position:"relative",display:"flex",alignItems:"stretch",cursor:"pointer",borderBottom:`1px solid #0a1628`,overflow:"hidden"}}>
+    <div onClick={canEdit?onOpen:undefined} style={{position:"relative",display:"flex",alignItems:"stretch",cursor:canEdit?"pointer":"default",borderBottom:`1px solid #0a1628`,overflow:"hidden",opacity:canEdit?1:0.85}}>
       {/* Team A — names left-pinned */}
       <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
         <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
@@ -470,7 +470,7 @@ function TVMatchRow({ match, isSingles, onOpen }) {
 }
 
 // ── TV Day Block ──────────────────────────────────────────────────────────────
-function TVDayBlock({ day, onOpen }) {
+function TVDayBlock({ day, onOpen, canEdit }) {
   const dp=computeDayPoints(day);
   const hasAct=day.matches.some(m=>m.scores.some(s=>s!==null));
   const isSingles=day.format==="Singles";
@@ -485,7 +485,7 @@ function TVDayBlock({ day, onOpen }) {
         <div style={{width:64,textAlign:"center",padding:"5px 0",fontSize:7,color:"#446",fontFamily:"monospace"}}>{day.format.toUpperCase()}</div>
         <div style={{flex:1,padding:"5px 10px",fontSize:8,fontWeight:800,color:TEAM_B_DISP,letterSpacing:1,fontFamily:"monospace",textAlign:"right"}}>{TEAM_B_SHORT}</div>
       </div>
-      {day.matches.map(m=><TVMatchRow key={m.id} match={m} isSingles={isSingles} onOpen={()=>onOpen(m.id)}/>)}
+      {day.matches.map(m=><TVMatchRow key={m.id} match={m} isSingles={isSingles} onOpen={()=>onOpen(m.id)} canEdit={canEdit?canEdit(m.id):false}/>)}
     </div>
   );
 }
@@ -562,10 +562,20 @@ export default function App() {
     for(let i=0;i<days.length;i++) if(days[i].matches.some(m=>m.scores.some(s=>s!==null))) best=i;
     autoDayIdx=best;
   }
-  const boardDayIdx = boardDayOverride!==null ? boardDayOverride : autoDayIdx;
-  const boardDay    = days[boardDayIdx];
-  const dayLabels   = ["FRIDAY","SATURDAY","SUNDAY"];
-  const playerMatch = currentPlayer ? findPlayerMatch(days,currentPlayer) : null;
+  const todayDayIdx  = autoDayIdx; // the actual day index for today
+  const boardDayIdx  = boardDayOverride!==null ? boardDayOverride : autoDayIdx;
+  const boardDay     = days[boardDayIdx];
+  const dayLabels    = ["FRIDAY","SATURDAY","SUNDAY"];
+  const playerMatch  = currentPlayer ? findPlayerMatch(days,currentPlayer) : null;
+  const isAdmin      = currentPlayer === "Geb";
+
+  // Can a player open/edit a given match?
+  // Rules: must be today's day AND (admin OR it's your own match)
+  const canEdit = (dayIdx, matchId) => {
+    if (isAdmin) return true;
+    if (dayIdx !== todayDayIdx) return false;
+    return playerMatch && playerMatch.dayIdx === dayIdx && playerMatch.matchId === matchId;
+  };
 
   // Loading screen
   if (!loaded) return (
@@ -645,7 +655,9 @@ export default function App() {
                 <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${TEAM_B_COLOR}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>{dayLabels[i]}</button>
               ))}
             </div>
-            <TVDayBlock day={boardDay} onOpen={mid=>setActiveMatch({dayIdx:boardDayIdx,matchId:mid})}/>
+            <TVDayBlock day={boardDay} onOpen={mid=>{
+              if(canEdit(boardDayIdx,mid)) setActiveMatch({dayIdx:boardDayIdx,matchId:mid});
+            }} canEdit={(mid)=>canEdit(boardDayIdx,mid)}/>
           </div>
         )}
 
@@ -657,6 +669,7 @@ export default function App() {
               const s=computeMatchStatus(m.scores);
               const isSingles=d.format==="Singles";
               const stateColor={pending:BORDER,live:"#4caf50",complete:s.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557"}[s.state];
+              const matchEditable = canEdit(playerMatch.dayIdx, playerMatch.matchId);
               return (
                 <div>
                   <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.8}}>{d.label.toUpperCase()} · {m.teeTime!=="TBD"?m.teeTime:""}</div>
@@ -665,11 +678,19 @@ export default function App() {
                       <div style={{fontSize:9,color:"#446",fontFamily:"monospace"}}>{d.format.toUpperCase()}</div>
                       <div style={{fontSize:10,fontWeight:800,color:stateColor,fontFamily:"monospace"}}>{s.longLabel}</div>
                     </div>
-                    <TVMatchRow match={m} isSingles={isSingles} onOpen={()=>{}}/>
+                    <TVMatchRow match={m} isSingles={isSingles} onOpen={()=>{}} canEdit={false}/>
                   </div>
-                  <button onClick={()=>setActiveMatch(playerMatch)} style={{width:"100%",padding:"16px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:14,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 20px ${TEAM_B_COLOR}44`,marginBottom:10}}>
-                    ⛳ ENTER SCORES
-                  </button>
+                  {matchEditable ? (
+                    <button onClick={()=>setActiveMatch(playerMatch)} style={{width:"100%",padding:"16px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:14,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 20px ${TEAM_B_COLOR}44`,marginBottom:10}}>
+                      ⛳ ENTER SCORES
+                    </button>
+                  ) : (
+                    <div style={{textAlign:"center",padding:"12px",background:CARD2,borderRadius:12,marginBottom:10,border:`1px solid ${BORDER}`}}>
+                      <div style={{fontSize:11,color:"#446",fontFamily:"monospace"}}>
+                        🔒 Score entry opens on {dayLabels[playerMatch.dayIdx]}
+                      </div>
+                    </div>
+                  )}
                   <div style={{fontSize:10,color:"#446",textAlign:"center",fontFamily:"monospace"}}>{doneMatches}/{totalMatches} matches complete</div>
                 </div>
               );
