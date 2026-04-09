@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { db, ref, onValue, set } from "./firebase.js";
+import cbsLogo from "./cbs_logo.png";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TEAM_A       = "GABBY'S INTERNS";
@@ -157,8 +158,8 @@ function computeDayPoints(day) {
 
 function fmt(n){ return n%1===0?`${n}`:`${n.toFixed(1)}`; }
 
-const CBS_LOGO = <img src="/cbs_logo.png" width="22" height="22" style={{objectFit:"contain"}} alt="CBS 4"/>;
-const CBS_LOGO_LG = <img src="/cbs_logo.png" width="48" height="48" style={{objectFit:"contain"}} alt="CBS 4"/>;
+const CBS_LOGO = <img src={cbsLogo} width="22" height="22" style={{objectFit:"contain"}} alt="CBS 4"/>;
+const CBS_LOGO_LG = <img src={cbsLogo} width="48" height="48" style={{objectFit:"contain"}} alt="CBS 4"/>;
 
 // ── Player Select ─────────────────────────────────────────────────────────────
 function PlayerSelect({ onSelect }) {
