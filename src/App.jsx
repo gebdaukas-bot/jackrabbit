@@ -513,9 +513,14 @@ export default function App() {
         matches: day.matches.map(m => {
           const fbMatch = data[`m${m.id}`];
           if (!fbMatch) return m;
+          // Firebase stores arrays as objects {0:val,1:val,...} — convert back
+          const rawScores = fbMatch.scores;
+          const scores = Array.isArray(rawScores)
+            ? rawScores
+            : Array.from({length:18}, (_,i) => rawScores?.[i] ?? null);
           return {
             ...m,
-            scores: fbMatch.scores || m.scores,
+            scores,
             hcp1a: fbMatch.hcp1a ?? m.hcp1a,
             hcp1b: fbMatch.hcp1b ?? m.hcp1b,
             hcp2a: fbMatch.hcp2a ?? m.hcp2a,
