@@ -389,45 +389,34 @@ function TVMatchRow({ match, isSingles, onOpen }) {
   const bWin    = s.state==="complete" && s.leader==="B";
   const halved  = s.state==="halved";
   const live    = s.state==="live";
-  const pending = s.state==="pending";
   const aLeading = live && s.leader==="A";
   const bLeading = live && s.leader==="B";
   const allSquare = live && !s.leader;
 
-  // Name colours — bright white for winners/leaders, dim for others
   const aNameColor = (aWin||aLeading) ? "#ffffff" : (bWin||bLeading) ? "#3a4a5a" : "#7a8fa8";
   const bNameColor = (bWin||bLeading) ? "#ffffff" : (aWin||aLeading) ? "#3a4a5a" : "#7a8fa8";
-
-  // Background: full colour on win, subtle tint when leading
   const aBg = aWin ? TEAM_A_COLOR : aLeading ? `${TEAM_A_COLOR}22` : "#0d1929";
   const bBg = bWin ? TEAM_B_COLOR : bLeading ? `${TEAM_B_COLOR}22` : "#0d1929";
 
-  // For live matches, render as: [Team A] [score badge] [Team B]
-  // where the badge sits flush against the leading team
-  // We do this by using justify-content on the badge side
+  // Score badge for live matches
+  const liveScoreBadge = (
+    <div style={{
+      background: aLeading?`${TEAM_A_COLOR}ee`:bLeading?`${TEAM_B_COLOR}ee`:"#1a2a44",
+      borderRadius:6, padding:"3px 8px", display:"flex", flexDirection:"column",
+      alignItems:"center", flexShrink:0, minWidth:54,
+    }}>
+      <div style={{fontSize:7,fontWeight:800,color:"#ffffffaa",fontFamily:"monospace",letterSpacing:1,lineHeight:1.3}}>THRU {s.holesPlayed}</div>
+      <div style={{fontSize:15,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1.1}}>{allSquare?"AS":`${s.up}UP`}</div>
+      <div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:2,animation:"pulse 1.5s infinite"}}/>
+    </div>
+  );
 
-  if (pending || halved) {
-    // Simple centred layout for pending/halved
-    return (
-      <div onClick={onOpen} style={{display:"flex",alignItems:"stretch",cursor:"pointer",borderBottom:`1px solid #0a1628`}}>
-        <div style={{flex:1,background:"#0d1929",padding:"10px 10px",minWidth:0}}>
-          <div style={{fontSize:12,fontWeight:800,color:"#7a8fa8",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
-          {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:"#7a8fa8",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
-        </div>
-        <div style={{background:halved?"#334455":"#0d1929",width:64,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"4px",flexShrink:0}}>
-          {halved&&<div style={{fontSize:7,fontWeight:800,color:"#ffffffbb",fontFamily:"monospace"}}>HALVED</div>}
-          <div style={{fontSize:14,fontWeight:900,color:halved?"#fff":"#3a4a5a",fontFamily:"monospace"}}>{halved?"½pt":"—"}</div>
-        </div>
-        <div style={{flex:1,background:"#0d1929",padding:"10px 10px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
-          <div style={{fontSize:12,fontWeight:800,color:"#7a8fa8",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2a}</div>
-          {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:"#7a8fa8",lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2b}</div>}
-        </div>
-      </div>
-    );
-  }
-
-  if (aWin || bWin) {
-    // Completed — winning side full colour, score badge on winning side
+  if (!live) {
+    // Pending, complete, halved — static centred badge
+    let badgeBg = "#0d1929", badgeTop = "", badgeBot = "—";
+    if (aWin)        { badgeBg=TEAM_A_COLOR; badgeTop="WIN"; badgeBot=s.sublabel; }
+    else if (bWin)   { badgeBg=TEAM_B_COLOR; badgeTop="WIN"; badgeBot=s.sublabel; }
+    else if (halved) { badgeBg="#334455";    badgeTop="HALVED"; badgeBot="½pt"; }
     return (
       <div onClick={onOpen} style={{display:"flex",alignItems:"stretch",cursor:"pointer",borderBottom:`1px solid #0a1628`}}>
         <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
@@ -435,9 +424,9 @@ function TVMatchRow({ match, isSingles, onOpen }) {
           {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
           {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace"}}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
         </div>
-        <div style={{background:aWin?TEAM_A_COLOR:TEAM_B_COLOR,width:64,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"4px",flexShrink:0}}>
-          <div style={{fontSize:7,fontWeight:800,color:"#FFD700",fontFamily:"monospace",letterSpacing:1}}>WIN</div>
-          <div style={{fontSize:13,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{s.sublabel}</div>
+        <div style={{background:badgeBg,width:64,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"4px",flexShrink:0}}>
+          {badgeTop&&<div style={{fontSize:7,fontWeight:800,color:aWin||bWin?"#FFD700":"#ffffffbb",fontFamily:"monospace",letterSpacing:0.5}}>{badgeTop}</div>}
+          <div style={{fontSize:badgeBot.length>4?11:14,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{badgeBot}</div>
         </div>
         <div style={{flex:1,background:bBg,padding:"10px 10px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2a}</div>
@@ -448,52 +437,33 @@ function TVMatchRow({ match, isSingles, onOpen }) {
     );
   }
 
-  // LIVE — score badge floats toward the leading team
-  // Layout: [Team A names + badge if A leading] [Team B names + badge if B leading]
-  // If all square, badge sits centred between both
-  const scoreBadge = (
-    <div style={{
-      background: aLeading?`${TEAM_A_COLOR}ee`:bLeading?`${TEAM_B_COLOR}ee`:"#1a2a44",
-      borderRadius:6, padding:"3px 8px", display:"inline-flex", flexDirection:"column",
-      alignItems:"center", flexShrink:0, minWidth:52
-    }}>
-      <div style={{fontSize:7,fontWeight:800,color:"#ffffffaa",fontFamily:"monospace",letterSpacing:1,lineHeight:1.2}}>
-        THRU {s.holesPlayed}
-      </div>
-      <div style={{fontSize:15,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1.1}}>
-        {allSquare ? "AS" : `${s.up}UP`}
-      </div>
-      <div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:2,animation:"pulse 1.5s infinite"}}/>
-    </div>
-  );
-
+  // LIVE — names pinned to outer edges, badge floats halfway into leading side
+  // We use a single relative container with absolutely-positioned badge
   return (
-    <div onClick={onOpen} style={{display:"flex",alignItems:"stretch",cursor:"pointer",borderBottom:`1px solid #0a1628`}}>
-      {/* Team A */}
-      <div style={{flex:1,background:aBg,padding:"8px 10px",minWidth:0,display:"flex",alignItems:"center",gap:6,justifyContent:aLeading?"flex-end":"flex-start"}}>
-        {aLeading && scoreBadge}
-        <div style={{minWidth:0}}>
-          <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:aLeading?"right":"left"}}>{match.player1a}</div>
-          {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:aLeading?"right":"left"}}>{match.player1b}</div>}
-          {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:1,fontFamily:"monospace",textAlign:aLeading?"right":"left"}}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
-        </div>
+    <div onClick={onOpen} style={{position:"relative",display:"flex",alignItems:"stretch",cursor:"pointer",borderBottom:`1px solid #0a1628`,overflow:"hidden"}}>
+      {/* Team A — names left-pinned */}
+      <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
+        <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
+        {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
+        {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace"}}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
       </div>
-
-      {/* Centre badge — only shown when all square */}
-      {allSquare && (
-        <div style={{display:"flex",alignItems:"center",padding:"0 4px",flexShrink:0}}>
-          {scoreBadge}
-        </div>
-      )}
-
-      {/* Team B */}
-      <div style={{flex:1,background:bBg,padding:"8px 10px",display:"flex",alignItems:"center",gap:6,justifyContent:bLeading?"flex-start":"flex-end",minWidth:0}}>
-        <div style={{minWidth:0}}>
-          <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:bLeading?"left":"right",width:"100%"}}>{match.player2a}</div>
-          {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:bLeading?"left":"right",width:"100%"}}>{match.player2b}</div>}
-          {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:1,fontFamily:"monospace",textAlign:bLeading?"left":"right"}}>HCP {match.hcp2a||0}{!isSingles&&match.hcp2b?`/${match.hcp2b}`:""}</div>}
-        </div>
-        {bLeading && scoreBadge}
+      {/* Team B — names right-pinned */}
+      <div style={{flex:1,background:bBg,padding:"10px 10px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
+        <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2a}</div>
+        {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2b}</div>}
+        {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace",textAlign:"right"}}>HCP {match.hcp2a||0}{!isSingles&&match.hcp2b?`/${match.hcp2b}`:""}</div>}
+      </div>
+      {/* Badge — absolutely centred, then shifted 25% toward leading team */}
+      <div style={{
+        position:"absolute",
+        top:"50%",
+        // 50% = dead centre. Shift left 25% if A leading, right 25% if B leading
+        left: aLeading ? "25%" : bLeading ? "75%" : "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex:2,
+        pointerEvents:"none",
+      }}>
+        {liveScoreBadge}
       </div>
     </div>
   );
