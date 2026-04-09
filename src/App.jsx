@@ -157,25 +157,8 @@ function computeDayPoints(day) {
 
 function fmt(n){ return n%1===0?`${n}`:`${n.toFixed(1)}`; }
 
-const CBS_LOGO = (
-  <svg width="22" height="24" viewBox="-5 0 235 250" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-    <polygon points="105,5 15,145 55,145 105,70 105,5" fill="#2878be"/>
-    <polygon points="100,5 130,5 130,235 118,248 105,235 100,235" fill="#2878be"/>
-    <polygon points="15,150 210,150 225,165 210,180 15,180" fill="#2878be"/>
-    <polygon points="40,188 195,188 210,200 195,212 40,212" fill="#2878be"/>
-    <polygon points="68,220 175,220 188,230 175,240 68,240" fill="#2878be"/>
-  </svg>
-);
-
-const CBS_LOGO_LG = (
-  <svg width="48" height="52" viewBox="-5 0 235 250" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-    <polygon points="105,5 15,145 55,145 105,70 105,5" fill="#2878be"/>
-    <polygon points="100,5 130,5 130,235 118,248 105,235 100,235" fill="#2878be"/>
-    <polygon points="15,150 210,150 225,165 210,180 15,180" fill="#2878be"/>
-    <polygon points="40,188 195,188 210,200 195,212 40,212" fill="#2878be"/>
-    <polygon points="68,220 175,220 188,230 175,240 68,240" fill="#2878be"/>
-  </svg>
-);
+const CBS_LOGO = <img src="/cbs_logo.png" width="22" height="22" style={{objectFit:"contain"}} alt="CBS 4"/>;
+const CBS_LOGO_LG = <img src="/cbs_logo.png" width="48" height="48" style={{objectFit:"contain"}} alt="CBS 4"/>;
 
 // ── Player Select ─────────────────────────────────────────────────────────────
 function PlayerSelect({ onSelect }) {
