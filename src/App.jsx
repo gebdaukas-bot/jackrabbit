@@ -60,7 +60,7 @@ const ALL_PLAYERS = [
 
 const initialDays = [
   {
-    day:1, courseKey:"day1", label:"Day 1 — Fourballs", format:"Fourballs",
+    day:1, courseKey:"day1", label:"Friday — Fourballs", format:"Fourballs",
     matches:[
       {id:101,teeTime:"11:10",player1a:"Gabe",  hcp1a:0,player1b:"Naman",   hcp1b:0,player2a:"Henry",  hcp2a:0,player2b:"Spencer", hcp2b:0,scores:mkScores()},
       {id:102,teeTime:"11:15",player1a:"Logan", hcp1a:0,player1b:"Tyler T.",hcp1b:0,player2a:"Geb",    hcp2a:0,player2b:"Tony",    hcp2b:0,scores:mkScores()},
@@ -70,7 +70,7 @@ const initialDays = [
     ]
   },
   {
-    day:2, courseKey:"day2", label:"Day 2 — Fourballs", format:"Fourballs",
+    day:2, courseKey:"day2", label:"Saturday — Fourballs", format:"Fourballs",
     matches:[
       {id:201,teeTime:"11:10",player1a:"Ian",     hcp1a:0,player1b:"Hunter", hcp1b:0,player2a:"Henry",   hcp2a:0,player2b:"Russell", hcp2b:0,scores:mkScores()},
       {id:202,teeTime:"11:20",player1a:"Gabe",    hcp1a:0,player1b:"Tim",    hcp1b:0,player2a:"Geb",     hcp2a:0,player2b:"Ryan",    hcp2b:0,scores:mkScores()},
@@ -158,7 +158,7 @@ function computeDayPoints(day) {
 function fmt(n){ return n%1===0?`${n}`:`${n.toFixed(1)}`; }
 
 const CBS_LOGO = (
-  <svg width="20" height="24" viewBox="0 0 220 250" xmlns="http://www.w3.org/2000/svg">
+  <svg width="22" height="24" viewBox="-5 0 235 250" xmlns="http://www.w3.org/2000/svg" overflow="visible">
     <polygon points="105,5 15,145 55,145 105,70 105,5" fill="#2878be"/>
     <polygon points="100,5 130,5 130,235 118,248 105,235 100,235" fill="#2878be"/>
     <polygon points="15,150 210,150 225,165 210,180 15,180" fill="#2878be"/>
@@ -168,7 +168,7 @@ const CBS_LOGO = (
 );
 
 const CBS_LOGO_LG = (
-  <svg width="44" height="52" viewBox="0 0 220 250" xmlns="http://www.w3.org/2000/svg">
+  <svg width="48" height="52" viewBox="-5 0 235 250" xmlns="http://www.w3.org/2000/svg" overflow="visible">
     <polygon points="105,5 15,145 55,145 105,70 105,5" fill="#2878be"/>
     <polygon points="100,5 130,5 130,235 118,248 105,235 100,235" fill="#2878be"/>
     <polygon points="15,150 210,150 225,165 210,180 15,180" fill="#2878be"/>
