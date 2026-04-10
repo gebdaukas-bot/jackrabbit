@@ -170,9 +170,7 @@ function PlayerSelect({ onSelect }) {
       <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,padding:"30px 20px 20px",textAlign:"center",borderBottom:`1px solid ${BORDER}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,justifyContent:"center",marginBottom:4}}>
           {CBS_LOGO_LG}
-          <div style={{fontSize:26,fontWeight:900,letterSpacing:2,color:"#fff"}}>CBS RYDER CUP</div>
-        </div>
-        <div style={{fontSize:10,letterSpacing:4,color:"#446",fontFamily:"monospace",marginBottom:6}}>BOYS RYDER CUP 2025</div>
+          <div style={{fontSize:26,fontWeight:900,letterSpacing:2,color:"#fff"}}>CBS RYDER CUP 2026</div>
         <div style={{fontSize:13,color:"#446",marginTop:10}}>Select your name to get started</div>
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"16px 14px 40px"}}>
@@ -251,7 +249,7 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
   const [hole,setHole] = useState(status.holesPlayed<18?status.holesPlayed:17);
   const [showHcp,setShowHcp] = useState(false);
   const [grossScores,setGrossScores] = useState(
-    ()=>Array.from({length:18},()=>({p1a:4,p1b:4,p2a:4,p2b:4}))
+    ()=>Array.from({length:18},(_,i)=>{ const p=course.par[i]; return {p1a:p,p1b:p,p2a:p,p2b:p}; })
   );
 
   const sc = grossScores[hole];
@@ -269,15 +267,16 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
   const teamANet=isSingles?net1a:Math.min(net1a,net1b);
   const teamBNet=isSingles?net2a:Math.min(net2a,net2b);
   const hw=teamANet<teamBNet?"A":teamBNet<teamANet?"B":"H";
-  const hwColor=hw==="A"?TEAM_A_COLOR:hw==="B"?TEAM_B_COLOR:"#445";
+  const hwColor=hw==="A"?TEAM_A_COLOR:hw==="B"?TEAM_B_COLOR:GOLD;
   const hwLabel=hw==="A"?`${TEAM_A_SHORT} wins · net ${teamANet} vs ${teamBNet}`:hw==="B"?`${TEAM_B_SHORT} wins · net ${teamBNet} vs ${teamANet}`:`Halved · both net ${teamANet}`;
 
   const handleConfirm=()=>{
     const ns=[...match.scores]; ns[hole]=hw;
     onSave({...match,scores:ns});
     if(hole<17){
+      const nextPar=course.par[hole+1];
       setHole(h=>h+1);
-      setGrossScores(prev=>{const next=[...prev];next[hole+1]={p1a:4,p1b:4,p2a:4,p2b:4};return next;});
+      setGrossScores(prev=>{const next=[...prev];next[hole+1]={p1a:nextPar,p1b:nextPar,p2a:nextPar,p2b:nextPar};return next;});
     }
   };
   const handleUndo=()=>{
@@ -285,7 +284,8 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
     const ns=[...match.scores]; ns[hole-1]=null;
     onSave({...match,scores:ns});
     setHole(h=>h-1);
-    setGrossScores(prev=>{const next=[...prev];next[hole-1]={p1a:4,p1b:4,p2a:4,p2b:4};return next;});
+    const prevPar=course.par[hole-1];
+    setGrossScores(prev=>{const next=[...prev];next[hole-1]={p1a:prevPar,p1b:prevPar,p2a:prevPar,p2b:prevPar};return next;});
   };
 
   const cur=computeMatchStatus(match.scores);
@@ -393,8 +393,8 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
   const bLeading = live && s.leader==="B";
   const allSquare = live && !s.leader;
 
-  const aNameColor = (aWin||aLeading) ? "#ffffff" : (bWin||bLeading) ? "#3a4a5a" : "#7a8fa8";
-  const bNameColor = (bWin||bLeading) ? "#ffffff" : (aWin||aLeading) ? "#3a4a5a" : "#7a8fa8";
+  const aNameColor = (aWin||aLeading) ? "#ffffff" : "#7a8fa8";
+  const bNameColor = (bWin||bLeading) ? "#ffffff" : "#7a8fa8";
   const aBg = aWin ? TEAM_A_COLOR : aLeading ? `${TEAM_A_COLOR}22` : "#0d1929";
   const bBg = bWin ? TEAM_B_COLOR : bLeading ? `${TEAM_B_COLOR}22` : "#0d1929";
 
@@ -612,8 +612,7 @@ export default function App() {
           <div style={{display:"flex",alignItems:"center",gap:6}}>
             {CBS_LOGO}
             <div>
-              <div style={{fontSize:7,letterSpacing:2,color:"#446",fontFamily:"monospace"}}>BOYS RYDER CUP 2025</div>
-              <div style={{fontSize:13,fontWeight:900,letterSpacing:1,color:"#fff"}}>CBS RYDER CUP</div>
+              <div style={{fontSize:13,fontWeight:900,letterSpacing:1,color:"#fff"}}>CBS RYDER CUP 2026</div>
             </div>
           </div>
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3}}>
