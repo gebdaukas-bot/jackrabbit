@@ -1,5 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { db, ref, onValue, set } from "./firebase.js";
+import confetti from "canvas-confetti";
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+const _DARK  = { bg:"#040d1c", card:"#08142b", card2:"#0b1a35", border:"#0e2448", text:"#ccd", muted:"#446", muted2:"#668" };
+const _LIGHT = { bg:"#f4f6f9", card:"#ffffff", card2:"#eef1f7", border:"#d8e0ed", text:"#1a2a44", muted:"#7a8fa8", muted2:"#5a6e82" };
+const _initTheme = (() => { try { return localStorage.getItem("jr_theme")||"dark"; } catch { return "dark"; } })();
+const _T = _initTheme === "light" ? _LIGHT : _DARK;
+let BG     = _T.bg;
+let CARD   = _T.card;
+let CARD2  = _T.card2;
+let BORDER = _T.border;
+let TEXT   = _T.text;
+let MUTED  = _T.muted;
+let MUTED2 = _T.muted2;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TEAM_A       = "GABBY'S INTERNS";
@@ -10,10 +24,6 @@ const TEAM_A_COLOR = "#C8102E";
 const TEAM_B_COLOR = "#003087";
 const TEAM_B_DISP  = "#4A90D9";
 const GOLD         = "#C4A44A";
-const BG           = "#040d1c";
-const CARD         = "#08142b";
-const CARD2        = "#0b1a35";
-const BORDER       = "#0e2448";
 
 const COURSES = {
   day1: {
@@ -62,35 +72,35 @@ const initialDays = [
   {
     day:1, courseKey:"day1", label:"Friday — Fourballs", format:"Fourballs",
     matches:[
-      {id:101,teeTime:"11:10",player1a:"Gabe",  hcp1a:0,player1b:"Naman",   hcp1b:0,player2a:"Henry",  hcp2a:0,player2b:"Spencer", hcp2b:0,scores:mkScores()},
-      {id:102,teeTime:"11:15",player1a:"Logan", hcp1a:0,player1b:"Tyler T.",hcp1b:0,player2a:"Geb",    hcp2a:0,player2b:"Tony",    hcp2b:0,scores:mkScores()},
-      {id:103,teeTime:"11:20",player1a:"Colin", hcp1a:0,player1b:"Ian",     hcp1b:0,player2a:"Sam",    hcp2a:0,player2b:"Ryan",    hcp2b:0,scores:mkScores()},
-      {id:104,teeTime:"11:30",player1a:"Hunter",hcp1a:0,player1b:"Tim",     hcp1b:0,player2a:"Jake",   hcp2a:0,player2b:"Destin",  hcp2b:0,scores:mkScores()},
-      {id:105,teeTime:"11:40",player1a:"Clark", hcp1a:0,player1b:"Sushil",  hcp1b:0,player2a:"Russell",hcp2a:0,player2b:"Tyler S.",hcp2b:0,scores:mkScores()},
+      {id:101,teeTime:"11:10",player1a:"Gabe",  hcp1a:0,player1b:"Naman",   hcp1b:0,player2a:"Henry",  hcp2a:0,player2b:"Spencer", hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:102,teeTime:"11:15",player1a:"Logan", hcp1a:0,player1b:"Tyler T.",hcp1b:0,player2a:"Geb",    hcp2a:0,player2b:"Tony",    hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:103,teeTime:"11:20",player1a:"Colin", hcp1a:0,player1b:"Ian",     hcp1b:0,player2a:"Sam",    hcp2a:0,player2b:"Ryan",    hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:104,teeTime:"11:30",player1a:"Hunter",hcp1a:0,player1b:"Tim",     hcp1b:0,player2a:"Jake",   hcp2a:0,player2b:"Destin",  hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:105,teeTime:"11:40",player1a:"Clark", hcp1a:0,player1b:"Sushil",  hcp1b:0,player2a:"Russell",hcp2a:0,player2b:"Tyler S.",hcp2b:0,scores:mkScores(),disputes:[]},
     ]
   },
   {
     day:2, courseKey:"day2", label:"Saturday — Fourballs", format:"Fourballs",
     matches:[
-      {id:201,teeTime:"11:10",player1a:"Ian",     hcp1a:0,player1b:"Hunter", hcp1b:0,player2a:"Henry",   hcp2a:0,player2b:"Russell", hcp2b:0,scores:mkScores()},
-      {id:202,teeTime:"11:20",player1a:"Gabe",    hcp1a:0,player1b:"Tim",    hcp1b:0,player2a:"Geb",     hcp2a:0,player2b:"Ryan",    hcp2b:0,scores:mkScores()},
-      {id:203,teeTime:"11:30",player1a:"Naman",   hcp1a:0,player1b:"Sushil", hcp1b:0,player2a:"Tony",    hcp2a:0,player2b:"Jake",    hcp2b:0,scores:mkScores()},
-      {id:204,teeTime:"11:40",player1a:"Logan",   hcp1a:0,player1b:"Clark",  hcp1b:0,player2a:"Sam",     hcp2a:0,player2b:"Destin",  hcp2b:0,scores:mkScores()},
-      {id:205,teeTime:"11:50",player1a:"Tyler T.",hcp1a:0,player1b:"Colin",  hcp1b:0,player2a:"Tyler S.",hcp2a:0,player2b:"Spencer", hcp2b:0,scores:mkScores()},
+      {id:201,teeTime:"11:10",player1a:"Ian",     hcp1a:0,player1b:"Hunter", hcp1b:0,player2a:"Henry",   hcp2a:0,player2b:"Russell", hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:202,teeTime:"11:20",player1a:"Gabe",    hcp1a:0,player1b:"Tim",    hcp1b:0,player2a:"Geb",     hcp2a:0,player2b:"Ryan",    hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:203,teeTime:"11:30",player1a:"Naman",   hcp1a:0,player1b:"Sushil", hcp1b:0,player2a:"Tony",    hcp2a:0,player2b:"Jake",    hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:204,teeTime:"11:40",player1a:"Logan",   hcp1a:0,player1b:"Clark",  hcp1b:0,player2a:"Sam",     hcp2a:0,player2b:"Destin",  hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:205,teeTime:"11:50",player1a:"Tyler T.",hcp1a:0,player1b:"Colin",  hcp1b:0,player2a:"Tyler S.",hcp2a:0,player2b:"Spencer", hcp2b:0,scores:mkScores(),disputes:[]},
     ]
   },
   {
     day:3, courseKey:"day3", label:"Sunday Singles", format:"Singles",
     matches:[
-      {id:301,teeTime:"10:40",player1a:"Gabe",    hcp1a:0,player1b:null,hcp1b:0,player2a:"Spencer", hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
-      {id:302,teeTime:"10:40",player1a:"Hunter",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Ryan",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
-      {id:303,teeTime:"10:48",player1a:"Naman",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Henry",   hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
-      {id:304,teeTime:"10:48",player1a:"Ian",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Tony",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
-      {id:305,teeTime:"10:56",player1a:"Tyler T.",hcp1a:0,player1b:null,hcp1b:0,player2a:"Geb",     hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
-      {id:306,teeTime:"10:56",player1a:"Logan",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Sam",     hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
-      {id:307,teeTime:"11:04",player1a:"Clark",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Tyler S.",hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
-      {id:308,teeTime:"11:04",player1a:"Sushil",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Destin",  hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
-      {id:309,teeTime:"11:12",player1a:"Tim",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Jake",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores()},
+      {id:301,teeTime:"10:40",player1a:"Gabe",    hcp1a:0,player1b:null,hcp1b:0,player2a:"Spencer", hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:302,teeTime:"10:40",player1a:"Hunter",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Ryan",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:303,teeTime:"10:48",player1a:"Naman",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Henry",   hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:304,teeTime:"10:48",player1a:"Ian",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Tony",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:305,teeTime:"10:56",player1a:"Tyler T.",hcp1a:0,player1b:null,hcp1b:0,player2a:"Geb",     hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:306,teeTime:"10:56",player1a:"Logan",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Sam",     hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:307,teeTime:"11:04",player1a:"Clark",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Tyler S.",hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:308,teeTime:"11:04",player1a:"Sushil",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Destin",  hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:309,teeTime:"11:12",player1a:"Tim",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Jake",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
     ]
   }
 ];
@@ -474,12 +484,26 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
           </div>
         </div>
       </div>
-      <div style={{padding:"8px 10px 4px",display:"flex",gap:2}}>
+      <div style={{padding:"8px 10px 14px",display:"flex",gap:2}}>
         {Array.from({length:18},(_,i)=>{
           const s=match.scores[i];
+          const isConfirmed = s!==null && s!==undefined;
+          const isDisputed = (match.disputes||[]).includes(i);
           const bg=s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_COLOR:s==="H"?"#334":CARD2;
           const isAct=i===hole;
-          return <div key={i} onClick={()=>setHole(i)} style={{flex:1,height:isAct?26:20,background:bg,borderRadius:3,cursor:"pointer",border:isAct?`2px solid ${GOLD}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isAct?8:7,color:isAct?"#fff":"#ffffff99",fontFamily:"monospace",fontWeight:700,transition:"all .12s"}}>{i+1}</div>;
+          return (
+            <div key={i} style={{flex:1,position:"relative"}}>
+              <div onClick={()=>setHole(i)} style={{height:isAct?26:20,background:bg,borderRadius:3,cursor:"pointer",border:isAct?`2px solid ${GOLD}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isAct?8:7,color:isAct?"#fff":"#ffffff99",fontFamily:"monospace",fontWeight:700,transition:"all .12s"}}>
+                {i+1}
+              </div>
+              {isConfirmed&&(
+                <div onClick={e=>{e.stopPropagation();const cur=match.disputes||[];const nd=cur.includes(i)?cur.filter(h=>h!==i):[...cur,i];onSave({...match,disputes:nd});}}
+                  style={{position:"absolute",bottom:-8,left:"50%",transform:"translateX(-50%)",fontSize:9,cursor:"pointer",opacity:isDisputed?1:0.15,lineHeight:1,userSelect:"none"}}>
+                  🚩
+                </div>
+              )}
+            </div>
+          );
         })}
       </div>
       {isComplete&&(
@@ -524,6 +548,235 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
           <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${hwColor},${hwColor}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 18px ${hwColor}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
           {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:20}}>↩ UNDO HOLE {hole}</button>}
         </div>
+    </div>
+  );
+}
+
+// ── Admin Match Editor ────────────────────────────────────────────────────────
+function AdminMatchEditor({ match, isSingles, courseKey, onSave, onClose }) {
+  const course = COURSES[courseKey];
+  const [gross, setGross] = useState(() => Array.from({length:18}, (_,i) => ({
+    p1a: (Array.isArray(match.grossP1a) && match.grossP1a[i] != null) ? match.grossP1a[i] : course.par[i],
+    p1b: (Array.isArray(match.grossP1b) && match.grossP1b[i] != null) ? match.grossP1b[i] : course.par[i],
+    p2a: (Array.isArray(match.grossP2a) && match.grossP2a[i] != null) ? match.grossP2a[i] : course.par[i],
+    p2b: (Array.isArray(match.grossP2b) && match.grossP2b[i] != null) ? match.grossP2b[i] : course.par[i],
+  })));
+  // "auto"=compute from gross, "A"/"B"/"H"=explicit, "unplayed"=null
+  const [overrides, setOverrides] = useState(() => match.scores.map(s => s == null ? "unplayed" : s));
+
+  const computedResult = (i) => {
+    const g = gross[i], hcpIdx = course.hcp[i];
+    const net1a = netScore(g.p1a, match.hcp1a||0, hcpIdx);
+    const net1b = isSingles ? 99 : netScore(g.p1b, match.hcp1b||0, hcpIdx);
+    const net2a = netScore(g.p2a, match.hcp2a||0, hcpIdx);
+    const net2b = isSingles ? 99 : netScore(g.p2b, match.hcp2b||0, hcpIdx);
+    const tA = isSingles ? net1a : Math.min(net1a, net1b);
+    const tB = isSingles ? net2a : Math.min(net2a, net2b);
+    return tA < tB ? "A" : tB < tA ? "B" : "H";
+  };
+
+  const handleSave = () => {
+    const finalScores = overrides.map((ov, i) => {
+      if (ov === "unplayed") return null;
+      if (ov === "auto") return computedResult(i);
+      return ov;
+    });
+    onSave({
+      ...match, scores: finalScores,
+      grossP1a: gross.map(g=>g.p1a), grossP1b: gross.map(g=>g.p1b),
+      grossP2a: gross.map(g=>g.p2a), grossP2b: gross.map(g=>g.p2b),
+    });
+  };
+
+  const setG = (holeIdx, player, val) => setGross(prev => {
+    const n=[...prev]; n[holeIdx]={...prev[holeIdx],[player]:val}; return n;
+  });
+
+  const Spin = ({holeIdx, player, color, label}) => (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flex:1,minWidth:0}}>
+      <div style={{fontSize:8,color,fontFamily:"monospace",fontWeight:700,textAlign:"center",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:64}}>{label}</div>
+      <div style={{display:"flex",alignItems:"center"}}>
+        <button onClick={()=>setG(holeIdx,player,Math.max(1,gross[holeIdx][player]-1))} style={{width:24,height:30,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"4px 0 0 4px",color:"#8aa",fontSize:14,cursor:"pointer"}}>−</button>
+        <div style={{width:30,height:30,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{gross[holeIdx][player]}</div>
+        <button onClick={()=>setG(holeIdx,player,Math.min(12,gross[holeIdx][player]+1))} style={{width:24,height:30,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 4px 4px 0",color:"#8aa",fontSize:14,cursor:"pointer"}}>+</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
+      <style>{`*{box-sizing:border-box;margin:0;padding:0}`}</style>
+      <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10,flexShrink:0}}>
+        <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:MUTED,padding:"5px 10px",cursor:"pointer",fontSize:11}}>← Back</button>
+        <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:1,fontFamily:"monospace"}}>ADMIN EDIT · Match {match.id}</div>
+        <button onClick={handleSave} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer"}}>SAVE</button>
+      </div>
+      <div style={{padding:"6px 12px",background:CARD2,borderBottom:`1px solid ${BORDER}`,flexShrink:0}}>
+        <span style={{fontSize:11,fontWeight:700,color:TEAM_A_COLOR}}>{match.player1a}{!isSingles&&match.player1b?` & ${match.player1b}`:""}</span>
+        <span style={{fontSize:10,color:MUTED,margin:"0 6px"}}>vs</span>
+        <span style={{fontSize:11,fontWeight:700,color:TEAM_B_DISP}}>{match.player2a}{!isSingles&&match.player2b?` & ${match.player2b}`:""}</span>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"8px 10px 20px"}}>
+        {Array.from({length:18}, (_,i) => {
+          const par = course.par[i], hcpIdx = course.hcp[i];
+          const computed = computedResult(i);
+          const ov = overrides[i];
+          const resColor = ov==="A"||ov==="auto"&&computed==="A"?TEAM_A_COLOR:ov==="B"||ov==="auto"&&computed==="B"?TEAM_B_COLOR:ov==="H"||ov==="auto"&&computed==="H"?GOLD:MUTED;
+          return (
+            <div key={i} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px",marginBottom:8}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                <div style={{fontSize:11,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>HOLE {i+1}</div>
+                <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>PAR {par} · HCP {hcpIdx}</div>
+              </div>
+              <div style={{display:"flex",gap:4,marginBottom:8}}>
+                <Spin holeIdx={i} player="p1a" color={TEAM_A_COLOR} label={match.player1a}/>
+                {!isSingles&&<Spin holeIdx={i} player="p1b" color={TEAM_A_COLOR} label={match.player1b}/>}
+                <Spin holeIdx={i} player="p2a" color={TEAM_B_DISP} label={match.player2a}/>
+                {!isSingles&&<Spin holeIdx={i} player="p2b" color={TEAM_B_DISP} label={match.player2b}/>}
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",flexShrink:0}}>RESULT:</div>
+                {[["auto","CALC"],["A","A"],["H","H"],["B","B"],["unplayed","—"]].map(([v,lbl])=>(
+                  <button key={v} onClick={()=>setOverrides(prev=>{const n=[...prev];n[i]=v;return n;})}
+                    style={{padding:"3px 7px",background:ov===v?`${v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED}33`:"transparent",border:`1px solid ${ov===v?v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED:BORDER}`,borderRadius:5,color:ov===v?v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED:MUTED,fontSize:10,cursor:"pointer",fontFamily:"monospace",fontWeight:ov===v?700:400}}>
+                    {lbl}
+                  </button>
+                ))}
+                <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",marginLeft:"auto"}}>auto={computed}</div>
+              </div>
+            </div>
+          );
+        })}
+        <button onClick={handleSave} style={{width:"100%",padding:"14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:12,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"monospace",marginTop:4}}>
+          SAVE ALL CHANGES
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Admin Section ─────────────────────────────────────────────────────────────
+function AdminSection({ days }) {
+  const [confirmReset, setConfirmReset] = useState(null);
+  const [pairings, setPairings] = useState(() => {
+    const d2 = {}; days[1].matches.forEach(m=>{ d2[m.id]={player1a:m.player1a,player1b:m.player1b,player2a:m.player2a,player2b:m.player2b}; });
+    const d3 = {}; days[2].matches.forEach(m=>{ d3[m.id]={player1a:m.player1a,player2a:m.player2a}; });
+    return {d2,d3};
+  });
+  const [pairingSaved, setPairingSaved] = useState(false);
+
+  const teamANames = ALL_PLAYERS.filter(p=>p.team==="A").map(p=>p.name);
+  const teamBNames = ALL_PLAYERS.filter(p=>p.team==="B").map(p=>p.name);
+
+  const savePairings = async () => {
+    const d2Payload = {}; Object.entries(pairings.d2).forEach(([id,p])=>{ d2Payload[`m${id}`]=p; });
+    const d3Payload = {}; Object.entries(pairings.d3).forEach(([id,p])=>{ d3Payload[`m${id}`]=p; });
+    await set(ref(db,"pairings/day2"), d2Payload);
+    await set(ref(db,"pairings/day3"), d3Payload);
+    setPairingSaved(true); setTimeout(()=>setPairingSaved(false), 2000);
+  };
+
+  const doReset = async () => {
+    if (confirmReset === null) return;
+    await set(ref(db, `matches/m${confirmReset}`), {
+      scores: Array(18).fill(null), hcp1a:0, hcp1b:0, hcp2a:0, hcp2b:0,
+      grossP1a:null, grossP1b:null, grossP2a:null, grossP2b:null, disputes:null
+    });
+    setConfirmReset(null);
+  };
+
+  const selStyle = {width:"100%",padding:"5px 4px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:11,cursor:"pointer"};
+
+  return (
+    <div style={{paddingBottom:40}}>
+      {/* Confirm reset modal */}
+      {confirmReset !== null && (
+        <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
+            <div style={{fontSize:13,fontWeight:900,color:"#e55",marginBottom:8,fontFamily:"monospace"}}>RESET MATCH {confirmReset}?</div>
+            <div style={{fontSize:12,color:TEXT,marginBottom:20}}>This clears all scores, gross scores, and disputes. Cannot be undone.</div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setConfirmReset(null)} style={{flex:1,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>Cancel</button>
+              <button onClick={doReset} style={{flex:1,padding:"10px",background:"#c0392b",border:"none",borderRadius:10,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer"}}>RESET</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DISPUTES */}
+      <div style={{marginBottom:22}}>
+        <div style={{fontSize:11,fontWeight:900,color:"#e55",letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>🚩 DISPUTES</div>
+        {(() => {
+          const list = [];
+          for (const day of days) for (const m of day.matches)
+            for (const h of (m.disputes||[])) list.push({id:m.id,hole:h+1,players:[m.player1a,m.player1b,m.player2a,m.player2b].filter(Boolean).join(" / ")});
+          if (!list.length) return <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",padding:"8px 0"}}>No disputes flagged.</div>;
+          return list.map((d,i)=>(
+            <div key={i} style={{padding:"8px 12px",background:CARD2,borderRadius:8,marginBottom:6,border:"1px solid #e5533333"}}>
+              <div style={{fontSize:11,color:"#e55",fontWeight:700,fontFamily:"monospace"}}>Match {d.id} — Hole {d.hole}</div>
+              <div style={{fontSize:10,color:MUTED,marginTop:2}}>{d.players}</div>
+            </div>
+          ));
+        })()}
+      </div>
+
+      {/* PAIRINGS */}
+      <div style={{marginBottom:22}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:2,fontFamily:"monospace"}}>PAIRINGS</div>
+          <button onClick={savePairings} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>
+            {pairingSaved?"✓ SAVED":"SAVE"}
+          </button>
+        </div>
+        <div style={{fontSize:10,color:MUTED2,fontFamily:"monospace",marginBottom:6,letterSpacing:1}}>SATURDAY — Day 2</div>
+        {days[1].matches.map(m=>(
+          <div key={m.id} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
+            <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"monospace",marginBottom:8}}>Match {m.id} · {m.teeTime}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              {[{k:"player1a",col:TEAM_A_COLOR,lbl:"A1",team:"A"},{k:"player1b",col:TEAM_A_COLOR,lbl:"A2",team:"A"},{k:"player2a",col:TEAM_B_DISP,lbl:"B1",team:"B"},{k:"player2b",col:TEAM_B_DISP,lbl:"B2",team:"B"}].map(slot=>(
+                <div key={slot.k}>
+                  <div style={{fontSize:8,color:slot.col,fontFamily:"monospace",marginBottom:2}}>{slot.lbl}</div>
+                  <select value={pairings.d2[m.id]?.[slot.k]||""} onChange={e=>setPairings(p=>({...p,d2:{...p.d2,[m.id]:{...p.d2[m.id],[slot.k]:e.target.value}}}))} style={selStyle}>
+                    <option value="">—</option>
+                    {(slot.team==="A"?teamANames:teamBNames).map(n=><option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div style={{fontSize:10,color:MUTED2,fontFamily:"monospace",marginBottom:6,letterSpacing:1,marginTop:12}}>SUNDAY — Day 3</div>
+        {days[2].matches.map(m=>(
+          <div key={m.id} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
+            <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"monospace",marginBottom:8}}>Match {m.id} · {m.teeTime}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              {[{k:"player1a",col:TEAM_A_COLOR,lbl:"A",team:"A"},{k:"player2a",col:TEAM_B_DISP,lbl:"B",team:"B"}].map(slot=>(
+                <div key={slot.k}>
+                  <div style={{fontSize:8,color:slot.col,fontFamily:"monospace",marginBottom:2}}>{slot.lbl}</div>
+                  <select value={pairings.d3[m.id]?.[slot.k]||""} onChange={e=>setPairings(p=>({...p,d3:{...p.d3,[m.id]:{...p.d3[m.id],[slot.k]:e.target.value}}}))} style={selStyle}>
+                    <option value="">—</option>
+                    {(slot.team==="A"?teamANames:teamBNames).map(n=><option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* RESET MATCHES */}
+      <div>
+        <div style={{fontSize:11,fontWeight:900,color:"#e55",letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>RESET MATCHES</div>
+        {days.map((day,di)=>day.matches.map(m=>(
+          <div key={m.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,marginBottom:6}}>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:TEXT}}>{m.player1a}{m.player1b?` & ${m.player1b}`:""} vs {m.player2a}{m.player2b?` & ${m.player2b}`:""}</div>
+              <div style={{fontSize:9,color:MUTED,fontFamily:"monospace"}}>Match {m.id} · Day {di+1}</div>
+            </div>
+            <button onClick={()=>setConfirmReset(m.id)} style={{padding:"5px 10px",background:"#c0392b22",border:"1px solid #c0392b66",borderRadius:7,color:"#e55",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"monospace",flexShrink:0}}>Reset</button>
+          </div>
+        )))}
+      </div>
     </div>
   );
 }
@@ -638,13 +891,31 @@ function TVDayBlock({ day, onOpen, canEdit }) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
+  const [theme, setTheme]           = useState(_initTheme);
   const [days, setDays]             = useState(initialDays);
   const [loaded, setLoaded]         = useState(false);
   const [currentPlayer, setCurrentPlayer] = useState(()=>{ try{return localStorage.getItem("jr_player")||null;}catch{return null;} });
   const [tab, setTab]               = useState("scoreboard");
   const [activeMatch, setActiveMatch] = useState(null);
+  const [adminEditMatch, setAdminEditMatch] = useState(null);
   const [boardDayOverride, setBoardDayOverride] = useState(null);
+  const [offlineQueue, setOfflineQueue] = useState(()=>{ try{return JSON.parse(localStorage.getItem("jr_offline_queue")||"[]");}catch{return [];} });
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [matchCelebration, setMatchCelebration] = useState(null);
   const isSaving = useRef(false);
+  const prevWinnerRef = useRef(null);
+  const prevMatchStates = useRef({});
+  const confettiFired = useRef(false);
+  const celebTimer = useRef(null);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    const t = next === "light" ? _LIGHT : _DARK;
+    BG = t.bg; CARD = t.card; CARD2 = t.card2; BORDER = t.border;
+    TEXT = t.text; MUTED = t.muted; MUTED2 = t.muted2;
+    setTheme(next);
+    try { localStorage.setItem("jr_theme", next); } catch {}
+  };
 
   // ── Firebase: subscribe to all match data ──
   useEffect(()=>{
@@ -653,20 +924,19 @@ export default function App() {
       if (isSaving.current) return; // ignore echo of our own write
       const data = snapshot.val();
       if (!data) { setLoaded(true); return; }
-      // Merge firebase data into initialDays structure
       setDays(prev => prev.map(day => ({
         ...day,
         matches: day.matches.map(m => {
           const fbMatch = data[`m${m.id}`];
           if (!fbMatch) return m;
-          // Firebase stores arrays as objects {0:val,1:val,...} — convert back
           const rawScores = fbMatch.scores;
           const scores = Array.isArray(rawScores)
             ? rawScores
             : Array.from({length:18}, (_,i) => rawScores?.[i] ?? null);
+          const rawDisputes = fbMatch.disputes;
+          const disputes = rawDisputes ? Object.values(rawDisputes).filter(v=>v!=null) : [];
           return {
-            ...m,
-            scores,
+            ...m, scores, disputes,
             hcp1a: fbMatch.hcp1a ?? m.hcp1a,
             hcp1b: fbMatch.hcp1b ?? m.hcp1b,
             hcp2a: fbMatch.hcp2a ?? m.hcp2a,
@@ -683,26 +953,101 @@ export default function App() {
     return ()=> unsub();
   }, []);
 
-  // ── Firebase: write a single match on update ──
-  const updateMatch = (dayIdx, upd) => {
+  // ── Firebase: subscribe to pairings ──
+  useEffect(()=>{
+    const unsub = onValue(ref(db,"pairings"), snapshot=>{
+      const data = snapshot.val();
+      if (!data) return;
+      setDays(prev => prev.map((day,di)=>{
+        const dayKey = di===1?"day2":di===2?"day3":null;
+        if (!dayKey || !data[dayKey]) return day;
+        return {
+          ...day,
+          matches: day.matches.map(m=>{
+            const p = data[dayKey][`m${m.id}`];
+            if (!p) return m;
+            return {...m, ...p};
+          })
+        };
+      }));
+    });
+    return ()=> unsub();
+  }, []);
+
+  // ── Firebase: write a single match on update (with offline queue) ──
+  const updateMatch = async (dayIdx, upd) => {
     isSaving.current = true;
     setDays(ds => ds.map((d,i) => i!==dayIdx ? d : {
       ...d, matches: d.matches.map(m => m.id===upd.id ? upd : m)
     }));
+    const path = `matches/m${upd.id}`;
     const payload = {
       scores: upd.scores,
-      hcp1a: upd.hcp1a||0,
-      hcp1b: upd.hcp1b||0,
-      hcp2a: upd.hcp2a||0,
-      hcp2b: upd.hcp2b||0,
+      hcp1a: upd.hcp1a||0, hcp1b: upd.hcp1b||0,
+      hcp2a: upd.hcp2a||0, hcp2b: upd.hcp2b||0,
     };
-    // Store gross scores for leaderboard if provided
     if (upd.grossP1a) payload.grossP1a = upd.grossP1a;
     if (upd.grossP1b) payload.grossP1b = upd.grossP1b;
     if (upd.grossP2a) payload.grossP2a = upd.grossP2a;
     if (upd.grossP2b) payload.grossP2b = upd.grossP2b;
-    set(ref(db, `matches/m${upd.id}`), payload).finally(()=>{ isSaving.current = false; });
+    if (upd.disputes !== undefined) payload.disputes = upd.disputes || null;
+    try {
+      await set(ref(db, path), payload);
+    } catch {
+      setOfflineQueue(prev=>{
+        const q = [...prev.filter(x=>x.path!==path), {path, payload}];
+        try { localStorage.setItem("jr_offline_queue", JSON.stringify(q)); } catch {}
+        return q;
+      });
+    } finally {
+      isSaving.current = false;
+    }
   };
+
+  // ── Flush offline queue when back online ──
+  useEffect(()=>{
+    const flush = async () => {
+      if (!offlineQueue.length) return;
+      try {
+        for (const item of offlineQueue) await set(ref(db, item.path), item.payload);
+        setOfflineQueue([]);
+        try { localStorage.removeItem("jr_offline_queue"); } catch {}
+        setSyncStatus("synced");
+        setTimeout(()=>setSyncStatus(null), 2500);
+      } catch {}
+    };
+    window.addEventListener("online", flush);
+    return ()=> window.removeEventListener("online", flush);
+  }, [offlineQueue]);
+
+  // ── Confetti when cup is won ──
+  useEffect(()=>{
+    if (winner && !prevWinnerRef.current && !confettiFired.current) {
+      confettiFired.current = true;
+      const col = winner===TEAM_A_SHORT?["#C8102E","#ff8888","#C4A44A","#fff"]:["#003087","#4A90D9","#C4A44A","#fff"];
+      confetti({particleCount:200,spread:120,origin:{y:0.35},colors:col});
+      setTimeout(()=>confetti({particleCount:100,spread:80,origin:{y:0.35,x:0.2},colors:col}),400);
+      setTimeout(()=>confetti({particleCount:100,spread:80,origin:{y:0.35,x:0.8},colors:col}),700);
+    }
+    prevWinnerRef.current = winner;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [winner]);
+
+  // ── Match completion celebration ──
+  useEffect(()=>{
+    for (const day of days) for (const m of day.matches) {
+      const s = computeMatchStatus(m.scores);
+      const prev = prevMatchStates.current[m.id];
+      if (prev !== undefined && prev === "live" && (s.state==="complete"||s.state==="halved")) {
+        const color = s.state==="halved"?"#334455":s.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR;
+        setMatchCelebration({label:s.longLabel, sublabel:s.sublabel||(s.state==="halved"?"½ pt each":"1 point"), color});
+        if (celebTimer.current) clearTimeout(celebTimer.current);
+        celebTimer.current = setTimeout(()=>setMatchCelebration(null), 1500);
+      }
+      prevMatchStates.current[m.id] = s.state;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days]);
 
   useEffect(()=>{ try{if(currentPlayer)localStorage.setItem("jr_player",currentPlayer);else localStorage.removeItem("jr_player");}catch{} },[currentPlayer]);
 
@@ -739,7 +1084,7 @@ export default function App() {
 
   // Loading screen
   if (!loaded) return (
-    <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"monospace",color:"#446"}}>
+    <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"monospace",color:MUTED}}>
       <div style={{marginBottom:16}}>{CBS_LOGO_LG}</div>
       <div style={{fontSize:12,letterSpacing:3,animation:"pulse 1.5s infinite"}}>CONNECTING...</div>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}*{box-sizing:border-box;margin:0;padding:0}`}</style>
@@ -747,6 +1092,14 @@ export default function App() {
   );
 
   if (!currentPlayer) return <PlayerSelect onSelect={name=>setCurrentPlayer(name)}/>;
+
+  if (adminEditMatch) {
+    const d=days[adminEditMatch.dayIdx];
+    const m=d.matches.find(x=>x.id===adminEditMatch.matchId);
+    return <AdminMatchEditor match={m} isSingles={d.format==="Singles"} courseKey={d.courseKey}
+      onSave={upd=>{updateMatch(adminEditMatch.dayIdx,upd);setAdminEditMatch(null);}}
+      onClose={()=>setAdminEditMatch(null)}/>;
+  }
 
   if (activeMatch) {
     const d=days[activeMatch.dayIdx];
@@ -758,8 +1111,16 @@ export default function App() {
   const playerTeamColor = playerInfo?.team==="A" ? TEAM_A_COLOR : TEAM_B_COLOR;
 
   return (
-    <div style={{minHeight:"100vh",background:BG,fontFamily:"'Arial Narrow','Arial',sans-serif",color:"#ccd",paddingBottom:60}}>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}*{box-sizing:border-box;margin:0;padding:0}html,body{background:${BG};}`}</style>
+    <div style={{minHeight:"100vh",background:BG,fontFamily:"'Arial Narrow','Arial',sans-serif",color:TEXT,paddingBottom:60}}>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}@keyframes celebFade{to{opacity:0;pointer-events:none}}*{box-sizing:border-box;margin:0;padding:0}html,body{background:${BG};}`}</style>
+
+      {/* Match completion celebration overlay */}
+      {matchCelebration&&(
+        <div style={{position:"fixed",inset:0,zIndex:1000,background:matchCelebration.color,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",animation:"celebFade 0.3s ease 1.2s forwards",pointerEvents:"none"}}>
+          <div style={{fontSize:42,fontWeight:900,color:"#fff",fontFamily:"monospace",letterSpacing:3,textAlign:"center",padding:"0 20px"}}>{matchCelebration.label}</div>
+          <div style={{fontSize:22,color:"rgba(255,255,255,0.85)",fontFamily:"monospace",marginTop:10}}>{matchCelebration.sublabel}</div>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,borderBottom:`2px solid ${BORDER}`,position:"sticky",top:0,zIndex:100}}>
@@ -772,9 +1133,14 @@ export default function App() {
           </div>
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3}}>
             {liveCount>0&&<div style={{fontSize:9,color:"#4caf50",fontWeight:700,animation:"pulse 2s infinite",letterSpacing:1}}>● {liveCount} LIVE</div>}
-            <button onClick={()=>setCurrentPlayer(null)} style={{fontSize:9,padding:"3px 8px",background:`${playerTeamColor}22`,border:`1px solid ${playerTeamColor}55`,borderRadius:5,color:"#ccd",cursor:"pointer",fontFamily:"monospace",whiteSpace:"nowrap"}}>
-              👤 {currentPlayer} ✕
-            </button>
+            <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              {offlineQueue.length>0&&<div style={{fontSize:8,color:"#f39c12",fontFamily:"monospace",fontWeight:700,whiteSpace:"nowrap"}}>⚡ Offline — {offlineQueue.length} pending</div>}
+              {syncStatus==="synced"&&<div style={{fontSize:8,color:"#4caf50",fontFamily:"monospace",fontWeight:700}}>✓ Synced</div>}
+              <button onClick={toggleTheme} title={theme==="dark"?"Switch to light mode":"Switch to dark mode"} style={{fontSize:14,background:"none",border:"none",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>{theme==="dark"?"☀️":"🌙"}</button>
+              <button onClick={()=>setCurrentPlayer(null)} style={{fontSize:9,padding:"3px 8px",background:`${playerTeamColor}22`,border:`1px solid ${playerTeamColor}55`,borderRadius:5,color:TEXT,cursor:"pointer",fontFamily:"monospace",whiteSpace:"nowrap"}}>
+                👤 {currentPlayer} ✕
+              </button>
+            </div>
           </div>
         </div>
 
@@ -801,8 +1167,8 @@ export default function App() {
 
       {/* Tabs */}
       <div style={{display:"flex",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
-        {[["scoreboard","📊 BOARD"],["matches","⛳ MY MATCH"],["leaderboard","🏌️ SCORES"]].map(([key,label])=>(
-          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:"#446",fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"monospace"}}>{label}</button>
+        {[["scoreboard","📊 BOARD"],["matches","⛳ MY MATCH"],...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),["leaderboard","🏌️ SCORES"]].map(([key,label])=>(
+          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:MUTED,fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"monospace"}}>{label}</button>
         ))}
       </div>
 
@@ -815,7 +1181,10 @@ export default function App() {
               ))}
             </div>
             <TVDayBlock day={boardDay} onOpen={mid=>{
-              if(canEdit(boardDayIdx,mid)) setActiveMatch({dayIdx:boardDayIdx,matchId:mid});
+              if(canEdit(boardDayIdx,mid)){
+                if(isAdmin) setAdminEditMatch({dayIdx:boardDayIdx,matchId:mid});
+                else setActiveMatch({dayIdx:boardDayIdx,matchId:mid});
+              }
             }} canEdit={(mid)=>canEdit(boardDayIdx,mid)}/>
 
             {/* Hole-by-hole match breakdowns */}
@@ -939,7 +1308,7 @@ export default function App() {
                           {/* Hole number columns */}
                           {Array.from({length:18},(_,i)=>(
                             <td key={i} style={{textAlign:"center",padding:"5px 4px",fontSize:8,color:"#668",fontFamily:"monospace",minWidth:34,borderLeft:i===9?`1px solid ${BORDER}`:undefined,fontWeight:i===9||i===0?"800":"400"}}>
-                              {i+1}
+                              {i+1}{(m.disputes||[]).includes(i)?<span style={{color:"#e55",fontSize:7,marginLeft:1}}>🚩</span>:null}
                             </td>
                           ))}
                         </tr>
@@ -1030,6 +1399,8 @@ export default function App() {
             )}
           </div>
         )}
+
+        {tab==="admin"&&isAdmin&&<AdminSection days={days}/>}
 
         {tab==="leaderboard"&&(()=>{
           const lbDay = days[boardDayIdx];
