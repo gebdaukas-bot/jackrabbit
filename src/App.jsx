@@ -196,18 +196,77 @@ function PlayerSelect({ onSelect }) {
 }
 
 // ── Score Input ───────────────────────────────────────────────────────────────
-function ScoreInput({ label, hcp, value, onChange, color, labelColor }) {
+function ScoreInput({ label, hcp, value, onChange, color, labelColor, par }) {
+  const diff = value - (par || 4);
+
+  // Golf notation styling
+  let scoreDisplay;
+  if (diff <= -2) {
+    // Eagle or better — two concentric circles
+    scoreDisplay = (
+      <div style={{position:"relative",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{position:"absolute",width:44,height:44,borderRadius:"50%",border:"2px solid #FFD700"}}/>
+        <div style={{position:"absolute",width:32,height:32,borderRadius:"50%",border:"2px solid #FFD700"}}/>
+        <span style={{fontSize:20,fontWeight:900,color:"#FFD700",fontFamily:"monospace",zIndex:1}}>{value}</span>
+      </div>
+    );
+  } else if (diff === -1) {
+    // Birdie — one circle
+    scoreDisplay = (
+      <div style={{position:"relative",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{position:"absolute",width:44,height:44,borderRadius:"50%",border:"2px solid #4caf50"}}/>
+        <span style={{fontSize:20,fontWeight:900,color:"#4caf50",fontFamily:"monospace",zIndex:1}}>{value}</span>
+      </div>
+    );
+  } else if (diff === 0) {
+    // Par — plain
+    scoreDisplay = (
+      <span style={{fontSize:20,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{value}</span>
+    );
+  } else if (diff === 1) {
+    // Bogey — one square
+    scoreDisplay = (
+      <div style={{position:"relative",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{position:"absolute",width:40,height:40,border:"2px solid #e88",borderRadius:3}}/>
+        <span style={{fontSize:20,fontWeight:900,color:"#e88",fontFamily:"monospace",zIndex:1}}>{value}</span>
+      </div>
+    );
+  } else if (diff === 2) {
+    // Double bogey — two squares
+    scoreDisplay = (
+      <div style={{position:"relative",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{position:"absolute",width:44,height:44,border:"2px solid #e55",borderRadius:3}}/>
+        <div style={{position:"absolute",width:34,height:34,border:"2px solid #e55",borderRadius:2}}/>
+        <span style={{fontSize:20,fontWeight:900,color:"#e55",fontFamily:"monospace",zIndex:1}}>{value}</span>
+      </div>
+    );
+  } else {
+    // Triple bogey or worse — filled red square
+    scoreDisplay = (
+      <div style={{position:"relative",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:"#c0392b",borderRadius:3}}>
+        <span style={{fontSize:20,fontWeight:900,color:"#fff",fontFamily:"monospace",zIndex:1}}>{value}</span>
+      </div>
+    );
+  }
+
   return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
       <div style={{fontSize:11,fontWeight:700,color:labelColor||color,fontFamily:"monospace",textAlign:"center",maxWidth:90,lineHeight:1.2}}>
         {labelColor ? `★ ${label}` : label}
       </div>
       {hcp>0&&<div style={{fontSize:9,color:GOLD,fontFamily:"monospace"}}>HCP {hcp}</div>}
-      <div style={{display:"flex",alignItems:"center"}}>
-        <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:34,height:42,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"#8aa",cursor:"pointer"}}>−</button>
-        <div style={{width:48,height:42,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{value}</div>
-        <button onClick={()=>onChange(Math.min(12,value+1))} style={{width:34,height:42,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 7px 7px 0",color:"#8aa",cursor:"pointer"}}>+</button>
+      <div style={{display:"flex",alignItems:"center",gap:0}}>
+        <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"#8aa",cursor:"pointer"}}>−</button>
+        <div style={{width:52,height:52,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          {scoreDisplay}
+        </div>
+        <button onClick={()=>onChange(Math.min(12,value+1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 7px 7px 0",color:"#8aa",cursor:"pointer"}}>+</button>
       </div>
+      {par && diff !== 0 && (
+        <div style={{fontSize:8,color:diff<0?"#4caf50":diff===1?"#e88":diff===2?"#e55":"#c0392b",fontFamily:"monospace",fontWeight:700}}>
+          {diff > 0 ? `+${diff}` : diff}
+        </div>
+      )}
     </div>
   );
 }
@@ -273,7 +332,19 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
 
   const handleConfirm=()=>{
     const ns=[...match.scores]; ns[hole]=hw;
-    onSave({...match,scores:ns});
+    // Build updated gross score arrays (18 holes each)
+    const toArr = (existing, newVal) => {
+      const arr = Array.isArray(existing) ? [...existing] : Array(18).fill(null);
+      arr[hole] = newVal;
+      return arr;
+    };
+    onSave({
+      ...match, scores:ns,
+      grossP1a: toArr(match.grossP1a, sc.p1a),
+      grossP1b: isSingles ? match.grossP1b : toArr(match.grossP1b, sc.p1b),
+      grossP2a: toArr(match.grossP2a, sc.p2a),
+      grossP2b: isSingles ? match.grossP2b : toArr(match.grossP2b, sc.p2b),
+    });
     if(hole<17){
       const nextPar=course.par[hole+1];
       setHole(h=>h+1);
@@ -360,16 +431,16 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
           <div style={{background:`${TEAM_A_COLOR}18`,border:`1px solid ${TEAM_A_COLOR}44`,borderRadius:12,padding:"12px",marginBottom:8}}>
             <div style={{fontSize:9,color:TEAM_A_COLOR,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_A_SHORT}</div>
             <div style={{display:"flex",justifyContent:isSingles?"center":"space-around"}}>
-              <ScoreInput label={match.player1a} hcp={match.hcp1a||0} value={sc.p1a} onChange={v=>setSc(s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={strokeReceivers.includes(match.player1a)?GOLD:null}/>
-              {!isSingles&&<ScoreInput label={match.player1b} hcp={match.hcp1b||0} value={sc.p1b} onChange={v=>setSc(s=>({...s,p1b:v}))} color={TEAM_A_COLOR} labelColor={strokeReceivers.includes(match.player1b)?GOLD:null}/>}
+              <ScoreInput label={match.player1a} hcp={match.hcp1a||0} value={sc.p1a} onChange={v=>setSc(s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={strokeReceivers.includes(match.player1a)?GOLD:null} par={holePar}/>
+              {!isSingles&&<ScoreInput label={match.player1b} hcp={match.hcp1b||0} value={sc.p1b} onChange={v=>setSc(s=>({...s,p1b:v}))} color={TEAM_A_COLOR} labelColor={strokeReceivers.includes(match.player1b)?GOLD:null} par={holePar}/>}
             </div>
             {!isSingles&&<div style={{textAlign:"center",marginTop:8,fontSize:10,color:"#fff4"}}>best net: <span style={{color:"#fff",fontWeight:700}}>{teamANet}</span></div>}
           </div>
           <div style={{background:`${TEAM_B_COLOR}33`,border:`1px solid ${TEAM_B_COLOR}66`,borderRadius:12,padding:"12px",marginBottom:10}}>
             <div style={{fontSize:9,color:TEAM_B_DISP,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_B_SHORT}</div>
             <div style={{display:"flex",justifyContent:isSingles?"center":"space-around"}}>
-              <ScoreInput label={match.player2a} hcp={match.hcp2a||0} value={sc.p2a} onChange={v=>setSc(s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={strokeReceivers.includes(match.player2a)?GOLD:null}/>
-              {!isSingles&&<ScoreInput label={match.player2b} hcp={match.hcp2b||0} value={sc.p2b} onChange={v=>setSc(s=>({...s,p2b:v}))} color={TEAM_B_DISP} labelColor={strokeReceivers.includes(match.player2b)?GOLD:null}/>}
+              <ScoreInput label={match.player2a} hcp={match.hcp2a||0} value={sc.p2a} onChange={v=>setSc(s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={strokeReceivers.includes(match.player2a)?GOLD:null} par={holePar}/>
+              {!isSingles&&<ScoreInput label={match.player2b} hcp={match.hcp2b||0} value={sc.p2b} onChange={v=>setSc(s=>({...s,p2b:v}))} color={TEAM_B_DISP} labelColor={strokeReceivers.includes(match.player2b)?GOLD:null} par={holePar}/>}
             </div>
             {!isSingles&&<div style={{textAlign:"center",marginTop:8,fontSize:10,color:"#fff4"}}>best net: <span style={{color:"#fff",fontWeight:700}}>{teamBNet}</span></div>}
           </div>
@@ -527,6 +598,10 @@ export default function App() {
             hcp1b: fbMatch.hcp1b ?? m.hcp1b,
             hcp2a: fbMatch.hcp2a ?? m.hcp2a,
             hcp2b: fbMatch.hcp2b ?? m.hcp2b,
+            grossP1a: fbMatch.grossP1a || null,
+            grossP1b: fbMatch.grossP1b || null,
+            grossP2a: fbMatch.grossP2a || null,
+            grossP2b: fbMatch.grossP2b || null,
           };
         })
       })));
@@ -541,14 +616,19 @@ export default function App() {
     setDays(ds => ds.map((d,i) => i!==dayIdx ? d : {
       ...d, matches: d.matches.map(m => m.id===upd.id ? upd : m)
     }));
-    // Write just the changed match to Firebase
-    set(ref(db, `matches/m${upd.id}`), {
+    const payload = {
       scores: upd.scores,
       hcp1a: upd.hcp1a||0,
       hcp1b: upd.hcp1b||0,
       hcp2a: upd.hcp2a||0,
       hcp2b: upd.hcp2b||0,
-    }).finally(()=>{ isSaving.current = false; });
+    };
+    // Store gross scores for leaderboard if provided
+    if (upd.grossP1a) payload.grossP1a = upd.grossP1a;
+    if (upd.grossP1b) payload.grossP1b = upd.grossP1b;
+    if (upd.grossP2a) payload.grossP2a = upd.grossP2a;
+    if (upd.grossP2b) payload.grossP2b = upd.grossP2b;
+    set(ref(db, `matches/m${upd.id}`), payload).finally(()=>{ isSaving.current = false; });
   };
 
   useEffect(()=>{ try{if(currentPlayer)localStorage.setItem("jr_player",currentPlayer);else localStorage.removeItem("jr_player");}catch{} },[currentPlayer]);
@@ -711,96 +791,179 @@ export default function App() {
         )}
 
         {tab==="leaderboard"&&(()=>{
-          // Build per-player gross score totals across the current board day
-          // We store gross scores only in local UI state (not in Firebase), so we
-          // show match-play hole results (A/B/H) and compute relative-to-par from
-          // the confirmed hole results per player pair.
-          // Since we only store hole WINNERS not raw scores, we show match-play
-          // standings per player instead — who won/lost how many holes.
-
-          // Collect all matches for the viewed day
           const lbDay = days[boardDayIdx];
+          const course = COURSES[lbDay.courseKey];
           const isSingles = lbDay.format === "Singles";
 
-          // Build rows: one per player pairing
-          const rows = lbDay.matches.map(m => {
-            const holesA = m.scores.filter(s=>s==="A").length;
-            const holesB = m.scores.filter(s=>s==="B").length;
-            const holesH = m.scores.filter(s=>s==="H").length;
-            const played = holesA + holesB + holesH;
-            const st = computeMatchStatus(m.scores);
-            return { m, holesA, holesB, holesH, played, st, isSingles };
+          // Build one row per player
+          const playerRows = [];
+          for (const m of lbDay.matches) {
+            const players = isSingles
+              ? [{name:m.player1a,gross:m.grossP1a,team:"A"},{name:m.player2a,gross:m.grossP2a,team:"B"}]
+              : [
+                  {name:m.player1a,gross:m.grossP1a,team:"A"},
+                  {name:m.player1b,gross:m.grossP1b,team:"A"},
+                  {name:m.player2a,gross:m.grossP2a,team:"B"},
+                  {name:m.player2b,gross:m.grossP2b,team:"B"},
+                ];
+            for (const p of players) {
+              if (!p.name || p.name.startsWith("Player ")) continue;
+              const grossArr = Array.isArray(p.gross) ? p.gross : Array(18).fill(null);
+              let total = 0, toPar = 0, holesPlayed = 0;
+              for (let i = 0; i < 18; i++) {
+                if (grossArr[i] !== null) {
+                  total += grossArr[i];
+                  toPar += grossArr[i] - course.par[i];
+                  holesPlayed++;
+                }
+              }
+              playerRows.push({ name:p.name, team:p.team, gross:grossArr, total, toPar, holesPlayed });
+            }
+          }
+
+          // Sort: most holes played first, then lowest toPar
+          playerRows.sort((a,b) => {
+            if (b.holesPlayed !== a.holesPlayed) return b.holesPlayed - a.holesPlayed;
+            return a.toPar - b.toPar;
           });
 
+          // Assign positions (tied players share position)
+          let pos = 1;
+          for (let i = 0; i < playerRows.length; i++) {
+            if (i > 0 && playerRows[i].toPar === playerRows[i-1].toPar && playerRows[i].holesPlayed === playerRows[i-1].holesPlayed) {
+              playerRows[i].pos = "T" + pos;
+              playerRows[i-1].pos = "T" + pos;
+            } else {
+              pos = i + 1;
+              playerRows[i].pos = String(pos);
+            }
+          }
+
+          const fmtToPar = (n, played) => {
+            if (played === 0) return "—";
+            if (n === 0) return "E";
+            return n > 0 ? `+${n}` : `${n}`;
+          };
+          const toParColor = (n, played) => {
+            if (played === 0) return "#446";
+            if (n < 0) return "#4caf50";
+            if (n === 0) return "#ccd";
+            if (n <= 2) return "#e88";
+            return "#c0392b";
+          };
+
+          // Score notation for individual holes
+          const HoleScore = ({gross, par}) => {
+            if (gross === null) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#335"}}>·</div>;
+            const diff = gross - par;
+            if (diff <= -2) return (
+              <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{position:"absolute",width:22,height:22,borderRadius:"50%",border:"1.5px solid #FFD700"}}/>
+                <div style={{position:"absolute",width:15,height:15,borderRadius:"50%",border:"1.5px solid #FFD700"}}/>
+                <span style={{fontSize:9,fontWeight:900,color:"#FFD700",zIndex:1}}>{gross}</span>
+              </div>
+            );
+            if (diff === -1) return (
+              <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{position:"absolute",width:22,height:22,borderRadius:"50%",border:"1.5px solid #4caf50"}}/>
+                <span style={{fontSize:9,fontWeight:900,color:"#4caf50",zIndex:1}}>{gross}</span>
+              </div>
+            );
+            if (diff === 0) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"#ccd"}}>{gross}</div>;
+            if (diff === 1) return (
+              <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{position:"absolute",width:22,height:22,border:"1.5px solid #e88",borderRadius:2}}/>
+                <span style={{fontSize:9,fontWeight:900,color:"#e88",zIndex:1}}>{gross}</span>
+              </div>
+            );
+            if (diff === 2) return (
+              <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{position:"absolute",width:22,height:22,border:"1.5px solid #e55",borderRadius:2}}/>
+                <div style={{position:"absolute",width:15,height:15,border:"1.5px solid #e55",borderRadius:1}}/>
+                <span style={{fontSize:9,fontWeight:900,color:"#e55",zIndex:1}}>{gross}</span>
+              </div>
+            );
+            return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",background:"#c0392b",borderRadius:2,fontSize:9,fontWeight:900,color:"#fff"}}>{gross}</div>;
+          };
+
           return (
-            <div style={{paddingBottom:20}}>
+            <div style={{paddingBottom:30}}>
               <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.7}}>
-                {lbDay.label.toUpperCase()} · HOLE-BY-HOLE RESULTS
+                {lbDay.label.toUpperCase()} · INDIVIDUAL SCORES
               </div>
 
-              {/* Header */}
-              <div style={{display:"flex",background:"#060f22",borderRadius:"8px 8px 0 0",padding:"6px 10px",border:`1px solid ${BORDER}`,borderBottom:"none"}}>
-                <div style={{flex:2,fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:1}}>PLAYERS</div>
-                <div style={{width:36,textAlign:"center",fontSize:8,color:TEAM_A_COLOR,fontFamily:"monospace"}}>WON</div>
-                <div style={{width:36,textAlign:"center",fontSize:8,color:"#557",fontFamily:"monospace"}}>HLV</div>
-                <div style={{width:36,textAlign:"center",fontSize:8,color:TEAM_B_DISP,fontFamily:"monospace"}}>LOST</div>
-                <div style={{width:50,textAlign:"center",fontSize:8,color:GOLD,fontFamily:"monospace"}}>STATUS</div>
-              </div>
-
-              {rows.map(({m, holesA, holesB, holesH, played, st},i)=>{
-                const isAMatch = true; // all player1x are team A
-                const aColor = st.state==="complete"&&st.leader==="A" ? TEAM_A_COLOR : st.state==="complete"&&st.leader==="B" ? "#3a4a5a" : "#ccd";
-                const bColor = st.state==="complete"&&st.leader==="B" ? TEAM_B_DISP : st.state==="complete"&&st.leader==="A" ? "#3a4a5a" : "#ccd";
-                const stColor = st.state==="complete"?(st.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR):st.state==="halved"?"#668":st.state==="live"?"#4caf50":"#446";
-                return (
-                  <div key={m.id} style={{border:`1px solid ${BORDER}`,borderTop:i===0?undefined:`1px solid ${BORDER}`,background:CARD,padding:"10px 10px",display:"flex",alignItems:"center",borderRadius:i===rows.length-1?"0 0 8px 8px":0}}>
-                    <div style={{flex:2,minWidth:0}}>
-                      <div style={{fontSize:12,fontWeight:700,color:aColor,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                        {isSingles ? m.player1a : `${m.player1a} & ${m.player1b}`}
-                      </div>
-                      <div style={{fontSize:9,color:"#335",margin:"1px 0"}}>vs</div>
-                      <div style={{fontSize:12,fontWeight:700,color:bColor,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                        {isSingles ? m.player2a : `${m.player2a} & ${m.player2b}`}
-                      </div>
-                      {m.teeTime!=="TBD"&&<div style={{fontSize:8,color:"#446",fontFamily:"monospace",marginTop:2}}>{m.teeTime}</div>}
+              {playerRows.length === 0 ? (
+                <div style={{textAlign:"center",padding:"40px 20px",color:"#446"}}>
+                  <div style={{fontSize:24,marginBottom:8}}>⛳</div>
+                  <div style={{fontSize:12}}>No scores entered yet</div>
+                </div>
+              ) : (
+                <>
+                  {/* Leaderboard table */}
+                  <div style={{borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`,marginBottom:16}}>
+                    {/* Header */}
+                    <div style={{display:"flex",background:"#060f22",padding:"6px 10px",borderBottom:`1px solid ${BORDER}`}}>
+                      <div style={{width:28,fontSize:8,color:"#446",fontFamily:"monospace"}}>POS</div>
+                      <div style={{flex:1,fontSize:8,color:"#446",fontFamily:"monospace"}}>PLAYER</div>
+                      <div style={{width:32,textAlign:"center",fontSize:8,color:"#446",fontFamily:"monospace"}}>TO PAR</div>
+                      <div style={{width:32,textAlign:"center",fontSize:8,color:"#446",fontFamily:"monospace"}}>GROSS</div>
+                      <div style={{width:32,textAlign:"center",fontSize:8,color:"#446",fontFamily:"monospace"}}>THRU</div>
                     </div>
-                    <div style={{width:36,textAlign:"center",fontSize:16,fontWeight:900,color:TEAM_A_COLOR,fontFamily:"monospace"}}>{holesA}</div>
-                    <div style={{width:36,textAlign:"center",fontSize:16,fontWeight:900,color:"#557",fontFamily:"monospace"}}>{holesH}</div>
-                    <div style={{width:36,textAlign:"center",fontSize:16,fontWeight:900,color:TEAM_B_DISP,fontFamily:"monospace"}}>{holesB}</div>
-                    <div style={{width:50,textAlign:"center"}}>
-                      <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",lineHeight:1.2}}>{st.shortLabel}</div>
-                      {played>0&&<div style={{fontSize:8,color:"#446",fontFamily:"monospace"}}>/{played}</div>}
-                    </div>
+                    {playerRows.map((p,i)=>(
+                      <div key={p.name} style={{display:"flex",alignItems:"center",padding:"10px 10px",background:i%2===0?CARD:CARD2,borderBottom:i<playerRows.length-1?`1px solid ${BORDER}33`:undefined}}>
+                        <div style={{width:28,fontSize:11,fontWeight:800,color:"#446",fontFamily:"monospace"}}>{p.pos}</div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:13,fontWeight:700,color:p.team==="A"?TEAM_A_COLOR:TEAM_B_DISP,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
+                          <div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:1}}>{p.team==="A"?TEAM_A_SHORT:TEAM_B_SHORT}</div>
+                        </div>
+                        <div style={{width:32,textAlign:"center",fontSize:15,fontWeight:900,color:toParColor(p.toPar,p.holesPlayed),fontFamily:"monospace"}}>{fmtToPar(p.toPar,p.holesPlayed)}</div>
+                        <div style={{width:32,textAlign:"center",fontSize:13,color:"#668",fontFamily:"monospace"}}>{p.holesPlayed>0?p.total:"—"}</div>
+                        <div style={{width:32,textAlign:"center",fontSize:11,color:"#446",fontFamily:"monospace"}}>{p.holesPlayed>0?p.holesPlayed:"—"}</div>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
 
-              {/* Mini hole-by-hole grid for each match */}
-              <div style={{marginTop:14}}>
-                <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:8,opacity:0.7}}>HOLE BY HOLE</div>
-                {rows.map(({m, st},i)=>(
-                  <div key={m.id} style={{marginBottom:10,background:CARD,borderRadius:10,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",padding:"6px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
-                      <div style={{fontSize:10,fontWeight:700,color:TEAM_A_COLOR}}>{isSingles?m.player1a:`${m.player1a} & ${m.player1b}`}</div>
-                      <div style={{fontSize:9,fontWeight:800,color:st.state==="live"?"#4caf50":st.state==="complete"?(st.leader==="A"?TEAM_A_COLOR:TEAM_B_DISP):"#446",fontFamily:"monospace"}}>{st.shortLabel}</div>
-                      <div style={{fontSize:10,fontWeight:700,color:TEAM_B_DISP,textAlign:"right"}}>{isSingles?m.player2a:`${m.player2a} & ${m.player2b}`}</div>
-                    </div>
-                    <div style={{display:"flex",padding:"6px 6px",gap:2}}>
-                      {Array.from({length:18},(_,hi)=>{
-                        const s=m.scores[hi];
-                        const bg=s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_COLOR:s==="H"?"#334":CARD2;
-                        const label=s==="A"?"A":s==="B"?"B":s==="H"?"½":"·";
-                        return (
-                          <div key={hi} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-                            <div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>{hi+1}</div>
-                            <div style={{width:"100%",height:20,background:bg,borderRadius:3,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:s?"#fff":"#334",fontWeight:700}}>{label}</div>
+                  {/* Hole-by-hole scorecard for each player */}
+                  {playerRows.filter(p=>p.holesPlayed>0).map(p=>(
+                    <div key={p.name} style={{marginBottom:12,background:CARD,borderRadius:10,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
+                        <div style={{fontSize:12,fontWeight:700,color:p.team==="A"?TEAM_A_COLOR:TEAM_B_DISP}}>{p.name}</div>
+                        <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                          <div style={{fontSize:11,fontWeight:900,color:toParColor(p.toPar,p.holesPlayed),fontFamily:"monospace"}}>{fmtToPar(p.toPar,p.holesPlayed)}</div>
+                          <div style={{fontSize:10,color:"#446",fontFamily:"monospace"}}>{p.holesPlayed>0?p.total:""}  {p.holesPlayed<18?`(${p.holesPlayed} holes)`:""}</div>
+                        </div>
+                      </div>
+                      {/* Front 9 */}
+                      {[0,9].map(start=>(
+                        <div key={start} style={{padding:"4px 4px"}}>
+                          <div style={{display:"flex",gap:1,alignItems:"center"}}>
+                            <div style={{width:28,fontSize:7,color:"#446",fontFamily:"monospace",textAlign:"center",flexShrink:0}}>{start===0?"OUT":"IN"}</div>
+                            {Array.from({length:9},(_,i)=>{
+                              const hi = start+i;
+                              return (
+                                <div key={hi} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+                                  <div style={{fontSize:7,color:"#335",fontFamily:"monospace"}}>{hi+1}</div>
+                                  <div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>{course.par[hi]}</div>
+                                  <HoleScore gross={p.gross[hi]} par={course.par[hi]}/>
+                                </div>
+                              );
+                            })}
+                            <div style={{width:28,textAlign:"center",flexShrink:0}}>
+                              <div style={{fontSize:7,color:"#335",fontFamily:"monospace"}}>TOT</div>
+                              <div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>{course.par.slice(start,start+9).reduce((a,b)=>a+b,0)}</div>
+                              <div style={{fontSize:10,fontWeight:700,color:"#ccd",fontFamily:"monospace"}}>
+                                {p.gross.slice(start,start+9).filter(g=>g!==null).length > 0
+                                  ? p.gross.slice(start,start+9).reduce((a,g)=>a+(g||0),0)
+                                  : "—"}
+                              </div>
+                            </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </>
+              )}
             </div>
           );
         })()}
