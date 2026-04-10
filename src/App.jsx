@@ -171,6 +171,7 @@ function PlayerSelect({ onSelect }) {
         <div style={{display:"flex",alignItems:"center",gap:12,justifyContent:"center",marginBottom:4}}>
           {CBS_LOGO_LG}
           <div style={{fontSize:26,fontWeight:900,letterSpacing:2,color:"#fff"}}>CBS RYDER CUP 2026</div>
+        </div>
         <div style={{fontSize:13,color:"#446",marginTop:10}}>Select your name to get started</div>
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"16px 14px 40px"}}>
