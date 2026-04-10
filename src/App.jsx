@@ -916,6 +916,7 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState(null);
   const [matchCelebration, setMatchCelebration] = useState(null);
   const isSaving = useRef(false);
+  const dirtyMatchIds = useRef(new Set()); // match IDs with unconfirmed local writes
   const prevWinnerRef = useRef(null);
   const prevMatchStates = useRef({});
   const confettiFired = useRef(false);
@@ -934,12 +935,13 @@ export default function App() {
   useEffect(()=>{
     const dbRef = ref(db, "matches");
     const unsub = onValue(dbRef, (snapshot)=>{
-      if (isSaving.current) return; // ignore echo of our own write
       const data = snapshot.val();
       if (!data) { setLoaded(true); return; }
       setDays(prev => prev.map(day => ({
         ...day,
         matches: day.matches.map(m => {
+          // Skip matches with unconfirmed local writes — they're authoritative until Firebase confirms
+          if (dirtyMatchIds.current.has(m.id)) return m;
           const fbMatch = data[`m${m.id}`];
           if (!fbMatch) return m;
           const rawScores = fbMatch.scores;
@@ -989,6 +991,7 @@ export default function App() {
 
   // ── Firebase: write a single match on update (with offline queue) ──
   const updateMatch = async (dayIdx, upd) => {
+    dirtyMatchIds.current.add(upd.id); // protect local state from Firebase overwrites
     isSaving.current = true;
     setDays(ds => ds.map((d,i) => i!==dayIdx ? d : {
       ...d, matches: d.matches.map(m => m.id===upd.id ? upd : m)
@@ -1006,12 +1009,14 @@ export default function App() {
     if (upd.disputes !== undefined) payload.disputes = upd.disputes || null;
     try {
       await set(ref(db, path), payload);
+      dirtyMatchIds.current.delete(upd.id); // confirmed — Firebase can update again
     } catch {
       setOfflineQueue(prev=>{
         const q = [...prev.filter(x=>x.path!==path), {path, payload}];
         try { localStorage.setItem("jr_offline_queue", JSON.stringify(q)); } catch {}
         return q;
       });
+      // keep in dirtyMatchIds — will be released when offline queue flushes
     } finally {
       isSaving.current = false;
     }
@@ -1022,7 +1027,12 @@ export default function App() {
     const flush = async () => {
       if (!offlineQueue.length) return;
       try {
-        for (const item of offlineQueue) await set(ref(db, item.path), item.payload);
+        for (const item of offlineQueue) {
+          await set(ref(db, item.path), item.payload);
+          // Release dirty protection now that this write is confirmed
+          const mid = parseInt(item.path.replace("matches/m",""));
+          if (!isNaN(mid)) dirtyMatchIds.current.delete(mid);
+        }
         setOfflineQueue([]);
         try { localStorage.removeItem("jr_offline_queue"); } catch {}
         setSyncStatus("synced");
