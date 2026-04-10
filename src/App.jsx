@@ -4,7 +4,7 @@ import { db, ref, onValue, set } from "./firebase.js";
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TEAM_A       = "GABBY'S INTERNS";
 const TEAM_A_SHORT = "INTERNS";
-const TEAM_B       = "TIGERS DD'S";
+const TEAM_B       = "TIGER'S DDs";
 const TEAM_B_SHORT = "TIGERS";
 const TEAM_A_COLOR = "#C8102E";
 const TEAM_B_COLOR = "#003087";
@@ -164,6 +164,25 @@ const CBS_LOGO_LG = <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/
 function PlayerSelect({ onSelect }) {
   const teamA = ALL_PLAYERS.filter(p=>p.team==="A");
   const teamB = ALL_PLAYERS.filter(p=>p.team==="B");
+  const [pendingName, setPendingName] = useState(null);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState(false);
+
+  const handleSelect = (name) => {
+    if (name === "Geb") { setPendingName(name); setPin(""); setPinError(false); }
+    else onSelect(name);
+  };
+
+  const handlePin = (digit) => {
+    const next = pin + digit;
+    setPin(next);
+    setPinError(false);
+    if (next.length === 4) {
+      if (next === "3241") { onSelect(pendingName); }
+      else { setPinError(true); setPin(""); }
+    }
+  };
+
   return (
     <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
       <style>{`*{box-sizing:border-box;margin:0;padding:0}`}</style>
@@ -174,6 +193,36 @@ function PlayerSelect({ onSelect }) {
         </div>
         <div style={{fontSize:13,color:"#446",marginTop:10}}>Select your name to get started</div>
       </div>
+
+      {/* PIN modal for Geb */}
+      {pendingName && (
+        <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,width:"100%",maxWidth:300,textAlign:"center"}}>
+            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:4,letterSpacing:1,fontFamily:"monospace"}}>ADMIN ACCESS</div>
+            <div style={{fontSize:11,color:"#446",marginBottom:20}}>Enter PIN for {pendingName}</div>
+            {/* PIN dots */}
+            <div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:20}}>
+              {Array.from({length:4},(_,i)=>(
+                <div key={i} style={{width:14,height:14,borderRadius:"50%",background:i<pin.length?GOLD:BORDER}}/>
+              ))}
+            </div>
+            {pinError && <div style={{fontSize:11,color:"#e55",marginBottom:12,fontFamily:"monospace"}}>Incorrect PIN</div>}
+            {/* Numpad */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+              {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((d,i)=>(
+                <button key={i} onClick={()=>d==="⌫"?setPin(p=>p.slice(0,-1))&&setPinError(false):d?handlePin(d):null}
+                  style={{padding:"14px",background:d?CARD2:"transparent",border:d?`1px solid ${BORDER}`:"none",borderRadius:10,color:d==="⌫"?"#668":"#ccd",fontSize:18,fontWeight:700,cursor:d?"pointer":"default"}}>
+                  {d}
+                </button>
+              ))}
+            </div>
+            <button onClick={()=>{setPendingName(null);setPin("");}} style={{fontSize:11,color:"#446",background:"none",border:"none",cursor:"pointer",padding:"8px"}}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{flex:1,overflowY:"auto",padding:"16px 14px 40px"}}>
         {[{team:"A",players:teamA,color:TEAM_A_COLOR,label:TEAM_A},{team:"B",players:teamB,color:TEAM_B_COLOR,label:TEAM_B}].map(({team,players,color,label})=>(
           <div key={team} style={{marginBottom:20}}>
@@ -183,8 +232,8 @@ function PlayerSelect({ onSelect }) {
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
               {players.map(p=>(
-                <button key={p.name} onClick={()=>onSelect(p.name)} style={{padding:"14px 10px",background:CARD,border:`1px solid ${color}44`,borderRadius:10,color:"#dde",fontSize:14,fontWeight:700,cursor:"pointer",textAlign:"center",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
-                  {p.name}
+                <button key={p.name} onClick={()=>handleSelect(p.name)} style={{padding:"14px 10px",background:CARD,border:`1px solid ${color}44`,borderRadius:10,color:"#dde",fontSize:14,fontWeight:700,cursor:"pointer",textAlign:"center",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
+                  {p.name}{p.name==="Geb"?" 🔑":""}
                 </button>
               ))}
             </div>
@@ -766,65 +815,128 @@ export default function App() {
               const isSingles = boardDay.format==="Singles";
               const st = computeMatchStatus(m.scores);
               const stColor = {pending:BORDER,live:"#4caf50",complete:st.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557"}[st.state];
-              // Running lead per hole
+              const course = COURSES[boardDay.courseKey];
               let lead = 0;
               const runLeads = m.scores.map(s=>{
                 if(s===null||s===undefined) return null;
                 if(s==="A") lead++; else if(s==="B") lead--;
                 return lead;
               });
+              const grossP1a = Array.isArray(m.grossP1a)?m.grossP1a:Array(18).fill(null);
+              const grossP1b = Array.isArray(m.grossP1b)?m.grossP1b:Array(18).fill(null);
+              const grossP2a = Array.isArray(m.grossP2a)?m.grossP2a:Array(18).fill(null);
+              const grossP2b = Array.isArray(m.grossP2b)?m.grossP2b:Array(18).fill(null);
+              const holesPlayed = m.scores.filter(s=>s!==null).length;
+
+              // Score value display with golf notation colours
+              const scoreStyle = (gross, par) => {
+                if(gross===null) return {val:"·", color:"#334", bg:"transparent", border:"none", radius:2};
+                const d = gross - par;
+                if(d<=-2) return {val:gross, color:"#FFD700", bg:"transparent", border:`1.5px double #FFD700`, radius:2};
+                if(d===-1) return {val:gross, color:"#4caf50", bg:"transparent", border:`1.5px solid #4caf50`, radius:"50%"};
+                if(d===0)  return {val:gross, color:"#ccd",    bg:"transparent", border:"none", radius:2};
+                if(d===1)  return {val:gross, color:"#e88",    bg:"transparent", border:`1.5px solid #e88`, radius:2};
+                if(d===2)  return {val:gross, color:"#e55",    bg:"transparent", border:`1.5px solid #e55`, radius:2};
+                return           {val:gross, color:"#fff",    bg:"#c0392b",     border:"none", radius:2};
+              };
+
+              // Row labels — changes based on singles vs fourballs
+              const rowLabels = isSingles
+                ? [m.player1a, "SCORE", m.player2a]
+                : [m.player1a, m.player1b, "SCORE", m.player2a, m.player2b];
+
+              const rowData = (holeIdx) => {
+                const par = course.par[holeIdx];
+                const s = m.scores[holeIdx];
+                const rl = runLeads[holeIdx];
+                const arrowColor = s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_DISP:s==="H"?"#557":"#334";
+                const arrow = s==="A"?"▲":s==="B"?"▼":s==="H"?"=":"·";
+                const scoreLabel = rl===null?"·":rl===0?"AS":`${Math.abs(rl)}UP`;
+                const scoreColor = rl===null?"#334":rl>0?TEAM_A_COLOR:rl<0?TEAM_B_DISP:"#557";
+                if(isSingles) return [
+                  scoreStyle(grossP1a[holeIdx], par),
+                  {val: <><span style={{color:arrowColor,fontSize:10}}>{arrow}</span><br/><span style={{color:scoreColor,fontSize:8,fontWeight:800}}>{scoreLabel}</span></>, color:"#ccd", bg:"#060f22", border:"none", radius:0, isScore:true},
+                  scoreStyle(grossP2a[holeIdx], par),
+                ];
+                return [
+                  scoreStyle(grossP1a[holeIdx], par),
+                  scoreStyle(grossP1b[holeIdx], par),
+                  {val: <><span style={{color:arrowColor,fontSize:10}}>{arrow}</span><br/><span style={{color:scoreColor,fontSize:8,fontWeight:800}}>{scoreLabel}</span></>, color:"#ccd", bg:"#060f22", border:"none", radius:0, isScore:true},
+                  scoreStyle(grossP2a[holeIdx], par),
+                  scoreStyle(grossP2b[holeIdx], par),
+                ];
+              };
+
+              const rowColors = isSingles
+                ? [TEAM_A_COLOR, null, TEAM_B_DISP]
+                : [TEAM_A_COLOR, TEAM_A_COLOR, null, TEAM_B_DISP, TEAM_B_DISP];
+
               return (
-                <div key={m.id} style={{marginBottom:12,background:CARD,borderRadius:10,border:`1px solid ${stColor}44`,overflow:"hidden"}}>
+                <div key={m.id} style={{marginBottom:14,background:CARD,borderRadius:10,border:`1px solid ${stColor}44`,overflow:"hidden"}}>
                   {/* Match header */}
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
-                    <div style={{fontSize:11,fontWeight:700,color:TEAM_A_COLOR}}>{isSingles?m.player1a:`${m.player1a} & ${m.player1b}`}</div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
+                    <div>
+                      <div style={{fontSize:11,fontWeight:700,color:TEAM_A_COLOR}}>{isSingles?m.player1a:`${m.player1a} & ${m.player1b}`}</div>
+                      <div style={{fontSize:8,color:TEAM_A_COLOR,opacity:0.6,fontFamily:"monospace"}}>{TEAM_A_SHORT}</div>
+                    </div>
                     <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",textAlign:"center",flex:1,padding:"0 8px"}}>{st.longLabel}{st.sublabel?` · ${st.sublabel}`:""}</div>
-                    <div style={{fontSize:11,fontWeight:700,color:TEAM_B_DISP,textAlign:"right"}}>{isSingles?m.player2a:`${m.player2a} & ${m.player2b}`}</div>
+                    <div style={{textAlign:"right"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:TEAM_B_DISP}}>{isSingles?m.player2a:`${m.player2a} & ${m.player2b}`}</div>
+                      <div style={{fontSize:8,color:TEAM_B_DISP,opacity:0.6,fontFamily:"monospace"}}>{TEAM_B_SHORT}</div>
+                    </div>
                   </div>
-                  {/* Hole grid */}
+
+                  {/* Vertical column layout — scroll horizontally */}
                   <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
-                    <table style={{borderCollapse:"collapse",width:"100%",minWidth:420}}>
+                    <table style={{borderCollapse:"collapse",fontSize:11}}>
                       <thead>
-                        <tr style={{background:"#080f20"}}>
-                          <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"monospace",width:28}}></td>
-                          {Array.from({length:18},(_,i)=>(
-                            <td key={i} style={{textAlign:"center",padding:"3px 2px",fontSize:7,color:"#446",fontFamily:"monospace",width:22}}>{i+1}</td>
-                          ))}
-                          <td style={{textAlign:"center",padding:"3px 4px",fontSize:7,color:"#668",fontFamily:"monospace",borderLeft:`1px solid ${BORDER}`}}>RES</td>
-                        </tr>
                         <tr style={{background:"#080f20",borderBottom:`1px solid ${BORDER}`}}>
-                          <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"monospace"}}>PAR</td>
-                          {COURSES[boardDay.courseKey].par.map((p,i)=>(
-                            <td key={i} style={{textAlign:"center",padding:"3px 2px",fontSize:7,color:"#668",fontFamily:"monospace"}}>{p}</td>
+                          {/* Row label column */}
+                          <td style={{padding:"5px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",minWidth:70,position:"sticky",left:0,background:"#080f20",zIndex:1}}>
+                          </td>
+                          {/* Hole number columns */}
+                          {Array.from({length:18},(_,i)=>(
+                            <td key={i} style={{textAlign:"center",padding:"5px 4px",fontSize:8,color:"#668",fontFamily:"monospace",minWidth:34,borderLeft:i===9?`1px solid ${BORDER}`:undefined,fontWeight:i===9||i===0?"800":"400"}}>
+                              {i+1}
+                            </td>
                           ))}
-                          <td style={{borderLeft:`1px solid ${BORDER}`}}></td>
+                        </tr>
+                        <tr style={{background:"#080f20",borderBottom:`2px solid ${BORDER}`}}>
+                          <td style={{padding:"4px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",position:"sticky",left:0,background:"#080f20",zIndex:1}}>PAR</td>
+                          {course.par.map((p,i)=>(
+                            <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"monospace",fontWeight:700,borderLeft:i===9?`1px solid ${BORDER}`:undefined}}>{p}</td>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {/* Hole winner row */}
-                        <tr style={{borderBottom:`1px solid ${BORDER}33`}}>
-                          <td style={{padding:"4px 6px",fontSize:7,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>HOLE</td>
-                          {m.scores.map((s,i)=>{
-                            const bg = s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_COLOR:s==="H"?"#334":CARD2;
-                            const label = s==="A"?"A":s==="B"?"B":s==="H"?"½":"·";
-                            const color = s?"#fff":"#334";
-                            return <td key={i} style={{textAlign:"center",padding:"3px 2px"}}><div style={{width:20,height:20,background:bg,borderRadius:2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:700,color,margin:"0 auto"}}>{label}</div></td>;
-                          })}
-                          <td style={{borderLeft:`1px solid ${BORDER}`}}></td>
-                        </tr>
-                        {/* Running score row */}
-                        <tr>
-                          <td style={{padding:"4px 6px",fontSize:7,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>SCORE</td>
-                          {runLeads.map((rl,i)=>{
-                            if(rl===null) return <td key={i} style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#334",fontFamily:"monospace"}}>·</td>;
-                            const color = rl>0?TEAM_A_COLOR:rl<0?TEAM_B_DISP:"#668";
-                            const label = rl===0?"AS":`${Math.abs(rl)}${rl>0?"↑":"↓"}`;
-                            return <td key={i} style={{textAlign:"center",padding:"3px 1px"}}><div style={{fontSize:7,fontWeight:800,color,fontFamily:"monospace",lineHeight:1.2,textAlign:"center"}}>{label}</div></td>;
-                          })}
-                          <td style={{textAlign:"center",padding:"3px 4px",borderLeft:`1px solid ${BORDER}`}}>
-                            <div style={{fontSize:9,fontWeight:900,color:stColor,fontFamily:"monospace"}}>{st.shortLabel}</div>
-                          </td>
-                        </tr>
+                        {rowLabels.map((label,ri)=>{
+                          const isScoreRow = label==="SCORE";
+                          const nameColor = rowColors[ri];
+                          return (
+                            <tr key={ri} style={{borderBottom:`1px solid ${BORDER}22`,background:isScoreRow?"#060f22":ri%2===0?CARD:CARD2}}>
+                              {/* Sticky label column */}
+                              <td style={{padding:"6px 10px",fontSize:isScoreRow?8:11,fontWeight:700,color:isScoreRow?"#446":nameColor,whiteSpace:"nowrap",position:"sticky",left:0,background:isScoreRow?"#060f22":ri%2===0?CARD:CARD2,zIndex:1,fontFamily:isScoreRow?"monospace":"inherit",letterSpacing:isScoreRow?1:0}}>
+                                {label}
+                              </td>
+                              {/* Data cells */}
+                              {Array.from({length:18},(_,hi)=>{
+                                const d = rowData(hi);
+                                const cell = d[ri];
+                                return (
+                                  <td key={hi} style={{textAlign:"center",padding:"4px 2px",borderLeft:hi===9?`1px solid ${BORDER}`:undefined}}>
+                                    {isScoreRow ? (
+                                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.2}}>{cell.val}</div>
+                                    ) : (
+                                      <div style={{width:24,height:24,background:cell.bg,border:cell.border,borderRadius:cell.radius,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:cell.color,margin:"0 auto"}}>
+                                        {cell.val}
+                                      </div>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
