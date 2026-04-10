@@ -757,6 +757,80 @@ export default function App() {
             <TVDayBlock day={boardDay} onOpen={mid=>{
               if(canEdit(boardDayIdx,mid)) setActiveMatch({dayIdx:boardDayIdx,matchId:mid});
             }} canEdit={(mid)=>canEdit(boardDayIdx,mid)}/>
+
+            {/* Hole-by-hole match breakdowns */}
+            <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,opacity:0.7}}>
+              HOLE BY HOLE
+            </div>
+            {boardDay.matches.map(m=>{
+              const isSingles = boardDay.format==="Singles";
+              const st = computeMatchStatus(m.scores);
+              const stColor = {pending:BORDER,live:"#4caf50",complete:st.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557"}[st.state];
+              // Running lead per hole
+              let lead = 0;
+              const runLeads = m.scores.map(s=>{
+                if(s===null||s===undefined) return null;
+                if(s==="A") lead++; else if(s==="B") lead--;
+                return lead;
+              });
+              return (
+                <div key={m.id} style={{marginBottom:12,background:CARD,borderRadius:10,border:`1px solid ${stColor}44`,overflow:"hidden"}}>
+                  {/* Match header */}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
+                    <div style={{fontSize:11,fontWeight:700,color:TEAM_A_COLOR}}>{isSingles?m.player1a:`${m.player1a} & ${m.player1b}`}</div>
+                    <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",textAlign:"center",flex:1,padding:"0 8px"}}>{st.longLabel}{st.sublabel?` · ${st.sublabel}`:""}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:TEAM_B_DISP,textAlign:"right"}}>{isSingles?m.player2a:`${m.player2a} & ${m.player2b}`}</div>
+                  </div>
+                  {/* Hole grid */}
+                  <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+                    <table style={{borderCollapse:"collapse",width:"100%",minWidth:420}}>
+                      <thead>
+                        <tr style={{background:"#080f20"}}>
+                          <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"monospace",width:28}}></td>
+                          {Array.from({length:18},(_,i)=>(
+                            <td key={i} style={{textAlign:"center",padding:"3px 2px",fontSize:7,color:"#446",fontFamily:"monospace",width:22}}>{i+1}</td>
+                          ))}
+                          <td style={{textAlign:"center",padding:"3px 4px",fontSize:7,color:"#668",fontFamily:"monospace",borderLeft:`1px solid ${BORDER}`}}>RES</td>
+                        </tr>
+                        <tr style={{background:"#080f20",borderBottom:`1px solid ${BORDER}`}}>
+                          <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"monospace"}}>PAR</td>
+                          {COURSES[boardDay.courseKey].par.map((p,i)=>(
+                            <td key={i} style={{textAlign:"center",padding:"3px 2px",fontSize:7,color:"#668",fontFamily:"monospace"}}>{p}</td>
+                          ))}
+                          <td style={{borderLeft:`1px solid ${BORDER}`}}></td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Hole winner row */}
+                        <tr style={{borderBottom:`1px solid ${BORDER}33`}}>
+                          <td style={{padding:"4px 6px",fontSize:7,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>HOLE</td>
+                          {m.scores.map((s,i)=>{
+                            const bg = s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_COLOR:s==="H"?"#334":CARD2;
+                            const label = s==="A"?"A":s==="B"?"B":s==="H"?"½":"·";
+                            const color = s?"#fff":"#334";
+                            return <td key={i} style={{textAlign:"center",padding:"3px 2px"}}><div style={{width:20,height:20,background:bg,borderRadius:2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:700,color,margin:"0 auto"}}>{label}</div></td>;
+                          })}
+                          <td style={{borderLeft:`1px solid ${BORDER}`}}></td>
+                        </tr>
+                        {/* Running score row */}
+                        <tr>
+                          <td style={{padding:"4px 6px",fontSize:7,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>SCORE</td>
+                          {runLeads.map((rl,i)=>{
+                            if(rl===null) return <td key={i} style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#334",fontFamily:"monospace"}}>·</td>;
+                            const color = rl>0?TEAM_A_COLOR:rl<0?TEAM_B_DISP:"#668";
+                            const label = rl===0?"AS":`${Math.abs(rl)}${rl>0?"↑":"↓"}`;
+                            return <td key={i} style={{textAlign:"center",padding:"3px 1px"}}><div style={{fontSize:7,fontWeight:800,color,fontFamily:"monospace",lineHeight:1.2,textAlign:"center"}}>{label}</div></td>;
+                          })}
+                          <td style={{textAlign:"center",padding:"3px 4px",borderLeft:`1px solid ${BORDER}`}}>
+                            <div style={{fontSize:9,fontWeight:900,color:stColor,fontFamily:"monospace"}}>{st.shortLabel}</div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -901,6 +975,12 @@ export default function App() {
 
           return (
             <div style={{paddingBottom:30}}>
+              {/* Day selector */}
+              <div style={{display:"flex",gap:6,marginBottom:12}}>
+                {days.map((d,i)=>(
+                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${TEAM_B_COLOR}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>{dayLabels[i]}</button>
+                ))}
+              </div>
               <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.7}}>
                 {lbDay.label.toUpperCase()} · INDIVIDUAL SCORES
               </div>
