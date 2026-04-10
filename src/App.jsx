@@ -338,15 +338,17 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
         })}
       </div>
       <div style={{textAlign:"center",fontSize:8,color:"#335",fontFamily:"monospace",marginTop:2}}>{match.scores.filter(s=>s!==null).length}/18 holes complete</div>
-      {isComplete?(
-        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
-          <div style={{fontSize:36,marginBottom:10}}>🏆</div>
-          <div style={{fontSize:16,fontWeight:900,color:GOLD,letterSpacing:2,textAlign:"center"}}>{cur.longLabel}</div>
-          <div style={{fontSize:12,color:"#557",marginTop:5}}>{cur.sublabel}</div>
-          <button onClick={handleUndo} style={{marginTop:20,padding:"10px 20px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,color:"#668",fontSize:12,cursor:"pointer"}}>↩ Undo Last Hole</button>
+      {isComplete&&(
+        <div style={{margin:"10px 12px 0",background:`${cur.leader==="A"?TEAM_A_COLOR:cur.state==="halved"?"#334455":TEAM_B_COLOR}33`,border:`1px solid ${cur.leader==="A"?TEAM_A_COLOR:cur.state==="halved"?"#556677":TEAM_B_COLOR}66`,borderRadius:12,padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:9,color:"#668",fontFamily:"monospace",letterSpacing:1}}>MATCH RESULT</div>
+            <div style={{fontSize:15,fontWeight:900,color:GOLD,letterSpacing:1}}>{cur.longLabel}</div>
+            <div style={{fontSize:11,color:"#668",marginTop:2}}>{cur.sublabel}</div>
+          </div>
+          <div style={{fontSize:28}}>🏆</div>
         </div>
-      ):(
-        <div style={{flex:1,padding:"12px 12px 0"}}>
+      )}
+      <div style={{flex:1,padding:"12px 12px 0"}}>
           <div style={{display:"flex",justifyContent:"center",gap:10,marginBottom:12,padding:"10px",background:CARD,borderRadius:12,border:`1px solid ${BORDER}`}}>
             <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HOLE</div><div style={{fontSize:28,fontWeight:900,color:GOLD,fontFamily:"monospace",lineHeight:1}}>{hole+1}</div></div>
             <div style={{width:1,background:BORDER}}/>
@@ -378,7 +380,6 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
           <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${hwColor},${hwColor}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 18px ${hwColor}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
           {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:20}}>↩ UNDO HOLE {hole}</button>}
         </div>
-      )}
     </div>
   );
 }
@@ -605,7 +606,7 @@ export default function App() {
 
   return (
     <div style={{minHeight:"100vh",background:BG,fontFamily:"'Arial Narrow','Arial',sans-serif",color:"#ccd",paddingBottom:60}}>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}*{box-sizing:border-box;margin:0;padding:0}`}</style>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}*{box-sizing:border-box;margin:0;padding:0}html,body{background:${BG};}`}</style>
 
       {/* Header */}
       <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,borderBottom:`2px solid ${BORDER}`,position:"sticky",top:0,zIndex:100}}>
@@ -647,8 +648,8 @@ export default function App() {
 
       {/* Tabs */}
       <div style={{display:"flex",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
-        {[["scoreboard","📊 BOARD"],["matches","⛳ MY MATCH"]].map(([key,label])=>(
-          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:"#446",fontWeight:700,fontSize:10,letterSpacing:1,cursor:"pointer",fontFamily:"monospace"}}>{label}</button>
+        {[["scoreboard","📊 BOARD"],["matches","⛳ MY MATCH"],["leaderboard","🏌️ SCORES"]].map(([key,label])=>(
+          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:"#446",fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"monospace"}}>{label}</button>
         ))}
       </div>
 
@@ -708,6 +709,101 @@ export default function App() {
             )}
           </div>
         )}
+
+        {tab==="leaderboard"&&(()=>{
+          // Build per-player gross score totals across the current board day
+          // We store gross scores only in local UI state (not in Firebase), so we
+          // show match-play hole results (A/B/H) and compute relative-to-par from
+          // the confirmed hole results per player pair.
+          // Since we only store hole WINNERS not raw scores, we show match-play
+          // standings per player instead — who won/lost how many holes.
+
+          // Collect all matches for the viewed day
+          const lbDay = days[boardDayIdx];
+          const isSingles = lbDay.format === "Singles";
+
+          // Build rows: one per player pairing
+          const rows = lbDay.matches.map(m => {
+            const holesA = m.scores.filter(s=>s==="A").length;
+            const holesB = m.scores.filter(s=>s==="B").length;
+            const holesH = m.scores.filter(s=>s==="H").length;
+            const played = holesA + holesB + holesH;
+            const st = computeMatchStatus(m.scores);
+            return { m, holesA, holesB, holesH, played, st, isSingles };
+          });
+
+          return (
+            <div style={{paddingBottom:20}}>
+              <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.7}}>
+                {lbDay.label.toUpperCase()} · HOLE-BY-HOLE RESULTS
+              </div>
+
+              {/* Header */}
+              <div style={{display:"flex",background:"#060f22",borderRadius:"8px 8px 0 0",padding:"6px 10px",border:`1px solid ${BORDER}`,borderBottom:"none"}}>
+                <div style={{flex:2,fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:1}}>PLAYERS</div>
+                <div style={{width:36,textAlign:"center",fontSize:8,color:TEAM_A_COLOR,fontFamily:"monospace"}}>WON</div>
+                <div style={{width:36,textAlign:"center",fontSize:8,color:"#557",fontFamily:"monospace"}}>HLV</div>
+                <div style={{width:36,textAlign:"center",fontSize:8,color:TEAM_B_DISP,fontFamily:"monospace"}}>LOST</div>
+                <div style={{width:50,textAlign:"center",fontSize:8,color:GOLD,fontFamily:"monospace"}}>STATUS</div>
+              </div>
+
+              {rows.map(({m, holesA, holesB, holesH, played, st},i)=>{
+                const isAMatch = true; // all player1x are team A
+                const aColor = st.state==="complete"&&st.leader==="A" ? TEAM_A_COLOR : st.state==="complete"&&st.leader==="B" ? "#3a4a5a" : "#ccd";
+                const bColor = st.state==="complete"&&st.leader==="B" ? TEAM_B_DISP : st.state==="complete"&&st.leader==="A" ? "#3a4a5a" : "#ccd";
+                const stColor = st.state==="complete"?(st.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR):st.state==="halved"?"#668":st.state==="live"?"#4caf50":"#446";
+                return (
+                  <div key={m.id} style={{border:`1px solid ${BORDER}`,borderTop:i===0?undefined:`1px solid ${BORDER}`,background:CARD,padding:"10px 10px",display:"flex",alignItems:"center",borderRadius:i===rows.length-1?"0 0 8px 8px":0}}>
+                    <div style={{flex:2,minWidth:0}}>
+                      <div style={{fontSize:12,fontWeight:700,color:aColor,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {isSingles ? m.player1a : `${m.player1a} & ${m.player1b}`}
+                      </div>
+                      <div style={{fontSize:9,color:"#335",margin:"1px 0"}}>vs</div>
+                      <div style={{fontSize:12,fontWeight:700,color:bColor,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {isSingles ? m.player2a : `${m.player2a} & ${m.player2b}`}
+                      </div>
+                      {m.teeTime!=="TBD"&&<div style={{fontSize:8,color:"#446",fontFamily:"monospace",marginTop:2}}>{m.teeTime}</div>}
+                    </div>
+                    <div style={{width:36,textAlign:"center",fontSize:16,fontWeight:900,color:TEAM_A_COLOR,fontFamily:"monospace"}}>{holesA}</div>
+                    <div style={{width:36,textAlign:"center",fontSize:16,fontWeight:900,color:"#557",fontFamily:"monospace"}}>{holesH}</div>
+                    <div style={{width:36,textAlign:"center",fontSize:16,fontWeight:900,color:TEAM_B_DISP,fontFamily:"monospace"}}>{holesB}</div>
+                    <div style={{width:50,textAlign:"center"}}>
+                      <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",lineHeight:1.2}}>{st.shortLabel}</div>
+                      {played>0&&<div style={{fontSize:8,color:"#446",fontFamily:"monospace"}}>/{played}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Mini hole-by-hole grid for each match */}
+              <div style={{marginTop:14}}>
+                <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:8,opacity:0.7}}>HOLE BY HOLE</div>
+                {rows.map(({m, st},i)=>(
+                  <div key={m.id} style={{marginBottom:10,background:CARD,borderRadius:10,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",padding:"6px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
+                      <div style={{fontSize:10,fontWeight:700,color:TEAM_A_COLOR}}>{isSingles?m.player1a:`${m.player1a} & ${m.player1b}`}</div>
+                      <div style={{fontSize:9,fontWeight:800,color:st.state==="live"?"#4caf50":st.state==="complete"?(st.leader==="A"?TEAM_A_COLOR:TEAM_B_DISP):"#446",fontFamily:"monospace"}}>{st.shortLabel}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:TEAM_B_DISP,textAlign:"right"}}>{isSingles?m.player2a:`${m.player2a} & ${m.player2b}`}</div>
+                    </div>
+                    <div style={{display:"flex",padding:"6px 6px",gap:2}}>
+                      {Array.from({length:18},(_,hi)=>{
+                        const s=m.scores[hi];
+                        const bg=s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_COLOR:s==="H"?"#334":CARD2;
+                        const label=s==="A"?"A":s==="B"?"B":s==="H"?"½":"·";
+                        return (
+                          <div key={hi} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+                            <div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>{hi+1}</div>
+                            <div style={{width:"100%",height:20,background:bg,borderRadius:3,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:s?"#fff":"#334",fontWeight:700}}>{label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
