@@ -308,9 +308,22 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
   const status = computeMatchStatus(match.scores);
   const [hole,setHole] = useState(status.holesPlayed<18?status.holesPlayed:17);
   const [showHcp,setShowHcp] = useState(false);
-  const [grossScores,setGrossScores] = useState(
-    ()=>Array.from({length:18},(_,i)=>{ const p=course.par[i]; return {p1a:p,p1b:p,p2a:p,p2b:p}; })
-  );
+  const [grossScores,setGrossScores] = useState(()=>{
+    // Pre-populate from saved Firebase data if available, otherwise default to par
+    return Array.from({length:18},(_,i)=>{
+      const p = course.par[i];
+      const g1a = Array.isArray(match.grossP1a) ? match.grossP1a[i] : null;
+      const g1b = Array.isArray(match.grossP1b) ? match.grossP1b[i] : null;
+      const g2a = Array.isArray(match.grossP2a) ? match.grossP2a[i] : null;
+      const g2b = Array.isArray(match.grossP2b) ? match.grossP2b[i] : null;
+      return {
+        p1a: g1a !== null && g1a !== undefined ? g1a : p,
+        p1b: g1b !== null && g1b !== undefined ? g1b : p,
+        p2a: g2a !== null && g2a !== undefined ? g2a : p,
+        p2b: g2b !== null && g2b !== undefined ? g2b : p,
+      };
+    });
+  });
 
   const sc = grossScores[hole];
   const setSc = (updater) => setGrossScores(prev=>{
@@ -598,10 +611,10 @@ export default function App() {
             hcp1b: fbMatch.hcp1b ?? m.hcp1b,
             hcp2a: fbMatch.hcp2a ?? m.hcp2a,
             hcp2b: fbMatch.hcp2b ?? m.hcp2b,
-            grossP1a: fbMatch.grossP1a || null,
-            grossP1b: fbMatch.grossP1b || null,
-            grossP2a: fbMatch.grossP2a || null,
-            grossP2b: fbMatch.grossP2b || null,
+            grossP1a: fbMatch.grossP1a ? Array.from({length:18},(_,i)=>fbMatch.grossP1a[i]??null) : null,
+            grossP1b: fbMatch.grossP1b ? Array.from({length:18},(_,i)=>fbMatch.grossP1b[i]??null) : null,
+            grossP2a: fbMatch.grossP2a ? Array.from({length:18},(_,i)=>fbMatch.grossP2a[i]??null) : null,
+            grossP2b: fbMatch.grossP2b ? Array.from({length:18},(_,i)=>fbMatch.grossP2b[i]??null) : null,
           };
         })
       })));
