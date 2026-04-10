@@ -370,16 +370,16 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
   const [grossScores,setGrossScores] = useState(()=>{
     // Pre-populate from saved Firebase data if available, otherwise default to par
     return Array.from({length:18},(_,i)=>{
-      const p = course.par[i];
+      const parVal = course.par[i];
       const g1a = Array.isArray(match.grossP1a) ? match.grossP1a[i] : null;
       const g1b = Array.isArray(match.grossP1b) ? match.grossP1b[i] : null;
       const g2a = Array.isArray(match.grossP2a) ? match.grossP2a[i] : null;
       const g2b = Array.isArray(match.grossP2b) ? match.grossP2b[i] : null;
       return {
-        p1a: g1a !== null && g1a !== undefined ? g1a : p,
-        p1b: g1b !== null && g1b !== undefined ? g1b : p,
-        p2a: g2a !== null && g2a !== undefined ? g2a : p,
-        p2b: g2b !== null && g2b !== undefined ? g2b : p,
+        p1a: g1a !== null && g1a !== undefined ? g1a : parVal,
+        p1b: g1b !== null && g1b !== undefined ? g1b : parVal,
+        p2a: g2a !== null && g2a !== undefined ? g2a : parVal,
+        p2b: g2b !== null && g2b !== undefined ? g2b : parVal,
       };
     });
   });
@@ -736,7 +736,7 @@ function AdminSection({ days }) {
               {[{k:"player1a",col:TEAM_A_COLOR,lbl:"A1",team:"A"},{k:"player1b",col:TEAM_A_COLOR,lbl:"A2",team:"A"},{k:"player2a",col:TEAM_B_DISP,lbl:"B1",team:"B"},{k:"player2b",col:TEAM_B_DISP,lbl:"B2",team:"B"}].map(slot=>(
                 <div key={slot.k}>
                   <div style={{fontSize:8,color:slot.col,fontFamily:"monospace",marginBottom:2}}>{slot.lbl}</div>
-                  <select value={pairings.d2[m.id]?.[slot.k]||""} onChange={e=>setPairings(p=>({...p,d2:{...p.d2,[m.id]:{...p.d2[m.id],[slot.k]:e.target.value}}}))} style={selStyle}>
+                  <select value={pairings.d2[m.id]?.[slot.k]||""} onChange={e=>setPairings(prev=>({...prev,d2:{...prev.d2,[m.id]:{...prev.d2[m.id],[slot.k]:e.target.value}}}))} style={selStyle}>
                     <option value="">—</option>
                     {(slot.team==="A"?teamANames:teamBNames).map(n=><option key={n} value={n}>{n}</option>)}
                   </select>
@@ -753,7 +753,7 @@ function AdminSection({ days }) {
               {[{k:"player1a",col:TEAM_A_COLOR,lbl:"A",team:"A"},{k:"player2a",col:TEAM_B_DISP,lbl:"B",team:"B"}].map(slot=>(
                 <div key={slot.k}>
                   <div style={{fontSize:8,color:slot.col,fontFamily:"monospace",marginBottom:2}}>{slot.lbl}</div>
-                  <select value={pairings.d3[m.id]?.[slot.k]||""} onChange={e=>setPairings(p=>({...p,d3:{...p.d3,[m.id]:{...p.d3[m.id],[slot.k]:e.target.value}}}))} style={selStyle}>
+                  <select value={pairings.d3[m.id]?.[slot.k]||""} onChange={e=>setPairings(prev=>({...prev,d3:{...prev.d3,[m.id]:{...prev.d3[m.id],[slot.k]:e.target.value}}}))} style={selStyle}>
                     <option value="">—</option>
                     {(slot.team==="A"?teamANames:teamBNames).map(n=><option key={n} value={n}>{n}</option>)}
                   </select>
@@ -964,9 +964,9 @@ export default function App() {
         return {
           ...day,
           matches: day.matches.map(m=>{
-            const p = data[dayKey][`m${m.id}`];
-            if (!p) return m;
-            return {...m, ...p};
+            const pairing = data[dayKey][`m${m.id}`];
+            if (!pairing) return m;
+            return {...m, ...pairing};
           })
         };
       }));
@@ -1020,6 +1020,15 @@ export default function App() {
     return ()=> window.removeEventListener("online", flush);
   }, [offlineQueue]);
 
+  // ── Computed score values (must be declared BEFORE any useEffect that references them) ──
+  const {actualA,actualB,projA,projB} = computeAllPoints(days);
+  const totalMatches = days.reduce((s,d)=>s+d.matches.length,0);
+  const doneMatches  = days.reduce((s,d)=>s+d.matches.filter(m=>["complete","halved"].includes(computeMatchStatus(m.scores).state)).length,0);
+  const liveCount    = days.reduce((s,d)=>s+d.matches.filter(m=>computeMatchStatus(m.scores).state==="live").length,0);
+  const winTarget    = totalMatches/2;
+  const winner       = actualA>winTarget?TEAM_A_SHORT:actualB>winTarget?TEAM_B_SHORT:null;
+  const projWinner   = !winner&&(projA>winTarget?TEAM_A_SHORT:projB>winTarget?TEAM_B_SHORT:null);
+
   // ── Confetti when cup is won ──
   useEffect(()=>{
     if (winner && !prevWinnerRef.current && !confettiFired.current) {
@@ -1050,14 +1059,6 @@ export default function App() {
   }, [days]);
 
   useEffect(()=>{ try{if(currentPlayer)localStorage.setItem("jr_player",currentPlayer);else localStorage.removeItem("jr_player");}catch{} },[currentPlayer]);
-
-  const {actualA,actualB,projA,projB} = computeAllPoints(days);
-  const totalMatches = days.reduce((s,d)=>s+d.matches.length,0);
-  const doneMatches  = days.reduce((s,d)=>s+d.matches.filter(m=>["complete","halved"].includes(computeMatchStatus(m.scores).state)).length,0);
-  const liveCount    = days.reduce((s,d)=>s+d.matches.filter(m=>computeMatchStatus(m.scores).state==="live").length,0);
-  const winTarget    = totalMatches/2;
-  const winner       = actualA>winTarget?TEAM_A_SHORT:actualB>winTarget?TEAM_B_SHORT:null;
-  const projWinner   = !winner&&(projA>winTarget?TEAM_A_SHORT:projB>winTarget?TEAM_B_SHORT:null);
 
   const todayDow = new Date().getDay();
   const dowToDay = {5:0, 6:1, 0:2};
@@ -1314,8 +1315,8 @@ export default function App() {
                         </tr>
                         <tr style={{background:"#080f20",borderBottom:`2px solid ${BORDER}`}}>
                           <td style={{padding:"4px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",position:"sticky",left:0,background:"#080f20",zIndex:1}}>PAR</td>
-                          {course.par.map((p,i)=>(
-                            <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"monospace",fontWeight:700,borderLeft:i===9?`1px solid ${BORDER}`:undefined}}>{p}</td>
+                          {course.par.map((parNum,i)=>(
+                            <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"monospace",fontWeight:700,borderLeft:i===9?`1px solid ${BORDER}`:undefined}}>{parNum}</td>
                           ))}
                         </tr>
                       </thead>
@@ -1418,9 +1419,9 @@ export default function App() {
                   {name:m.player2a,gross:m.grossP2a,team:"B"},
                   {name:m.player2b,gross:m.grossP2b,team:"B"},
                 ];
-            for (const p of players) {
-              if (!p.name || p.name.startsWith("Player ")) continue;
-              const grossArr = Array.isArray(p.gross) ? p.gross : Array(18).fill(null);
+            for (const player of players) {
+              if (!player.name || player.name.startsWith("Player ")) continue;
+              const grossArr = Array.isArray(player.gross) ? player.gross : Array(18).fill(null);
               let total = 0, toPar = 0, holesPlayed = 0;
               for (let i = 0; i < 18; i++) {
                 if (grossArr[i] !== null) {
@@ -1429,7 +1430,7 @@ export default function App() {
                   holesPlayed++;
                 }
               }
-              playerRows.push({ name:p.name, team:p.team, gross:grossArr, total, toPar, holesPlayed });
+              playerRows.push({ name:player.name, team:player.team, gross:grossArr, total, toPar, holesPlayed });
             }
           }
 
@@ -1551,38 +1552,38 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {playerRows.map((p,ri)=>{
-                        const outTotal = p.gross.slice(0,9).some(g=>g!==null) ? p.gross.slice(0,9).reduce((a,g)=>a+(g||0),0) : null;
-                        const inTotal  = p.gross.slice(9).some(g=>g!==null)   ? p.gross.slice(9).reduce((a,g)=>a+(g||0),0)  : null;
-                        const outPlayed = p.gross.slice(0,9).filter(g=>g!==null).length;
-                        const inPlayed  = p.gross.slice(9).filter(g=>g!==null).length;
+                      {playerRows.map((row,ri)=>{
+                        const outTotal = row.gross.slice(0,9).some(g=>g!==null) ? row.gross.slice(0,9).reduce((a,g)=>a+(g||0),0) : null;
+                        const inTotal  = row.gross.slice(9).some(g=>g!==null)   ? row.gross.slice(9).reduce((a,g)=>a+(g||0),0)  : null;
+                        const outPlayed = row.gross.slice(0,9).filter(g=>g!==null).length;
+                        const inPlayed  = row.gross.slice(9).filter(g=>g!==null).length;
                         return (
-                          <tr key={p.name} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
-                            <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>{p.pos}</td>
+                          <tr key={row.name} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
+                            <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
                             <td style={{padding:"8px 8px",minWidth:80}}>
-                              <div style={{fontSize:12,fontWeight:700,color:p.team==="A"?TEAM_A_COLOR:TEAM_B_DISP,whiteSpace:"nowrap"}}>{p.name}</div>
+                              <div style={{fontSize:12,fontWeight:700,color:row.team==="A"?TEAM_A_COLOR:TEAM_B_DISP,whiteSpace:"nowrap"}}>{row.name}</div>
                             </td>
                             {Array.from({length:9},(_,i)=>(
                               <td key={i} style={{textAlign:"center",padding:"4px 1px"}}>
-                                <HoleScore gross={p.gross[i]} par={course.par[i]}/>
+                                <HoleScore gross={row.gross[i]} par={course.par[i]}/>
                               </td>
                             ))}
-                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?toParColor(p.gross.slice(0,9).reduce((a,g)=>a+(g||0),0)-course.par.slice(0,outPlayed).reduce((a,b)=>a+b,0),outPlayed):"#446",fontFamily:"monospace"}}>
+                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?toParColor(row.gross.slice(0,9).reduce((a,g)=>a+(g||0),0)-course.par.slice(0,outPlayed).reduce((a,b)=>a+b,0),outPlayed):"#446",fontFamily:"monospace"}}>
                               {outPlayed>0?outTotal:"—"}
                             </td>
                             {Array.from({length:9},(_,i)=>(
                               <td key={i+9} style={{textAlign:"center",padding:"4px 1px"}}>
-                                <HoleScore gross={p.gross[i+9]} par={course.par[i+9]}/>
+                                <HoleScore gross={row.gross[i+9]} par={course.par[i+9]}/>
                               </td>
                             ))}
-                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:inPlayed>0?toParColor(p.gross.slice(9,9+inPlayed).reduce((a,g)=>a+(g||0),0)-course.par.slice(9,9+inPlayed).reduce((a,b)=>a+b,0),inPlayed):"#446",fontFamily:"monospace"}}>
+                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:inPlayed>0?toParColor(row.gross.slice(9,9+inPlayed).reduce((a,g)=>a+(g||0),0)-course.par.slice(9,9+inPlayed).reduce((a,b)=>a+b,0),inPlayed):"#446",fontFamily:"monospace"}}>
                               {inPlayed>0?inTotal:"—"}
                             </td>
-                            <td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:12,fontWeight:700,color:p.holesPlayed>0?"#ccd":"#446",fontFamily:"monospace"}}>
-                              {p.holesPlayed>0?p.total:"—"}
+                            <td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:12,fontWeight:700,color:row.holesPlayed>0?"#ccd":"#446",fontFamily:"monospace"}}>
+                              {row.holesPlayed>0?row.total:"—"}
                             </td>
-                            <td style={{textAlign:"center",padding:"4px 4px",fontSize:13,fontWeight:900,color:toParColor(p.toPar,p.holesPlayed),fontFamily:"monospace"}}>
-                              {fmtToPar(p.toPar,p.holesPlayed)}
+                            <td style={{textAlign:"center",padding:"4px 4px",fontSize:13,fontWeight:900,color:toParColor(row.toPar,row.holesPlayed),fontFamily:"monospace"}}>
+                              {fmtToPar(row.toPar,row.holesPlayed)}
                             </td>
                           </tr>
                         );
