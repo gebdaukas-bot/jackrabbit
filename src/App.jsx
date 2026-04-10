@@ -461,8 +461,7 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
           </div>
         </div>
       </div>
-      {/* Hole strip */}
-      <div style={{padding:"8px 10px 0",display:"flex",gap:2}}>
+      <div style={{padding:"8px 10px 4px",display:"flex",gap:2}}>
         {Array.from({length:18},(_,i)=>{
           const s=match.scores[i];
           const bg=s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_COLOR:s==="H"?"#334":CARD2;
@@ -470,7 +469,6 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
           return <div key={i} onClick={()=>setHole(i)} style={{flex:1,height:isAct?26:20,background:bg,borderRadius:3,cursor:"pointer",border:isAct?`2px solid ${GOLD}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isAct?8:7,color:isAct?"#fff":"#ffffff99",fontFamily:"monospace",fontWeight:700,transition:"all .12s"}}>{i+1}</div>;
         })}
       </div>
-      <div style={{textAlign:"center",fontSize:8,color:"#335",fontFamily:"monospace",marginTop:2}}>{match.scores.filter(s=>s!==null).length}/18 holes complete</div>
       {isComplete&&(
         <div style={{margin:"10px 12px 0",background:`${cur.leader==="A"?TEAM_A_COLOR:cur.state==="halved"?"#334455":TEAM_B_COLOR}33`,border:`1px solid ${cur.leader==="A"?TEAM_A_COLOR:cur.state==="halved"?"#556677":TEAM_B_COLOR}66`,borderRadius:12,padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
@@ -850,18 +848,45 @@ export default function App() {
                 const s = m.scores[holeIdx];
                 const rl = runLeads[holeIdx];
                 const arrowColor = s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_DISP:s==="H"?"#557":"#334";
-                const arrow = s==="A"?"▲":s==="B"?"▼":s==="H"?"=":"·";
-                const scoreLabel = rl===null?"·":rl===0?"AS":`${Math.abs(rl)}UP`;
-                const scoreColor = rl===null?"#334":rl>0?TEAM_A_COLOR:rl<0?TEAM_B_DISP:"#557";
+
+                // Big arrow with number inside for the SCORE row
+                let scoreCell;
+                if (s===null||s===undefined) {
+                  scoreCell = {val:<div style={{fontSize:9,color:"#334"}}>·</div>, isScore:true};
+                } else if (s==="H") {
+                  scoreCell = {val:<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>, isScore:true};
+                } else {
+                  const num = rl===null?0:Math.abs(rl);
+                  const isA = s==="A";
+                  const col = isA?TEAM_A_COLOR:TEAM_B_DISP;
+                  // Triangle pointing up (A wins) or down (B wins) with number inside
+                  scoreCell = {val:(
+                    <div style={{position:"relative",width:26,height:26,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto"}}>
+                      {/* Arrow using CSS border trick */}
+                      <div style={{
+                        width:0, height:0,
+                        borderLeft:"13px solid transparent",
+                        borderRight:"13px solid transparent",
+                        ...(isA
+                          ? {borderBottom:`26px solid ${col}`}
+                          : {borderTop:`26px solid ${col}`}
+                        ),
+                        position:"absolute", top:0, left:0
+                      }}/>
+                      <span style={{position:"relative",zIndex:1,fontSize:10,fontWeight:900,color:"#fff",marginTop:isA?6:-6}}>{num>0?num:""}</span>
+                    </div>
+                  ), isScore:true};
+                }
+
                 if(isSingles) return [
                   scoreStyle(grossP1a[holeIdx], par),
-                  {val: <><span style={{color:arrowColor,fontSize:10}}>{arrow}</span><br/><span style={{color:scoreColor,fontSize:8,fontWeight:800}}>{scoreLabel}</span></>, color:"#ccd", bg:"#060f22", border:"none", radius:0, isScore:true},
+                  scoreCell,
                   scoreStyle(grossP2a[holeIdx], par),
                 ];
                 return [
                   scoreStyle(grossP1a[holeIdx], par),
                   scoreStyle(grossP1b[holeIdx], par),
-                  {val: <><span style={{color:arrowColor,fontSize:10}}>{arrow}</span><br/><span style={{color:scoreColor,fontSize:8,fontWeight:800}}>{scoreLabel}</span></>, color:"#ccd", bg:"#060f22", border:"none", radius:0, isScore:true},
+                  scoreCell,
                   scoreStyle(grossP2a[holeIdx], par),
                   scoreStyle(grossP2b[holeIdx], par),
                 ];
@@ -925,7 +950,7 @@ export default function App() {
                                 return (
                                   <td key={hi} style={{textAlign:"center",padding:"4px 2px",borderLeft:hi===9?`1px solid ${BORDER}`:undefined}}>
                                     {isScoreRow ? (
-                                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.2}}>{cell.val}</div>
+                                      <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:30}}>{cell.val}</div>
                                     ) : (
                                       <div style={{width:24,height:24,background:cell.bg,border:cell.border,borderRadius:cell.radius,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:cell.color,margin:"0 auto"}}>
                                         {cell.val}
