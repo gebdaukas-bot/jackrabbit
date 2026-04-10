@@ -859,10 +859,13 @@ export default function App() {
                   const num = rl===null?0:Math.abs(rl);
                   const isA = s==="A";
                   const col = isA?TEAM_A_COLOR:TEAM_B_DISP;
+                  // If the hole was won but score is back to AS, just show a dash
+                  if (num === 0) {
+                    scoreCell = {val:<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>, isScore:true};
+                  } else {
                   // Triangle pointing up (A wins) or down (B wins) with number inside
                   scoreCell = {val:(
                     <div style={{position:"relative",width:26,height:26,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto"}}>
-                      {/* Arrow using CSS border trick */}
                       <div style={{
                         width:0, height:0,
                         borderLeft:"13px solid transparent",
@@ -873,9 +876,10 @@ export default function App() {
                         ),
                         position:"absolute", top:0, left:0
                       }}/>
-                      <span style={{position:"relative",zIndex:1,fontSize:10,fontWeight:900,color:"#fff",marginTop:isA?6:-6}}>{num>0?num:""}</span>
+                      <span style={{position:"relative",zIndex:1,fontSize:10,fontWeight:900,color:"#fff",marginTop:isA?6:-6}}>{num}</span>
                     </div>
                   ), isScore:true};
+                  }
                 }
 
                 if(isSingles) return [
