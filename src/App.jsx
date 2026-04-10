@@ -28,7 +28,7 @@ const GOLD         = "#C4A44A";
 const COURSES = {
   day1: {
     name: "The Links Course",
-    par: [5,4,4,3,5,4,4,3,4, 4,4,3,4,5,4,3,4,5],
+    par: [5,4,4,3,5,4,4,3,4, 4,4,3,4,5,4,3,4,3],
     hcp: [11,13,5,17,7,3,9,15,1, 12,10,16,2,14,8,18,6,4],
   },
   day2: {
@@ -123,18 +123,31 @@ function netScore(gross, playerHcp, holeHcpIndex) {
 
 function computeMatchStatus(scores) {
   let lead = 0, holesPlayed = 0;
+  let closingLead = null, closingHolesPlayed = null;
   for (let i = 0; i < 18; i++) {
     const s = scores[i];
     if (s === null || s === undefined) break;
     holesPlayed++;
     if (s === "A") lead++; else if (s === "B") lead--;
+    // Capture the decisive hole the first time the lead becomes unassailable
+    if (closingLead === null && Math.abs(lead) > (18 - holesPlayed)) {
+      closingLead = lead;
+      closingHolesPlayed = holesPlayed;
+    }
   }
   const rem = 18 - holesPlayed;
   const abs = Math.abs(lead);
   const leader = lead > 0 ? "A" : lead < 0 ? "B" : null;
   const lName  = leader === "A" ? TEAM_A_SHORT : leader === "B" ? TEAM_B_SHORT : null;
   if (holesPlayed === 0) return {shortLabel:"—",longLabel:"Not Started",sublabel:"",state:"pending",leader:null,up:0,holesPlayed,lead};
-  if (abs > rem)         return {shortLabel:`${abs}&${rem}`,longLabel:`${lName} WIN`,sublabel:`${abs}&${rem}`,state:"complete",leader,up:abs,holesPlayed,lead};
+  // Match won by domination — use the score at the deciding hole, not any subsequent holes
+  if (closingLead !== null) {
+    const cAbs = Math.abs(closingLead);
+    const cRem = 18 - closingHolesPlayed;
+    const cLeader = closingLead > 0 ? "A" : "B";
+    const cLName  = cLeader === "A" ? TEAM_A_SHORT : TEAM_B_SHORT;
+    return {shortLabel:`${cAbs}&${cRem}`,longLabel:`${cLName} WIN`,sublabel:`${cAbs}&${cRem}`,state:"complete",leader:cLeader,up:cAbs,holesPlayed,lead};
+  }
   if (holesPlayed === 18){
     if (!leader) return  {shortLabel:"AS",longLabel:"HALVED",sublabel:"½ pt each",state:"halved",leader:null,up:0,holesPlayed,lead:0};
     return               {shortLabel:"WIN",longLabel:`${lName} WIN`,sublabel:"1 point",state:"complete",leader,up:0,holesPlayed,lead};
