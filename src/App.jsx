@@ -911,71 +911,80 @@ export default function App() {
                   <div style={{fontSize:12}}>No scores entered yet</div>
                 </div>
               ) : (
-                <>
-                  {/* Leaderboard table */}
-                  <div style={{borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`,marginBottom:16}}>
-                    {/* Header */}
-                    <div style={{display:"flex",background:"#060f22",padding:"6px 10px",borderBottom:`1px solid ${BORDER}`}}>
-                      <div style={{width:28,fontSize:8,color:"#446",fontFamily:"monospace"}}>POS</div>
-                      <div style={{flex:1,fontSize:8,color:"#446",fontFamily:"monospace"}}>PLAYER</div>
-                      <div style={{width:32,textAlign:"center",fontSize:8,color:"#446",fontFamily:"monospace"}}>TO PAR</div>
-                      <div style={{width:32,textAlign:"center",fontSize:8,color:"#446",fontFamily:"monospace"}}>GROSS</div>
-                      <div style={{width:32,textAlign:"center",fontSize:8,color:"#446",fontFamily:"monospace"}}>THRU</div>
-                    </div>
-                    {playerRows.map((p,i)=>(
-                      <div key={p.name} style={{display:"flex",alignItems:"center",padding:"10px 10px",background:i%2===0?CARD:CARD2,borderBottom:i<playerRows.length-1?`1px solid ${BORDER}33`:undefined}}>
-                        <div style={{width:28,fontSize:11,fontWeight:800,color:"#446",fontFamily:"monospace"}}>{p.pos}</div>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:13,fontWeight:700,color:p.team==="A"?TEAM_A_COLOR:TEAM_B_DISP,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-                          <div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:1}}>{p.team==="A"?TEAM_A_SHORT:TEAM_B_SHORT}</div>
-                        </div>
-                        <div style={{width:32,textAlign:"center",fontSize:15,fontWeight:900,color:toParColor(p.toPar,p.holesPlayed),fontFamily:"monospace"}}>{fmtToPar(p.toPar,p.holesPlayed)}</div>
-                        <div style={{width:32,textAlign:"center",fontSize:13,color:"#668",fontFamily:"monospace"}}>{p.holesPlayed>0?p.total:"—"}</div>
-                        <div style={{width:32,textAlign:"center",fontSize:11,color:"#446",fontFamily:"monospace"}}>{p.holesPlayed>0?p.holesPlayed:"—"}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Hole-by-hole scorecard for each player */}
-                  {playerRows.filter(p=>p.holesPlayed>0).map(p=>(
-                    <div key={p.name} style={{marginBottom:12,background:CARD,borderRadius:10,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
-                        <div style={{fontSize:12,fontWeight:700,color:p.team==="A"?TEAM_A_COLOR:TEAM_B_DISP}}>{p.name}</div>
-                        <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                          <div style={{fontSize:11,fontWeight:900,color:toParColor(p.toPar,p.holesPlayed),fontFamily:"monospace"}}>{fmtToPar(p.toPar,p.holesPlayed)}</div>
-                          <div style={{fontSize:10,color:"#446",fontFamily:"monospace"}}>{p.holesPlayed>0?p.total:""}  {p.holesPlayed<18?`(${p.holesPlayed} holes)`:""}</div>
-                        </div>
-                      </div>
-                      {/* Front 9 */}
-                      {[0,9].map(start=>(
-                        <div key={start} style={{padding:"4px 4px"}}>
-                          <div style={{display:"flex",gap:1,alignItems:"center"}}>
-                            <div style={{width:28,fontSize:7,color:"#446",fontFamily:"monospace",textAlign:"center",flexShrink:0}}>{start===0?"OUT":"IN"}</div>
-                            {Array.from({length:9},(_,i)=>{
-                              const hi = start+i;
-                              return (
-                                <div key={hi} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-                                  <div style={{fontSize:7,color:"#335",fontFamily:"monospace"}}>{hi+1}</div>
-                                  <div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>{course.par[hi]}</div>
-                                  <HoleScore gross={p.gross[hi]} par={course.par[hi]}/>
-                                </div>
-                              );
-                            })}
-                            <div style={{width:28,textAlign:"center",flexShrink:0}}>
-                              <div style={{fontSize:7,color:"#335",fontFamily:"monospace"}}>TOT</div>
-                              <div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>{course.par.slice(start,start+9).reduce((a,b)=>a+b,0)}</div>
-                              <div style={{fontSize:10,fontWeight:700,color:"#ccd",fontFamily:"monospace"}}>
-                                {p.gross.slice(start,start+9).filter(g=>g!==null).length > 0
-                                  ? p.gross.slice(start,start+9).reduce((a,g)=>a+(g||0),0)
-                                  : "—"}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </>
+                <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+                  <table style={{borderCollapse:"collapse",width:"100%",minWidth:640,background:CARD,borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`}}>
+                    <thead>
+                      {/* Hole number row */}
+                      <tr style={{background:"#060f22"}}>
+                        <td style={{width:28,padding:"5px 6px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>POS</td>
+                        <td style={{padding:"5px 8px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PLAYER</td>
+                        {Array.from({length:9},(_,i)=>(
+                          <td key={i} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+1}</td>
+                        ))}
+                        <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>OUT</td>
+                        {Array.from({length:9},(_,i)=>(
+                          <td key={i+9} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+10}</td>
+                        ))}
+                        <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>IN</td>
+                        <td style={{width:36,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>TOT</td>
+                        <td style={{width:40,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>TO PAR</td>
+                      </tr>
+                      {/* Par row */}
+                      <tr style={{background:"#080f20"}}>
+                        <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}></td>
+                        <td style={{padding:"3px 8px",fontSize:7,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PAR</td>
+                        {Array.from({length:9},(_,i)=>(
+                          <td key={i} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i]}</td>
+                        ))}
+                        <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(0,9).reduce((a,b)=>a+b,0)}</td>
+                        {Array.from({length:9},(_,i)=>(
+                          <td key={i+9} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i+9]}</td>
+                        ))}
+                        <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(9).reduce((a,b)=>a+b,0)}</td>
+                        <td style={{textAlign:"center",padding:"3px 4px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.reduce((a,b)=>a+b,0)}</td>
+                        <td style={{borderBottom:`1px solid ${BORDER}`}}></td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {playerRows.map((p,ri)=>{
+                        const outTotal = p.gross.slice(0,9).some(g=>g!==null) ? p.gross.slice(0,9).reduce((a,g)=>a+(g||0),0) : null;
+                        const inTotal  = p.gross.slice(9).some(g=>g!==null)   ? p.gross.slice(9).reduce((a,g)=>a+(g||0),0)  : null;
+                        const outPlayed = p.gross.slice(0,9).filter(g=>g!==null).length;
+                        const inPlayed  = p.gross.slice(9).filter(g=>g!==null).length;
+                        return (
+                          <tr key={p.name} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
+                            <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>{p.pos}</td>
+                            <td style={{padding:"8px 8px",minWidth:80}}>
+                              <div style={{fontSize:12,fontWeight:700,color:p.team==="A"?TEAM_A_COLOR:TEAM_B_DISP,whiteSpace:"nowrap"}}>{p.name}</div>
+                            </td>
+                            {Array.from({length:9},(_,i)=>(
+                              <td key={i} style={{textAlign:"center",padding:"4px 1px"}}>
+                                <HoleScore gross={p.gross[i]} par={course.par[i]}/>
+                              </td>
+                            ))}
+                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?toParColor(p.gross.slice(0,9).reduce((a,g)=>a+(g||0),0)-course.par.slice(0,outPlayed).reduce((a,b)=>a+b,0),outPlayed):"#446",fontFamily:"monospace"}}>
+                              {outPlayed>0?outTotal:"—"}
+                            </td>
+                            {Array.from({length:9},(_,i)=>(
+                              <td key={i+9} style={{textAlign:"center",padding:"4px 1px"}}>
+                                <HoleScore gross={p.gross[i+9]} par={course.par[i+9]}/>
+                              </td>
+                            ))}
+                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:inPlayed>0?toParColor(p.gross.slice(9,9+inPlayed).reduce((a,g)=>a+(g||0),0)-course.par.slice(9,9+inPlayed).reduce((a,b)=>a+b,0),inPlayed):"#446",fontFamily:"monospace"}}>
+                              {inPlayed>0?inTotal:"—"}
+                            </td>
+                            <td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:12,fontWeight:700,color:p.holesPlayed>0?"#ccd":"#446",fontFamily:"monospace"}}>
+                              {p.holesPlayed>0?p.total:"—"}
+                            </td>
+                            <td style={{textAlign:"center",padding:"4px 4px",fontSize:13,fontWeight:900,color:toParColor(p.toPar,p.holesPlayed),fontFamily:"monospace"}}>
+                              {fmtToPar(p.toPar,p.holesPlayed)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           );
