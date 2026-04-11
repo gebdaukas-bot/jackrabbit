@@ -1516,25 +1516,32 @@ export default function App() {
                   holesPlayed++;
                 }
               }
-              playerRows.push({ name:player.name, team:player.team, gross:grossArr, total, toPar, holesPlayed });
+              playerRows.push({ name:player.name, team:player.team, gross:grossArr, total, toPar, holesPlayed, teeTime:m.teeTime });
             }
           }
 
-          // Sort: most holes played first, then lowest toPar
-          playerRows.sort((a,b) => {
+          // Split into started and not-started
+          const startedRows = playerRows.filter(r => r.holesPlayed > 0);
+          const notStartedRows = playerRows.filter(r => r.holesPlayed === 0);
+
+          // Sort started: most holes played first, then lowest toPar
+          startedRows.sort((a,b) => {
             if (b.holesPlayed !== a.holesPlayed) return b.holesPlayed - a.holesPlayed;
             return a.toPar - b.toPar;
           });
 
+          // Sort not-started by tee time
+          notStartedRows.sort((a,b) => (a.teeTime||"").localeCompare(b.teeTime||""));
+
           // Assign positions (tied players share position)
           let pos = 1;
-          for (let i = 0; i < playerRows.length; i++) {
-            if (i > 0 && playerRows[i].toPar === playerRows[i-1].toPar && playerRows[i].holesPlayed === playerRows[i-1].holesPlayed) {
-              playerRows[i].pos = "T" + pos;
-              playerRows[i-1].pos = "T" + pos;
+          for (let i = 0; i < startedRows.length; i++) {
+            if (i > 0 && startedRows[i].toPar === startedRows[i-1].toPar && startedRows[i].holesPlayed === startedRows[i-1].holesPlayed) {
+              startedRows[i].pos = "T" + pos;
+              startedRows[i-1].pos = "T" + pos;
             } else {
               pos = i + 1;
-              playerRows[i].pos = String(pos);
+              startedRows[i].pos = String(pos);
             }
           }
 
@@ -1597,13 +1604,14 @@ export default function App() {
                 {lbDay.label.toUpperCase()} · INDIVIDUAL SCORES
               </div>
 
-              {playerRows.length === 0 ? (
+              {startedRows.length === 0 && notStartedRows.length === 0 ? (
                 <div style={{textAlign:"center",padding:"40px 20px",color:"#446"}}>
                   <div style={{fontSize:24,marginBottom:8}}>⛳</div>
                   <div style={{fontSize:12}}>No scores entered yet</div>
                 </div>
               ) : (
-                <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+                <div>
+                {startedRows.length > 0 && <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
                   <table style={{borderCollapse:"collapse",width:"100%",minWidth:640,background:CARD,borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`}}>
                     <thead>
                       {/* Hole number row */}
@@ -1638,7 +1646,7 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {playerRows.map((row,ri)=>{
+                      {startedRows.map((row,ri)=>{
                         const outTotal = row.gross.slice(0,9).some(g=>g!==null) ? row.gross.slice(0,9).reduce((a,g)=>a+(g||0),0) : null;
                         const inTotal  = row.gross.slice(9).some(g=>g!==null)   ? row.gross.slice(9).reduce((a,g)=>a+(g||0),0)  : null;
                         const outPlayed = row.gross.slice(0,9).filter(g=>g!==null).length;
@@ -1676,6 +1684,19 @@ export default function App() {
                       })}
                     </tbody>
                   </table>
+                </div>}
+                {notStartedRows.length > 0 && (
+                  <div style={{marginTop: startedRows.length > 0 ? 14 : 0}}>
+                    <div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2,marginBottom:6,paddingLeft:2}}>NOT STARTED</div>
+                    {notStartedRows.map((row,ri)=>(
+                      <div key={row.name} style={{display:"flex",alignItems:"center",padding:"9px 12px",background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`,borderRadius:ri===0?"8px 8px 0 0":ri===notStartedRows.length-1?"0 0 8px 8px":0}}>
+                        <div style={{fontSize:10,color:"#334",fontFamily:"monospace",marginRight:10,minWidth:36}}>🕐</div>
+                        <div style={{fontSize:13,fontWeight:700,color:row.team==="A"?TEAM_A_COLOR:TEAM_B_DISP,flex:1}}>{row.name}</div>
+                        <div style={{fontSize:11,color:"#446",fontFamily:"monospace"}}>{row.teeTime&&row.teeTime!=="TBD"?row.teeTime:"TBD"}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 </div>
               )}
             </div>
