@@ -1178,7 +1178,13 @@ export default function App() {
     </div>
   );
 
-  if (!currentPlayer) return <PlayerSelect onSelect={name=>setCurrentPlayer(name)}/>;
+  if (!currentPlayer) return <PlayerSelect onSelect={name=>{
+    setCurrentPlayer(name);
+    if (name === "Geb") return; // admin goes to scoreboard
+    setTab("matches");
+    const pm = findPlayerMatch(days, name, todayDayIdx);
+    if (pm && pm.dayIdx === todayDayIdx) setActiveMatch(pm);
+  }}/>;
 
   if (adminEditMatch) {
     const d=days[adminEditMatch.dayIdx];
