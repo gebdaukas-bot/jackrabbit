@@ -124,9 +124,16 @@ function netScore(gross, playerHcp, holeHcpIndex) {
 function computeMatchStatus(scores) {
   let lead = 0, holesPlayed = 0;
   let closingLead = null, closingHolesPlayed = null;
+  let gapHole = null; // index of first missing hole when later holes are present
   for (let i = 0; i < 18; i++) {
     const s = scores[i];
-    if (s === null || s === undefined) break;
+    if (s === null || s === undefined) {
+      // Check if any later hole has a score — that would be a gap
+      for (let j = i + 1; j < 18; j++) {
+        if (scores[j] !== null && scores[j] !== undefined) { gapHole = i; break; }
+      }
+      break;
+    }
     holesPlayed++;
     if (s === "A") lead++; else if (s === "B") lead--;
     // Capture the decisive hole the first time the lead becomes unassailable
@@ -139,7 +146,9 @@ function computeMatchStatus(scores) {
   const abs = Math.abs(lead);
   const leader = lead > 0 ? "A" : lead < 0 ? "B" : null;
   const lName  = leader === "A" ? TEAM_A_SHORT : leader === "B" ? TEAM_B_SHORT : null;
-  if (holesPlayed === 0) return {shortLabel:"—",longLabel:"Not Started",sublabel:"",state:"pending",leader:null,up:0,holesPlayed,lead};
+  if (holesPlayed === 0 && gapHole === null) return {shortLabel:"—",longLabel:"Not Started",sublabel:"",state:"pending",leader:null,up:0,holesPlayed,lead};
+  // Gap in recorded scores — flag it so the UI can prompt to fill the missing hole
+  if (gapHole !== null) return {shortLabel:"⚠",longLabel:"Missing Score",sublabel:`Hole ${gapHole+1} not recorded`,state:"gap",leader,up:abs,holesPlayed,lead};
   // Match won by domination — use the score at the deciding hole, not any subsequent holes
   if (closingLead !== null) {
     const cAbs = Math.abs(closingLead);
@@ -162,7 +171,7 @@ function computeAllPoints(days) {
     const s = computeMatchStatus(m.scores);
     if (s.state==="complete")    { s.leader==="A"?(aA++,pA++):(aB++,pB++); }
     else if (s.state==="halved") { aA+=.5;aB+=.5;pA+=.5;pB+=.5; }
-    else if (s.state==="live")   { s.leader==="A"?pA++:s.leader==="B"?pB++:(pA+=.5,pB+=.5); }
+    else if (s.state==="live"||s.state==="gap") { s.leader==="A"?pA++:s.leader==="B"?pB++:(pA+=.5,pB+=.5); }
   }
   return {actualA:aA,actualB:aB,projA:pA,projB:pB};
 }
@@ -173,7 +182,7 @@ function computeDayPoints(day) {
     const s = computeMatchStatus(m.scores);
     if (s.state==="complete")    { s.leader==="A"?(a++,pA++):(b++,pB++); }
     else if (s.state==="halved") { a+=.5;b+=.5;pA+=.5;pB+=.5; }
-    else if (s.state==="live")   { s.leader==="A"?pA++:s.leader==="B"?pB++:(pA+=.5,pB+=.5); }
+    else if (s.state==="live"||s.state==="gap") { s.leader==="A"?pA++:s.leader==="B"?pB++:(pA+=.5,pB+=.5); }
   }
   return {a,b,pA,pB};
 }
@@ -576,13 +585,15 @@ function AdminMatchEditor({ match, isSingles, courseKey, onSave, onClose }) {
   })));
   // "auto"=compute from gross, "A"/"B"/"H"=explicit, "unplayed"=null
   const [overrides, setOverrides] = useState(() => match.scores.map(s => s == null ? "unplayed" : s));
+  const [showHcp, setShowHcp] = useState(false);
+  const [hcpVals, setHcpVals] = useState({hcp1a:match.hcp1a||0, hcp1b:match.hcp1b||0, hcp2a:match.hcp2a||0, hcp2b:match.hcp2b||0});
 
   const computedResult = (i) => {
     const g = gross[i], hcpIdx = course.hcp[i];
-    const net1a = netScore(g.p1a, match.hcp1a||0, hcpIdx);
-    const net1b = isSingles ? 99 : netScore(g.p1b, match.hcp1b||0, hcpIdx);
-    const net2a = netScore(g.p2a, match.hcp2a||0, hcpIdx);
-    const net2b = isSingles ? 99 : netScore(g.p2b, match.hcp2b||0, hcpIdx);
+    const net1a = netScore(g.p1a, hcpVals.hcp1a, hcpIdx);
+    const net1b = isSingles ? 99 : netScore(g.p1b, hcpVals.hcp1b, hcpIdx);
+    const net2a = netScore(g.p2a, hcpVals.hcp2a, hcpIdx);
+    const net2b = isSingles ? 99 : netScore(g.p2b, hcpVals.hcp2b, hcpIdx);
     const tA = isSingles ? net1a : Math.min(net1a, net1b);
     const tB = isSingles ? net2a : Math.min(net2a, net2b);
     return tA < tB ? "A" : tB < tA ? "B" : "H";
@@ -598,6 +609,7 @@ function AdminMatchEditor({ match, isSingles, courseKey, onSave, onClose }) {
       ...match, scores: finalScores,
       grossP1a: gross.map(g=>g.p1a), grossP1b: gross.map(g=>g.p1b),
       grossP2a: gross.map(g=>g.p2a), grossP2b: gross.map(g=>g.p2b),
+      ...hcpVals,
     });
   };
 
@@ -618,10 +630,14 @@ function AdminMatchEditor({ match, isSingles, courseKey, onSave, onClose }) {
 
   return (
     <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
+      {showHcp&&<HcpModal match={{...match,...hcpVals}} isSingles={isSingles} onSave={v=>{setHcpVals(v);setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
       <style>{`*{box-sizing:border-box;margin:0;padding:0}`}</style>
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10,flexShrink:0}}>
         <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:MUTED,padding:"5px 10px",cursor:"pointer",fontSize:11}}>← Back</button>
-        <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:1,fontFamily:"monospace"}}>ADMIN EDIT · Match {match.id}</div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <button onClick={()=>setShowHcp(true)} style={{padding:"5px 10px",background:"none",border:`1px solid ${GOLD}`,borderRadius:7,color:GOLD,fontSize:11,cursor:"pointer",fontWeight:700}}>HCP</button>
+          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:1,fontFamily:"monospace"}}>ADMIN EDIT · Match {match.id}</div>
+        </div>
         <button onClick={handleSave} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer"}}>SAVE</button>
       </div>
       <div style={{padding:"6px 12px",background:CARD2,borderBottom:`1px solid ${BORDER}`,flexShrink:0}}>
@@ -801,9 +817,10 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
   const bWin    = s.state==="complete" && s.leader==="B";
   const halved  = s.state==="halved";
   const live    = s.state==="live";
-  const aLeading = live && s.leader==="A";
-  const bLeading = live && s.leader==="B";
-  const allSquare = live && !s.leader;
+  const gap     = s.state==="gap";
+  const aLeading = (live||gap) && s.leader==="A";
+  const bLeading = (live||gap) && s.leader==="B";
+  const allSquare = (live||gap) && !s.leader;
 
   const aNameColor = (aWin||aLeading) ? "#ffffff" : "#7a8fa8";
   const bNameColor = (bWin||bLeading) ? "#ffffff" : "#7a8fa8";
@@ -824,11 +841,12 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
   );
 
   if (!live) {
-    // Pending, complete, halved — static centred badge
+    // Pending, complete, halved, gap — static centred badge
     let badgeBg = "#0d1929", badgeTop = "", badgeBot = "—";
     if (aWin)        { badgeBg=TEAM_A_COLOR; badgeTop="WIN"; badgeBot=s.sublabel; }
     else if (bWin)   { badgeBg=TEAM_B_COLOR; badgeTop="WIN"; badgeBot=s.sublabel; }
     else if (halved) { badgeBg="#334455";    badgeTop="HALVED"; badgeBot="½pt"; }
+    else if (gap)    { badgeBg="#e67e22";    badgeTop="⚠"; badgeBot="MISSING"; }
     return (
       <div onClick={canEdit?onOpen:undefined} style={{display:"flex",alignItems:"stretch",cursor:canEdit?"pointer":"default",borderBottom:`1px solid #0a1628`,opacity:canEdit?1:0.85}}>
         <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
@@ -1218,7 +1236,7 @@ export default function App() {
             {boardDay.matches.map(m=>{
               const isSingles = boardDay.format==="Singles";
               const st = computeMatchStatus(m.scores);
-              const stColor = {pending:BORDER,live:"#4caf50",complete:st.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557"}[st.state];
+              const stColor = {pending:BORDER,live:"#4caf50",complete:st.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557",gap:"#e67e22"}[st.state];
               const course = COURSES[boardDay.courseKey];
               let lead = 0;
               const runLeads = m.scores.map(s=>{
