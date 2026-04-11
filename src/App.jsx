@@ -538,6 +538,16 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
           <div style={{fontSize:28}}>🏆</div>
         </div>
       )}
+      {cur.state==="gap"&&(
+        <div style={{margin:"8px 12px 0",background:"#e67e2222",border:"1px solid #e67e2299",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
+          <div style={{fontSize:18,flexShrink:0}}>⚠</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:11,fontWeight:900,color:"#e67e22",fontFamily:"monospace",letterSpacing:1}}>MISSING SCORE</div>
+            <div style={{fontSize:10,color:"#e67e22bb",marginTop:2}}>Score from hole {cur.holesPlayed+1} has not been recorded</div>
+          </div>
+          <button onClick={()=>setHole(cur.holesPlayed)} style={{flexShrink:0,padding:"5px 10px",background:"#e67e2233",border:"1px solid #e67e22",borderRadius:7,color:"#e67e22",fontSize:10,cursor:"pointer",fontWeight:800,fontFamily:"monospace"}}>GO →</button>
+        </div>
+      )}
       <div style={{flex:1,padding:"12px 12px 0"}}>
           <div style={{display:"flex",justifyContent:"center",gap:10,marginBottom:12,padding:"10px",background:CARD,borderRadius:12,border:`1px solid ${BORDER}`}}>
             <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HOLE</div><div style={{fontSize:28,fontWeight:900,color:GOLD,fontFamily:"monospace",lineHeight:1}}>{hole+1}</div></div>
@@ -567,7 +577,10 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
             <div style={{fontSize:9,color:"#446",fontFamily:"monospace",marginBottom:2}}>HOLE RESULT</div>
             <div style={{fontSize:13,fontWeight:800,color:hwColor}}>{hwLabel}</div>
           </div>
-          <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${hwColor},${hwColor}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 18px ${hwColor}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
+          {cur.state==="gap"&&hole!==cur.holesPlayed
+            ? <div style={{width:"100%",padding:"15px",background:"#e67e2222",border:"1px solid #e67e2266",borderRadius:14,color:"#e67e22",fontWeight:900,fontSize:13,textAlign:"center",fontFamily:"monospace",marginBottom:8,letterSpacing:1}}>⚠ ENTER HOLE {cur.holesPlayed+1} FIRST</div>
+            : <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${hwColor},${hwColor}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 18px ${hwColor}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
+          }
           {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:20}}>↩ UNDO HOLE {hole}</button>}
         </div>
     </div>
