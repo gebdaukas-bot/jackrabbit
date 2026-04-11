@@ -473,15 +473,42 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
   for(let i=0;i<hole;i++){if(match.scores[i]==="A")runLead++;else if(match.scores[i]==="B")runLead--;}
   const runAbs=Math.abs(runLead);
   const runLeader=runLead>0?"A":runLead<0?"B":null;
-  const strokeReceivers=[];
-  if((match.hcp1a||0)>0&&holeHcp<=(match.hcp1a||0))strokeReceivers.push(match.player1a);
-  if(!isSingles&&(match.hcp1b||0)>0&&holeHcp<=(match.hcp1b||0))strokeReceivers.push(match.player1b);
-  if((match.hcp2a||0)>0&&holeHcp<=(match.hcp2a||0))strokeReceivers.push(match.player2a);
-  if(!isSingles&&(match.hcp2b||0)>0&&holeHcp<=(match.hcp2b||0))strokeReceivers.push(match.player2b);
+  const [showEndEarly,setShowEndEarly]=useState(false);
+  const strokeEntries=[
+    {name:match.player1a,hcp:match.hcp1a||0},
+    ...(!isSingles?[{name:match.player1b,hcp:match.hcp1b||0}]:[]),
+    {name:match.player2a,hcp:match.hcp2a||0},
+    ...(!isSingles?[{name:match.player2b,hcp:match.hcp2b||0}]:[]),
+  ].map(p=>{
+    let strokes=holeHcp<=p.hcp?1:0;
+    if(p.hcp>18&&holeHcp<=p.hcp-18)strokes++;
+    return {...p,strokes};
+  }).filter(e=>e.strokes>0);
 
   return (
     <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
       {showHcp&&<HcpModal match={match} isSingles={isSingles} onSave={v=>{onSave({...match,...v});setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
+      {showEndEarly&&(
+        <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
+            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:6,fontFamily:"monospace"}}>END MATCH EARLY?</div>
+            <div style={{fontSize:11,color:TEXT,marginBottom:6}}>
+              {cur.state==="pending"?"Match is all square — result will be HALVED.":cur.leader?`${cur.leader==="A"?TEAM_A_SHORT:TEAM_B_SHORT} leads ${cur.up}UP after ${cur.holesPlayed} holes.`:"All square after "+cur.holesPlayed+" holes — result will be HALVED."}
+            </div>
+            <div style={{fontSize:10,color:MUTED,marginBottom:20}}>Remaining holes will be recorded as halved.</div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setShowEndEarly(false)} style={{flex:1,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>Cancel</button>
+              <button onClick={()=>{
+                const ns=[...match.scores];
+                for(let i=0;i<18;i++){if(ns[i]===null||ns[i]===undefined)ns[i]="H";}
+                onSave({...match,scores:ns});
+                setShowEndEarly(false);
+                onClose();
+              }} style={{flex:1,padding:"10px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:10,color:"#fff",fontWeight:800,fontSize:12,cursor:"pointer"}}>CONFIRM</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
           <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:"#668",padding:"5px 10px",cursor:"pointer",fontSize:11,flexShrink:0}}>← Back</button>
@@ -555,21 +582,21 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
             <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>PAR</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"monospace",lineHeight:1}}>{holePar}</div></div>
             <div style={{width:1,background:BORDER}}/>
             <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HCP IDX</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"monospace",lineHeight:1}}>{holeHcp}</div></div>
-            {strokeReceivers.length>0&&<><div style={{width:1,background:BORDER}}/><div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}><div style={{fontSize:8,color:GOLD,fontFamily:"monospace",letterSpacing:1}}>STROKE</div><div style={{fontSize:9,color:GOLD,marginTop:1}}>{strokeReceivers.join(", ")}</div></div></>}
+            {strokeEntries.length>0&&<><div style={{width:1,background:BORDER}}/><div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}><div style={{fontSize:8,color:GOLD,fontFamily:"monospace",letterSpacing:1}}>STROKE</div><div style={{fontSize:9,color:GOLD,marginTop:1}}>{strokeEntries.map(e=>`${e.name}${e.strokes>1?` ×${e.strokes}`:""}`).join(", ")}</div></div></>}
           </div>
           <div style={{background:`${TEAM_A_COLOR}18`,border:`1px solid ${TEAM_A_COLOR}44`,borderRadius:12,padding:"12px",marginBottom:8}}>
             <div style={{fontSize:9,color:TEAM_A_COLOR,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_A_SHORT}</div>
             <div style={{display:"flex",justifyContent:isSingles?"center":"space-around"}}>
-              <ScoreInput label={match.player1a} hcp={match.hcp1a||0} value={sc.p1a} onChange={v=>setSc(s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={strokeReceivers.includes(match.player1a)?GOLD:null} par={holePar}/>
-              {!isSingles&&<ScoreInput label={match.player1b} hcp={match.hcp1b||0} value={sc.p1b} onChange={v=>setSc(s=>({...s,p1b:v}))} color={TEAM_A_COLOR} labelColor={strokeReceivers.includes(match.player1b)?GOLD:null} par={holePar}/>}
+              <ScoreInput label={match.player1a} hcp={match.hcp1a||0} value={sc.p1a} onChange={v=>setSc(s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={strokeEntries.some(e=>e.name===match.player1a)?GOLD:null} par={holePar}/>
+              {!isSingles&&<ScoreInput label={match.player1b} hcp={match.hcp1b||0} value={sc.p1b} onChange={v=>setSc(s=>({...s,p1b:v}))} color={TEAM_A_COLOR} labelColor={strokeEntries.some(e=>e.name===match.player1b)?GOLD:null} par={holePar}/>}
             </div>
             {!isSingles&&<div style={{textAlign:"center",marginTop:8,fontSize:10,color:"#fff4"}}>best net: <span style={{color:"#fff",fontWeight:700}}>{teamANet}</span></div>}
           </div>
           <div style={{background:`${TEAM_B_COLOR}33`,border:`1px solid ${TEAM_B_COLOR}66`,borderRadius:12,padding:"12px",marginBottom:10}}>
             <div style={{fontSize:9,color:TEAM_B_DISP,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_B_SHORT}</div>
             <div style={{display:"flex",justifyContent:isSingles?"center":"space-around"}}>
-              <ScoreInput label={match.player2a} hcp={match.hcp2a||0} value={sc.p2a} onChange={v=>setSc(s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={strokeReceivers.includes(match.player2a)?GOLD:null} par={holePar}/>
-              {!isSingles&&<ScoreInput label={match.player2b} hcp={match.hcp2b||0} value={sc.p2b} onChange={v=>setSc(s=>({...s,p2b:v}))} color={TEAM_B_DISP} labelColor={strokeReceivers.includes(match.player2b)?GOLD:null} par={holePar}/>}
+              <ScoreInput label={match.player2a} hcp={match.hcp2a||0} value={sc.p2a} onChange={v=>setSc(s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={strokeEntries.some(e=>e.name===match.player2a)?GOLD:null} par={holePar}/>
+              {!isSingles&&<ScoreInput label={match.player2b} hcp={match.hcp2b||0} value={sc.p2b} onChange={v=>setSc(s=>({...s,p2b:v}))} color={TEAM_B_DISP} labelColor={strokeEntries.some(e=>e.name===match.player2b)?GOLD:null} par={holePar}/>}
             </div>
             {!isSingles&&<div style={{textAlign:"center",marginTop:8,fontSize:10,color:"#fff4"}}>best net: <span style={{color:"#fff",fontWeight:700}}>{teamBNet}</span></div>}
           </div>
@@ -581,7 +608,8 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
             ? <div style={{width:"100%",padding:"15px",background:"#e67e2222",border:"1px solid #e67e2266",borderRadius:14,color:"#e67e22",fontWeight:900,fontSize:13,textAlign:"center",fontFamily:"monospace",marginBottom:8,letterSpacing:1}}>⚠ ENTER HOLE {cur.holesPlayed+1} FIRST</div>
             : <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${hwColor},${hwColor}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 18px ${hwColor}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
           }
-          {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:20}}>↩ UNDO HOLE {hole}</button>}
+          {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>↩ UNDO HOLE {hole}</button>}
+          {!isComplete&&<button onClick={()=>setShowEndEarly(true)} style={{width:"100%",padding:"7px",background:"none",border:`1px solid #334`,borderRadius:10,color:"#446",fontSize:10,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:20}}>End Match Early</button>}
         </div>
     </div>
   );
