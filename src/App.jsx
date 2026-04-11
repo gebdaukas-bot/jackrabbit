@@ -106,8 +106,12 @@ const initialDays = [
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function findPlayerMatch(days, playerName) {
-  for (let di = 0; di < days.length; di++) {
+function findPlayerMatch(days, playerName, preferDay = null) {
+  // Check preferred day first (today), then fall back to any day
+  const order = preferDay !== null
+    ? [preferDay, ...days.map((_,i)=>i).filter(i=>i!==preferDay)]
+    : days.map((_,i)=>i);
+  for (const di of order) {
     for (const m of days[di].matches) {
       if ([m.player1a, m.player1b, m.player2a, m.player2b].includes(playerName))
         return { dayIdx: di, matchId: m.id };
@@ -1154,7 +1158,7 @@ export default function App() {
   const boardDayIdx  = boardDayOverride!==null ? boardDayOverride : autoDayIdx;
   const boardDay     = days[boardDayIdx];
   const dayLabels    = ["FRIDAY","SATURDAY","SUNDAY"];
-  const playerMatch  = currentPlayer ? findPlayerMatch(days,currentPlayer) : null;
+  const playerMatch  = currentPlayer ? findPlayerMatch(days,currentPlayer,todayDayIdx) : null;
   const isAdmin      = currentPlayer === "Geb";
 
   // Can a player open/edit a given match?
