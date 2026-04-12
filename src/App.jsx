@@ -93,15 +93,15 @@ const initialDays = [
   {
     day:3, courseKey:"day3", label:"Sunday — Singles", format:"Singles",
     matches:[
-      {id:301,teeTime:"10:40",player1a:"Clark",   hcp1a:8,player1b:null,hcp1b:0,player2a:"Tyler S.",hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:302,teeTime:"10:48",player1a:"Sushil",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Destin",  hcp2a:5, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:303,teeTime:"10:48",player1a:"Tim",     hcp1a:2,player1b:null,hcp1b:0,player2a:"Jake",    hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:304,teeTime:"10:56",player1a:"Logan",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Geb",     hcp2a:4, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:305,teeTime:"10:56",player1a:"Gabe",    hcp1a:0,player1b:null,hcp1b:0,player2a:"Spencer", hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:306,teeTime:"11:04",player1a:"Tyler T.",hcp1a:0,player1b:null,hcp1b:0,player2a:"Sam",     hcp2a:3, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:307,teeTime:"11:04",player1a:"Naman",   hcp1a:2,player1b:null,hcp1b:0,player2a:"Henry",   hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:308,teeTime:"11:12",player1a:"Ian",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Tony",    hcp2a:1, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:309,teeTime:"11:12",player1a:"Hunter",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Kimball", hcp2a:2, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:301,teeTime:"10:40",companionId:null,   player1a:"Clark",   hcp1a:8,player1b:null,hcp1b:0,player2a:"Tyler S.",hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:302,teeTime:"10:48",companionId:303,   player1a:"Sushil",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Destin",  hcp2a:5, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:303,teeTime:"10:48",companionId:302,   player1a:"Tim",     hcp1a:2,player1b:null,hcp1b:0,player2a:"Jake",    hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:304,teeTime:"10:56",companionId:305,   player1a:"Logan",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Geb",     hcp2a:4, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:305,teeTime:"10:56",companionId:304,   player1a:"Gabe",    hcp1a:0,player1b:null,hcp1b:0,player2a:"Spencer", hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:306,teeTime:"11:04",companionId:307,   player1a:"Tyler T.",hcp1a:0,player1b:null,hcp1b:0,player2a:"Sam",     hcp2a:3, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:307,teeTime:"11:04",companionId:306,   player1a:"Naman",   hcp1a:2,player1b:null,hcp1b:0,player2a:"Henry",   hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:308,teeTime:"11:12",companionId:309,   player1a:"Ian",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Tony",    hcp2a:1, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:309,teeTime:"11:12",companionId:308,   player1a:"Hunter",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Kimball", hcp2a:2, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
     ]
   }
 ];
@@ -383,6 +383,263 @@ function HcpModal({ match, isSingles, onSave, onClose }) {
           <button onClick={onClose} style={{flex:1,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#668",fontSize:12,cursor:"pointer"}}>Cancel</button>
           <button onClick={()=>onSave(vals)} style={{flex:2,padding:"10px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}44)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:10,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer"}}>SAVE</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Group Hole Entry (two singles matches played as a foursome) ───────────────
+// ── Group Hole Entry ──────────────────────────────────────────────────────────
+// Two singles matches played as a foursome. Looks identical to HoleEntry for
+// fourballs — Team A box has both Team A players, Team B box has both Team B
+// players — but tracks 2 separate match results and saves both on confirm.
+function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
+  const course = COURSES[courseKey];
+
+  // Start on the hole where most progress has been made
+  const initHole = () => {
+    const hp = matches.map(m => {
+      const s = computeMatchStatus(m.scores);
+      return s.holesPlayed < 18 ? s.holesPlayed : 17;
+    });
+    return Math.max(...hp);
+  };
+  const [hole, setHole] = useState(initHole);
+  const [showEndEarly, setShowEndEarly] = useState(false);
+
+  // grossScores[matchIdx][holeIdx] = { p1a, p2a }
+  const [grossScores, setGrossScores] = useState(() =>
+    matches.map(m =>
+      Array.from({ length: 18 }, (_, i) => {
+        const par = course.par[i];
+        return {
+          p1a: (Array.isArray(m.grossP1a) && m.grossP1a[i] != null) ? m.grossP1a[i] : par,
+          p2a: (Array.isArray(m.grossP2a) && m.grossP2a[i] != null) ? m.grossP2a[i] : par,
+        };
+      })
+    )
+  );
+
+  const holeHcp = course.hcp[hole];
+  const holePar = course.par[hole];
+
+  const holeWinner = (mi) => {
+    const sc = grossScores[mi][hole];
+    const m = matches[mi];
+    const net1a = netScore(sc.p1a, m.hcp1a || 0, holeHcp);
+    const net2a = netScore(sc.p2a, m.hcp2a || 0, holeHcp);
+    return net1a < net2a ? "A" : net2a < net1a ? "B" : "H";
+  };
+
+  const setSc = (mi, updater) => {
+    setGrossScores(prev => {
+      const next = prev.map(ms => [...ms]);
+      next[mi][hole] = typeof updater === "function" ? updater(prev[mi][hole]) : updater;
+      return next;
+    });
+  };
+
+  const handleConfirm = () => {
+    matches.forEach((m, mi) => {
+      const hw = holeWinner(mi);
+      const ns = [...m.scores]; ns[hole] = hw;
+      const toArr = (existing, newVal) => {
+        const arr = Array.isArray(existing) ? [...existing] : Array(18).fill(null);
+        arr[hole] = newVal;
+        return arr;
+      };
+      onSave(mi, {
+        ...m, scores: ns,
+        grossP1a: toArr(m.grossP1a, grossScores[mi][hole].p1a),
+        grossP2a: toArr(m.grossP2a, grossScores[mi][hole].p2a),
+      });
+    });
+    if (hole < 17) {
+      const nextPar = course.par[hole + 1];
+      setHole(h => h + 1);
+      setGrossScores(prev => {
+        const next = prev.map(ms => [...ms]);
+        next[0][hole + 1] = { p1a: nextPar, p2a: nextPar };
+        next[1][hole + 1] = { p1a: nextPar, p2a: nextPar };
+        return next;
+      });
+    }
+  };
+
+  const handleUndo = () => {
+    if (hole === 0) return;
+    const undoHole = hole - 1;
+    matches.forEach((m, mi) => {
+      const ns = [...m.scores]; ns[undoHole] = null;
+      const clearArr = arr => {
+        const a = Array.isArray(arr) ? [...arr] : Array(18).fill(null);
+        a[undoHole] = null;
+        return a;
+      };
+      onSave(mi, { ...m, scores: ns, grossP1a: clearArr(m.grossP1a), grossP2a: clearArr(m.grossP2a) });
+    });
+    setHole(h => h - 1);
+    const prevPar = course.par[undoHole];
+    setGrossScores(prev => {
+      const next = prev.map(ms => [...ms]);
+      next[0][undoHole] = { p1a: prevPar, p2a: prevPar };
+      next[1][undoHole] = { p1a: prevPar, p2a: prevPar };
+      return next;
+    });
+  };
+
+  const statuses = matches.map(m => computeMatchStatus(m.scores));
+  const isComplete = statuses.every(s => s.state === "complete" || s.state === "halved");
+  const hasGap = statuses.some(s => s.state === "gap");
+
+  // m0 = matches[0], m1 = matches[1]
+  // Team A players: m0.player1a, m1.player1a
+  // Team B players: m0.player2a, m1.player2a
+  const m0 = matches[0], m1 = matches[1];
+  const sc0 = grossScores[0][hole], sc1 = grossScores[1][hole];
+
+  const hw0 = holeWinner(0), hw1 = holeWinner(1);
+  const hw0Color = hw0==="A"?TEAM_A_COLOR:hw0==="B"?TEAM_B_COLOR:GOLD;
+  const hw1Color = hw1==="A"?TEAM_A_COLOR:hw1==="B"?TEAM_B_COLOR:GOLD;
+
+  const net0_1a = netScore(sc0.p1a, m0.hcp1a||0, holeHcp);
+  const net0_2a = netScore(sc0.p2a, m0.hcp2a||0, holeHcp);
+  const net1_1a = netScore(sc1.p1a, m1.hcp1a||0, holeHcp);
+  const net1_2a = netScore(sc1.p2a, m1.hcp2a||0, holeHcp);
+
+  const hw0Label = hw0==="A"?`${m0.player1a} wins · net ${net0_1a} vs ${net0_2a}`:hw0==="B"?`${m0.player2a} wins · net ${net0_2a} vs ${net0_1a}`:`Halved · both net ${net0_1a}`;
+  const hw1Label = hw1==="A"?`${m1.player1a} wins · net ${net1_1a} vs ${net1_2a}`:hw1==="B"?`${m1.player2a} wins · net ${net1_2a} vs ${net1_1a}`:`Halved · both net ${net1_1a}`;
+
+  // Stroke indicators for all 4 players
+  const str = (hcp) => { let s=holeHcp<=hcp?1:0; if(hcp>18&&holeHcp<=hcp-18)s++; return s; };
+  const strokeEntries = [
+    {name:m0.player1a,hcp:m0.hcp1a||0},{name:m0.player2a,hcp:m0.hcp2a||0},
+    {name:m1.player1a,hcp:m1.hcp1a||0},{name:m1.player2a,hcp:m1.hcp2a||0},
+  ].map(p=>({...p,strokes:str(p.hcp)})).filter(e=>e.strokes>0);
+
+  // Running lead for header bar — use match 0 as the "main" match
+  let runLead0=0; for(let i=0;i<hole;i++){if(m0.scores[i]==="A")runLead0++;else if(m0.scores[i]==="B")runLead0--;}
+  let runLead1=0; for(let i=0;i<hole;i++){if(m1.scores[i]==="A")runLead1++;else if(m1.scores[i]==="B")runLead1--;}
+
+  const MatchBar = ({m, lead, s}) => {
+    const rAbs=Math.abs(lead), rLeader=lead>0?"A":lead<0?"B":null;
+    return (
+      <div style={{display:"flex",alignItems:"stretch",borderRadius:8,overflow:"hidden",border:`1px solid ${BORDER}`,marginBottom:6}}>
+        <div style={{flex:1,background:rLeader==="A"?TEAM_A_COLOR:"#111a2e",padding:"5px 8px",minWidth:0}}>
+          <div style={{fontSize:7,fontWeight:800,color:rLeader==="A"?"#ffcccc":TEAM_A_COLOR,letterSpacing:1,fontFamily:"monospace"}}>{TEAM_A_SHORT}</div>
+          <div style={{fontSize:11,fontWeight:700,color:"#dde",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.player1a}</div>
+        </div>
+        <div style={{background:rLeader==="A"?TEAM_A_COLOR:rLeader==="B"?TEAM_B_COLOR:"#1a2a44",minWidth:58,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"3px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0}}>
+          {s.state==="pending"?<div style={{fontSize:9,color:"#446",fontFamily:"monospace"}}>—</div>
+          :s.state==="complete"||s.state==="halved"?<><div style={{fontSize:6,color:"#FFD700",fontFamily:"monospace",fontWeight:800}}>FINAL</div><div style={{fontSize:10,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{s.sublabel||"HALVED"}</div></>
+          :<><div style={{fontSize:13,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{rLeader?rAbs:"AS"}</div><div style={{fontSize:6,color:"#88aacc",fontFamily:"monospace"}}>{rLeader?"UP":"ALL SQ"}</div><div style={{fontSize:6,color:"#446",fontFamily:"monospace"}}>THRU {hole}</div></>}
+        </div>
+        <div style={{flex:1,background:rLeader==="B"?TEAM_B_COLOR:"#111a2e",padding:"5px 8px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
+          <div style={{fontSize:7,fontWeight:800,color:rLeader==="B"?"#cce4ff":TEAM_B_DISP,letterSpacing:1,fontFamily:"monospace"}}>{TEAM_B_SHORT}</div>
+          <div style={{fontSize:11,fontWeight:700,color:"#dde",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{m.player2a}</div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
+      {showEndEarly&&(
+        <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
+            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:6,fontFamily:"monospace"}}>END BOTH MATCHES EARLY?</div>
+            <div style={{fontSize:10,color:MUTED,marginBottom:20}}>Remaining holes will be halved for both matches.</div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setShowEndEarly(false)} style={{flex:1,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>Cancel</button>
+              <button onClick={()=>{
+                matches.forEach((m,mi)=>{const ns=[...m.scores];for(let i=0;i<18;i++){if(ns[i]===null||ns[i]===undefined)ns[i]="H";}onSave(mi,{...m,scores:ns});});
+                setShowEndEarly(false); onClose();
+              }} style={{flex:1,padding:"10px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:10,color:"#fff",fontWeight:800,fontSize:12,cursor:"pointer"}}>CONFIRM</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header — same sticky bar as HoleEntry but showing both matches */}
+      <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",position:"sticky",top:0,zIndex:10}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:"#668",padding:"5px 10px",cursor:"pointer",fontSize:11}}>← Back</button>
+          <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:1}}>GROUP · {m0.teeTime}</div>
+        </div>
+        <MatchBar m={m0} lead={runLead0} s={statuses[0]}/>
+        <MatchBar m={m1} lead={runLead1} s={statuses[1]}/>
+      </div>
+
+      {/* Hole strip — use match 0 scores for color */}
+      <div style={{padding:"8px 10px 14px",display:"flex",gap:2}}>
+        {Array.from({length:18},(_,i)=>{
+          const s=m0.scores[i];
+          const bg=s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_COLOR:s==="H"?"#334":CARD2;
+          const isAct=i===hole;
+          return <div key={i} onClick={()=>setHole(i)} style={{flex:1,height:isAct?26:20,background:bg,borderRadius:3,cursor:"pointer",border:isAct?`2px solid ${GOLD}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isAct?8:7,color:isAct?"#fff":"#ffffff99",fontFamily:"monospace",fontWeight:700}}>{i+1}</div>;
+        })}
+      </div>
+
+      <div style={{flex:1,padding:"0 12px 0"}}>
+        {/* Hole info */}
+        <div style={{display:"flex",justifyContent:"center",gap:10,marginBottom:12,padding:"10px",background:CARD,borderRadius:12,border:`1px solid ${BORDER}`}}>
+          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HOLE</div><div style={{fontSize:28,fontWeight:900,color:GOLD,fontFamily:"monospace",lineHeight:1}}>{hole+1}</div></div>
+          <div style={{width:1,background:BORDER}}/>
+          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>PAR</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"monospace",lineHeight:1}}>{holePar}</div></div>
+          <div style={{width:1,background:BORDER}}/>
+          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HCP IDX</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"monospace",lineHeight:1}}>{holeHcp}</div></div>
+          {strokeEntries.length>0&&<><div style={{width:1,background:BORDER}}/><div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}><div style={{fontSize:8,color:GOLD,fontFamily:"monospace",letterSpacing:1}}>STROKE</div><div style={{fontSize:9,color:GOLD,marginTop:1}}>{strokeEntries.map(e=>`${e.name}${e.strokes>1?` ×${e.strokes}`:""}`).join(", ")}</div></div></>}
+        </div>
+
+        {/* Complete banner */}
+        {isComplete&&(
+          <div style={{marginBottom:10,background:`${GOLD}22`,border:`1px solid ${GOLD}55`,borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
+            <div style={{fontSize:14,fontWeight:900,color:GOLD}}>BOTH MATCHES COMPLETE 🏆</div>
+          </div>
+        )}
+
+        {/* Gap warning */}
+        {hasGap&&(
+          <div style={{marginBottom:8,background:"#e67e2222",border:"1px solid #e67e2299",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{fontSize:18}}>⚠</div>
+            <div style={{fontSize:10,color:"#e67e22",fontFamily:"monospace"}}>MISSING SCORE — fill earlier hole first</div>
+          </div>
+        )}
+
+        {/* Team A box — both Team A players */}
+        <div style={{background:`${TEAM_A_COLOR}18`,border:`1px solid ${TEAM_A_COLOR}44`,borderRadius:12,padding:"12px",marginBottom:8}}>
+          <div style={{fontSize:9,color:TEAM_A_COLOR,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_A_SHORT}</div>
+          <div style={{display:"flex",justifyContent:"space-around"}}>
+            <ScoreInput label={m0.player1a} hcp={m0.hcp1a||0} value={sc0.p1a} onChange={v=>setSc(0,s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={str(m0.hcp1a||0)>0?GOLD:null} strokes={str(m0.hcp1a||0)||1} par={holePar}/>
+            <ScoreInput label={m1.player1a} hcp={m1.hcp1a||0} value={sc1.p1a} onChange={v=>setSc(1,s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={str(m1.hcp1a||0)>0?GOLD:null} strokes={str(m1.hcp1a||0)||1} par={holePar}/>
+          </div>
+        </div>
+
+        {/* Team B box — both Team B players */}
+        <div style={{background:`${TEAM_B_COLOR}33`,border:`1px solid ${TEAM_B_COLOR}66`,borderRadius:12,padding:"12px",marginBottom:10}}>
+          <div style={{fontSize:9,color:TEAM_B_DISP,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_B_SHORT}</div>
+          <div style={{display:"flex",justifyContent:"space-around"}}>
+            <ScoreInput label={m0.player2a} hcp={m0.hcp2a||0} value={sc0.p2a} onChange={v=>setSc(0,s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={str(m0.hcp2a||0)>0?GOLD:null} strokes={str(m0.hcp2a||0)||1} par={holePar}/>
+            <ScoreInput label={m1.player2a} hcp={m1.hcp2a||0} value={sc1.p2a} onChange={v=>setSc(1,s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={str(m1.hcp2a||0)>0?GOLD:null} strokes={str(m1.hcp2a||0)||1} par={holePar}/>
+          </div>
+        </div>
+
+        {/* Hole results — one row per match */}
+        <div style={{background:`${hw0Color}22`,border:`1px solid ${hw0Color}55`,borderRadius:10,padding:"8px 12px",marginBottom:6,textAlign:"center"}}>
+          <div style={{fontSize:9,color:"#446",fontFamily:"monospace",marginBottom:2}}>{m0.player1a} vs {m0.player2a}</div>
+          <div style={{fontSize:13,fontWeight:800,color:hw0Color}}>{hw0Label}</div>
+        </div>
+        <div style={{background:`${hw1Color}22`,border:`1px solid ${hw1Color}55`,borderRadius:10,padding:"8px 12px",marginBottom:10,textAlign:"center"}}>
+          <div style={{fontSize:9,color:"#446",fontFamily:"monospace",marginBottom:2}}>{m1.player1a} vs {m1.player2a}</div>
+          <div style={{fontSize:13,fontWeight:800,color:hw1Color}}>{hw1Label}</div>
+        </div>
+
+        {/* Confirm / Undo / End early */}
+        {!isComplete&&(
+          <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${GOLD},${GOLD}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 18px ${GOLD}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
+        )}
+        {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>↩ UNDO HOLE {hole}</button>}
+        {!isComplete&&<button onClick={()=>setShowEndEarly(true)} style={{width:"100%",padding:"7px",background:"none",border:`1px solid #334`,borderRadius:10,color:"#446",fontSize:10,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:20}}>End Matches Early</button>}
       </div>
     </div>
   );
@@ -972,6 +1229,7 @@ export default function App() {
   const [currentPlayer, setCurrentPlayer] = useState(()=>{ try{return localStorage.getItem("jr_player")||null;}catch{return null;} });
   const [tab, setTab]               = useState("scoreboard");
   const [activeMatch, setActiveMatch] = useState(null);
+  const [activeGroup, setActiveGroup] = useState(null); // { dayIdx, matchIds: [id1, id2] }
   const [adminEditMatch, setAdminEditMatch] = useState(null);
   const [boardDayOverride, setBoardDayOverride] = useState(null);
   const [offlineQueue, setOfflineQueue] = useState(()=>{ try{return JSON.parse(localStorage.getItem("jr_offline_queue")||"[]");}catch{return [];} });
@@ -1168,6 +1426,17 @@ export default function App() {
     return playerMatch && playerMatch.dayIdx === dayIdx && playerMatch.matchId === matchId;
   };
 
+  // Open scoring: if this match has a tee-time companion, open as a group
+  const openForScoring = (dayIdx, matchId) => {
+    const d = days[dayIdx];
+    const m = d.matches.find(x => x.id === matchId);
+    if (m && m.companionId) {
+      setActiveGroup({ dayIdx, matchIds: [matchId, m.companionId] });
+    } else {
+      setActiveMatch({ dayIdx, matchId });
+    }
+  };
+
   // Loading screen
   if (!loaded) return (
     <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"monospace",color:MUTED}}>
@@ -1182,7 +1451,15 @@ export default function App() {
     if (name === "Geb") return; // admin goes to scoreboard
     setTab("matches");
     const pm = findPlayerMatch(days, name, todayDayIdx);
-    if (pm && pm.dayIdx === todayDayIdx) setActiveMatch(pm);
+    if (pm && pm.dayIdx === todayDayIdx) {
+      const pd = days[pm.dayIdx];
+      const pm2 = pd.matches.find(x => x.id === pm.matchId);
+      if (pm2 && pm2.companionId) {
+        setActiveGroup({dayIdx: pm.dayIdx, matchIds: [pm.matchId, pm2.companionId]});
+      } else {
+        setActiveMatch(pm);
+      }
+    }
   }}/>;
 
   if (adminEditMatch) {
@@ -1193,9 +1470,32 @@ export default function App() {
       onClose={()=>setAdminEditMatch(null)}/>;
   }
 
+  if (activeGroup) {
+    const d = days[activeGroup.dayIdx];
+    const groupMatches = activeGroup.matchIds.map(id => d.matches.find(x => x.id === id));
+    return <GroupHoleEntry
+      matches={groupMatches}
+      courseKey={d.courseKey}
+      onSave={(mi, upd) => updateMatch(activeGroup.dayIdx, upd)}
+      onClose={() => setActiveGroup(null)}
+    />;
+  }
+
   if (activeMatch) {
     const d=days[activeMatch.dayIdx];
     const m=d.matches.find(x=>x.id===activeMatch.matchId);
+    // If this match has a companion, always show group scorer
+    if (m && m.companionId) {
+      const companion = d.matches.find(x=>x.id===m.companionId);
+      if (companion) {
+        return <GroupHoleEntry
+          matches={[m, companion]}
+          courseKey={d.courseKey}
+          onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)}
+          onClose={()=>setActiveMatch(null)}
+        />;
+      }
+    }
     return <HoleEntry match={m} isSingles={!m.player1b} courseKey={d.courseKey} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
   }
 
@@ -1275,7 +1575,7 @@ export default function App() {
             <TVDayBlock day={boardDay} onOpen={mid=>{
               if(canEdit(boardDayIdx,mid)){
                 if(isAdmin) setAdminEditMatch({dayIdx:boardDayIdx,matchId:mid});
-                else setActiveMatch({dayIdx:boardDayIdx,matchId:mid});
+                else openForScoring(boardDayIdx,mid);
               }
             }} canEdit={(mid)=>canEdit(boardDayIdx,mid)}/>
 
@@ -1455,21 +1755,37 @@ export default function App() {
               const d=days[playerMatch.dayIdx];
               const m=d.matches.find(x=>x.id===playerMatch.matchId);
               const s=computeMatchStatus(m.scores);
-              const isSingles=!m.player1b;
               const stateColor={pending:BORDER,live:"#4caf50",complete:s.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557"}[s.state];
               const matchEditable = canEdit(playerMatch.dayIdx, playerMatch.matchId);
+              // Find companion match via explicit companionId (Sunday groups)
+              const companion = m.companionId ? d.matches.find(x => x.id === m.companionId) : null;
+              const groupMatches = companion ? [companion] : [];
+              const isGroup = !!companion;
               return (
                 <div>
-                  <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.8}}>{d.label.toUpperCase()} · {m.teeTime!=="TBD"?m.teeTime:""}</div>
-                  <div style={{borderRadius:12,overflow:"hidden",border:`1px solid ${stateColor}44`,marginBottom:14}}>
-                    <div style={{display:"flex",background:"#080f20",borderBottom:`1px solid ${BORDER}`,padding:"6px 10px",alignItems:"center",justifyContent:"space-between"}}>
-                      <div style={{fontSize:9,color:"#446",fontFamily:"monospace"}}>{d.format.toUpperCase()}</div>
-                      <div style={{fontSize:10,fontWeight:800,color:stateColor,fontFamily:"monospace"}}>{s.longLabel}</div>
-                    </div>
-                    <TVMatchRow match={m} isSingles={!m.player1b} onOpen={()=>{}} canEdit={false}/>
-                  </div>
+                  <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.8}}>{d.label.toUpperCase()} · {m.teeTime!=="TBD"?m.teeTime:""}{isGroup?" · GROUP":""}</div>
+                  {/* Show all matches in the group */}
+                  {[m, ...groupMatches].map(gm=>{
+                    const gs=computeMatchStatus(gm.scores);
+                    const gc={pending:BORDER,live:"#4caf50",complete:gs.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557"}[gs.state];
+                    return (
+                      <div key={gm.id} style={{borderRadius:12,overflow:"hidden",border:`1px solid ${gc}44`,marginBottom:10}}>
+                        <div style={{display:"flex",background:"#080f20",borderBottom:`1px solid ${BORDER}`,padding:"6px 10px",alignItems:"center",justifyContent:"space-between"}}>
+                          <div style={{fontSize:9,color:"#446",fontFamily:"monospace"}}>{d.format.toUpperCase()}</div>
+                          <div style={{fontSize:10,fontWeight:800,color:gc,fontFamily:"monospace"}}>{gs.longLabel}</div>
+                        </div>
+                        <TVMatchRow match={gm} isSingles={!gm.player1b} onOpen={()=>{}} canEdit={false}/>
+                      </div>
+                    );
+                  })}
                   {matchEditable ? (
-                    <button onClick={()=>setActiveMatch(playerMatch)} style={{width:"100%",padding:"16px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:14,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 20px ${TEAM_B_COLOR}44`,marginBottom:10}}>
+                    <button onClick={()=>{
+                      if (isGroup) {
+                        setActiveGroup({dayIdx:playerMatch.dayIdx, matchIds:[m.id, ...groupMatches.map(x=>x.id)]});
+                      } else {
+                        setActiveMatch(playerMatch);
+                      }
+                    }} style={{width:"100%",padding:"16px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:14,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 20px ${TEAM_B_COLOR}44`,marginBottom:10}}>
                       ⛳ ENTER SCORES
                     </button>
                   ) : (
