@@ -91,13 +91,17 @@ const initialDays = [
     ]
   },
   {
-    day:3, courseKey:"day3", label:"Sunday — Mixed", format:"Mixed",
+    day:3, courseKey:"day3", label:"Sunday — Singles", format:"Singles",
     matches:[
-      {id:301,teeTime:"10:40",player1a:"Clark",   hcp1a:8, player1b:null,      hcp1b:0,player2a:"Tyler S.",hcp2a:0, player2b:null,      hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:302,teeTime:"10:48",player1a:"Sushil",  hcp1a:0, player1b:"Tim",     hcp1b:2,player2a:"Destin",  hcp2a:5, player2b:"Jake",    hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:303,teeTime:"10:56",player1a:"Logan",   hcp1a:0, player1b:"Gabe",    hcp1b:0,player2a:"Geb",     hcp2a:4, player2b:"Spencer", hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:304,teeTime:"11:04",player1a:"Tyler T.",hcp1a:0, player1b:"Naman",   hcp1b:2,player2a:"Sam",     hcp2a:3, player2b:"Henry",   hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:305,teeTime:"11:12",player1a:"Ian",     hcp1a:0, player1b:"Hunter",  hcp1b:0,player2a:"Tony",    hcp2a:1, player2b:"Kimball", hcp2b:2,scores:mkScores(),disputes:[]},
+      {id:301,teeTime:"10:40",player1a:"Clark",   hcp1a:8,player1b:null,hcp1b:0,player2a:"Tyler S.",hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:302,teeTime:"10:48",player1a:"Sushil",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Destin",  hcp2a:5, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:303,teeTime:"10:48",player1a:"Tim",     hcp1a:2,player1b:null,hcp1b:0,player2a:"Jake",    hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:304,teeTime:"10:56",player1a:"Logan",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Geb",     hcp2a:4, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:305,teeTime:"10:56",player1a:"Gabe",    hcp1a:0,player1b:null,hcp1b:0,player2a:"Spencer", hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:306,teeTime:"11:04",player1a:"Tyler T.",hcp1a:0,player1b:null,hcp1b:0,player2a:"Sam",     hcp2a:3, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:307,teeTime:"11:04",player1a:"Naman",   hcp1a:2,player1b:null,hcp1b:0,player2a:"Henry",   hcp2a:0, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:308,teeTime:"11:12",player1a:"Ian",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Tony",    hcp2a:1, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:309,teeTime:"11:12",player1a:"Hunter",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Kimball", hcp2a:2, player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
     ]
   }
 ];
