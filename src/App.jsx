@@ -606,32 +606,34 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
           </div>
         )}
 
-        {/* Team A box — both Team A players */}
-        <div style={{background:`${TEAM_A_COLOR}18`,border:`1px solid ${TEAM_A_COLOR}44`,borderRadius:12,padding:"12px",marginBottom:8}}>
-          <div style={{fontSize:9,color:TEAM_A_COLOR,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_A_SHORT}</div>
-          <div style={{display:"flex",justifyContent:"space-around"}}>
-            <ScoreInput label={m0.player1a} hcp={m0.hcp1a||0} value={sc0.p1a} onChange={v=>setSc(0,s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={str(m0.hcp1a||0)>0?GOLD:null} strokes={str(m0.hcp1a||0)||1} par={holePar}/>
-            <ScoreInput label={m1.player1a} hcp={m1.hcp1a||0} value={sc1.p1a} onChange={v=>setSc(1,s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={str(m1.hcp1a||0)>0?GOLD:null} strokes={str(m1.hcp1a||0)||1} par={holePar}/>
-          </div>
-        </div>
-
-        {/* Team B box — both Team B players */}
-        <div style={{background:`${TEAM_B_COLOR}33`,border:`1px solid ${TEAM_B_COLOR}66`,borderRadius:12,padding:"12px",marginBottom:10}}>
-          <div style={{fontSize:9,color:TEAM_B_DISP,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_B_SHORT}</div>
-          <div style={{display:"flex",justifyContent:"space-around"}}>
-            <ScoreInput label={m0.player2a} hcp={m0.hcp2a||0} value={sc0.p2a} onChange={v=>setSc(0,s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={str(m0.hcp2a||0)>0?GOLD:null} strokes={str(m0.hcp2a||0)||1} par={holePar}/>
-            <ScoreInput label={m1.player2a} hcp={m1.hcp2a||0} value={sc1.p2a} onChange={v=>setSc(1,s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={str(m1.hcp2a||0)>0?GOLD:null} strokes={str(m1.hcp2a||0)||1} par={holePar}/>
-          </div>
-        </div>
-
-        {/* Hole results — one row per match */}
-        <div style={{background:`${hw0Color}22`,border:`1px solid ${hw0Color}55`,borderRadius:10,padding:"8px 12px",marginBottom:6,textAlign:"center"}}>
-          <div style={{fontSize:9,color:"#446",fontFamily:"monospace",marginBottom:2}}>{m0.player1a} vs {m0.player2a}</div>
-          <div style={{fontSize:13,fontWeight:800,color:hw0Color}}>{hw0Label}</div>
-        </div>
-        <div style={{background:`${hw1Color}22`,border:`1px solid ${hw1Color}55`,borderRadius:10,padding:"8px 12px",marginBottom:10,textAlign:"center"}}>
-          <div style={{fontSize:9,color:"#446",fontFamily:"monospace",marginBottom:2}}>{m1.player1a} vs {m1.player2a}</div>
-          <div style={{fontSize:13,fontWeight:800,color:hw1Color}}>{hw1Label}</div>
+        {/* Two match cards side by side */}
+        <div style={{display:"flex",gap:8,marginBottom:10}}>
+          {[
+            {m:m0,sc:sc0,mi:0,hwColor:hw0Color,hw:hw0,netA:net0_1a,netB:net0_2a},
+            {m:m1,sc:sc1,mi:1,hwColor:hw1Color,hw:hw1,netA:net1_1a,netB:net1_2a},
+          ].map(({m,sc,mi,hwColor,hw,netA,netB})=>(
+            <div key={mi} style={{flex:1,borderRadius:14,overflow:"hidden",border:`1px solid ${BORDER}`,display:"flex",flexDirection:"column"}}>
+              {/* Team A player */}
+              <div style={{background:`${TEAM_A_COLOR}22`,padding:"10px 6px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+                <ScoreInput label={m.player1a} hcp={m.hcp1a||0} value={sc.p1a} onChange={v=>setSc(mi,s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={str(m.hcp1a||0)>0?GOLD:null} strokes={str(m.hcp1a||0)||1} par={holePar}/>
+              </div>
+              {/* VS divider */}
+              <div style={{background:CARD2,padding:"5px 0",textAlign:"center",fontSize:12,fontWeight:900,color:"#556",fontFamily:"monospace",letterSpacing:2,borderTop:`1px solid ${BORDER}`,borderBottom:`1px solid ${BORDER}`}}>VS</div>
+              {/* Team B player */}
+              <div style={{background:`${TEAM_B_COLOR}33`,padding:"10px 6px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+                <ScoreInput label={m.player2a} hcp={m.hcp2a||0} value={sc.p2a} onChange={v=>setSc(mi,s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={str(m.hcp2a||0)>0?GOLD:null} strokes={str(m.hcp2a||0)||1} par={holePar}/>
+              </div>
+              {/* Hole result — solid color banner */}
+              <div style={{background:hwColor,padding:"8px 4px",textAlign:"center"}}>
+                <div style={{fontSize:11,fontWeight:900,color:"#fff",fontFamily:"monospace",letterSpacing:1}}>
+                  {hw==="A"?`${m.player1a} wins`:hw==="B"?`${m.player2a} wins`:"HALVED"}
+                </div>
+                <div style={{fontSize:9,color:"#ffffffbb",marginTop:1,fontFamily:"monospace"}}>
+                  {hw==="H"?`net ${netA} · ${netB}`:`net ${netA} vs ${netB}`}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Confirm / Undo / End early */}
