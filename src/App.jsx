@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 // ── Theme ─────────────────────────────────────────────────────────────────────
 const _DARK  = { bg:"#040d1c", card:"#08142b", card2:"#0b1a35", border:"#0e2448", text:"#ccd", muted:"#446", muted2:"#668" };
 const _LIGHT = { bg:"#f4f6f9", card:"#ffffff", card2:"#eef1f7", border:"#d8e0ed", text:"#1a2a44", muted:"#7a8fa8", muted2:"#5a6e82" };
-const _initTheme = (() => { try { return localStorage.getItem("jr_theme")||"light"; } catch { return "light"; } })();
+const _initTheme = (() => { try { return localStorage.getItem("jr_theme")||"dark"; } catch { return "dark"; } })();
 const _T = _initTheme === "light" ? _LIGHT : _DARK;
 let BG     = _T.bg;
 let CARD   = _T.card;
