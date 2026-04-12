@@ -66,6 +66,7 @@ const ALL_PLAYERS = [
   { name:"Destin",   team:"B" },
   { name:"Russell",  team:"B" },
   { name:"Tyler S.", team:"B" },
+  { name:"Kimball",  team:"B" },
 ];
 
 const initialDays = [
@@ -90,17 +91,13 @@ const initialDays = [
     ]
   },
   {
-    day:3, courseKey:"day3", label:"Sunday Singles", format:"Singles",
+    day:3, courseKey:"day3", label:"Sunday — Mixed", format:"Mixed",
     matches:[
-      {id:301,teeTime:"10:40",player1a:"Gabe",    hcp1a:0,player1b:null,hcp1b:0,player2a:"Spencer", hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:302,teeTime:"10:40",player1a:"Hunter",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Ryan",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:303,teeTime:"10:48",player1a:"Naman",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Henry",   hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:304,teeTime:"10:48",player1a:"Ian",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Tony",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:305,teeTime:"10:56",player1a:"Tyler T.",hcp1a:0,player1b:null,hcp1b:0,player2a:"Geb",     hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:306,teeTime:"10:56",player1a:"Logan",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Sam",     hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:307,teeTime:"11:04",player1a:"Clark",   hcp1a:0,player1b:null,hcp1b:0,player2a:"Tyler S.",hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:308,teeTime:"11:04",player1a:"Sushil",  hcp1a:0,player1b:null,hcp1b:0,player2a:"Destin",  hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
-      {id:309,teeTime:"11:12",player1a:"Tim",     hcp1a:0,player1b:null,hcp1b:0,player2a:"Jake",    hcp2a:0,player2b:null,hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:301,teeTime:"10:40",player1a:"Clark",   hcp1a:8, player1b:null,      hcp1b:0,player2a:"Tyler S.",hcp2a:0, player2b:null,      hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:302,teeTime:"10:48",player1a:"Sushil",  hcp1a:0, player1b:"Tim",     hcp1b:2,player2a:"Destin",  hcp2a:5, player2b:"Jake",    hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:303,teeTime:"10:56",player1a:"Logan",   hcp1a:0, player1b:"Gabe",    hcp1b:0,player2a:"Geb",     hcp2a:4, player2b:"Spencer", hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:304,teeTime:"11:04",player1a:"Tyler T.",hcp1a:0, player1b:"Naman",   hcp1b:2,player2a:"Sam",     hcp2a:3, player2b:"Henry",   hcp2b:0,scores:mkScores(),disputes:[]},
+      {id:305,teeTime:"11:12",player1a:"Ian",     hcp1a:0, player1b:"Hunter",  hcp1b:0,player2a:"Tony",    hcp2a:1, player2b:"Kimball", hcp2b:2,scores:mkScores(),disputes:[]},
     ]
   }
 ];
@@ -948,7 +945,7 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
 function TVDayBlock({ day, onOpen, canEdit }) {
   const dp=computeDayPoints(day);
   const hasAct=day.matches.some(m=>m.scores.some(s=>s!==null));
-  const isSingles=day.format==="Singles";
+  // isSingles is per-match (mixed days supported)
   return (
     <div style={{marginBottom:14,borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#060f22",padding:"7px 10px",borderBottom:`1px solid ${BORDER}`}}>
@@ -960,7 +957,7 @@ function TVDayBlock({ day, onOpen, canEdit }) {
         <div style={{width:64,textAlign:"center",padding:"5px 0",fontSize:7,color:"#446",fontFamily:"monospace"}}>{day.format.toUpperCase()}</div>
         <div style={{flex:1,padding:"5px 10px",fontSize:8,fontWeight:800,color:TEAM_B_DISP,letterSpacing:1,fontFamily:"monospace",textAlign:"right"}}>{TEAM_B_SHORT}</div>
       </div>
-      {day.matches.map(m=><TVMatchRow key={m.id} match={m} isSingles={isSingles} onOpen={()=>onOpen(m.id)} canEdit={canEdit?canEdit(m.id):false}/>)}
+      {day.matches.map(m=><TVMatchRow key={m.id} match={m} isSingles={!m.player1b} onOpen={()=>onOpen(m.id)} canEdit={canEdit?canEdit(m.id):false}/>)}
     </div>
   );
 }
@@ -1189,7 +1186,7 @@ export default function App() {
   if (adminEditMatch) {
     const d=days[adminEditMatch.dayIdx];
     const m=d.matches.find(x=>x.id===adminEditMatch.matchId);
-    return <AdminMatchEditor match={m} isSingles={d.format==="Singles"} courseKey={d.courseKey}
+    return <AdminMatchEditor match={m} isSingles={!m.player1b} courseKey={d.courseKey}
       onSave={upd=>{updateMatch(adminEditMatch.dayIdx,upd);setAdminEditMatch(null);}}
       onClose={()=>setAdminEditMatch(null)}/>;
   }
@@ -1197,7 +1194,7 @@ export default function App() {
   if (activeMatch) {
     const d=days[activeMatch.dayIdx];
     const m=d.matches.find(x=>x.id===activeMatch.matchId);
-    return <HoleEntry match={m} isSingles={d.format==="Singles"} courseKey={d.courseKey} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+    return <HoleEntry match={m} isSingles={!m.player1b} courseKey={d.courseKey} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
   }
 
   const playerInfo = ALL_PLAYERS.find(p=>p.name===currentPlayer);
@@ -1285,7 +1282,7 @@ export default function App() {
               HOLE BY HOLE
             </div>
             {boardDay.matches.map(m=>{
-              const isSingles = boardDay.format==="Singles";
+              const isSingles = !m.player1b;
               const st = computeMatchStatus(m.scores);
               const stColor = {pending:BORDER,live:"#4caf50",complete:st.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557",gap:"#e67e22"}[st.state];
               const course = COURSES[boardDay.courseKey];
@@ -1456,7 +1453,7 @@ export default function App() {
               const d=days[playerMatch.dayIdx];
               const m=d.matches.find(x=>x.id===playerMatch.matchId);
               const s=computeMatchStatus(m.scores);
-              const isSingles=d.format==="Singles";
+              const isSingles=!m.player1b;
               const stateColor={pending:BORDER,live:"#4caf50",complete:s.leader==="A"?TEAM_A_COLOR:TEAM_B_COLOR,halved:"#557"}[s.state];
               const matchEditable = canEdit(playerMatch.dayIdx, playerMatch.matchId);
               return (
@@ -1467,7 +1464,7 @@ export default function App() {
                       <div style={{fontSize:9,color:"#446",fontFamily:"monospace"}}>{d.format.toUpperCase()}</div>
                       <div style={{fontSize:10,fontWeight:800,color:stateColor,fontFamily:"monospace"}}>{s.longLabel}</div>
                     </div>
-                    <TVMatchRow match={m} isSingles={isSingles} onOpen={()=>{}} canEdit={false}/>
+                    <TVMatchRow match={m} isSingles={!m.player1b} onOpen={()=>{}} canEdit={false}/>
                   </div>
                   {matchEditable ? (
                     <button onClick={()=>setActiveMatch(playerMatch)} style={{width:"100%",padding:"16px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:14,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 20px ${TEAM_B_COLOR}44`,marginBottom:10}}>
@@ -1498,11 +1495,10 @@ export default function App() {
         {tab==="leaderboard"&&(()=>{
           const lbDay = days[boardDayIdx];
           const course = COURSES[lbDay.courseKey];
-          const isSingles = lbDay.format === "Singles";
-
           // Build one row per player
           const playerRows = [];
           for (const m of lbDay.matches) {
+            const isSingles = !m.player1b;
             const players = isSingles
               ? [{name:m.player1a,gross:m.grossP1a,team:"A"},{name:m.player2a,gross:m.grossP2a,team:"B"}]
               : [
