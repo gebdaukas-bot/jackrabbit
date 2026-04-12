@@ -753,10 +753,8 @@ function AdminSection({ days }) {
 
   const doReset = async () => {
     if (confirmReset === null) return;
-    await set(ref(db, `matches/m${confirmReset}`), {
-      scores: Array(18).fill(null), hcp1a:0, hcp1b:0, hcp2a:0, hcp2b:0,
-      grossP1a:null, grossP1b:null, grossP2a:null, grossP2b:null, disputes:null
-    });
+    // Delete the entry entirely so code defaults (including hcp) take over
+    await set(ref(db, `matches/m${confirmReset}`), null);
     setConfirmReset(null);
   };
 
