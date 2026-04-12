@@ -543,7 +543,7 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
   };
 
   return (
-    <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
+    <div style={{position:"fixed",inset:0,background:"#1a1a1a",zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
       {showEndEarly&&(
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
@@ -613,14 +613,14 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
             {m:m1,sc:sc1,mi:1,hwColor:hw1Color,hw:hw1,netA:net1_1a,netB:net1_2a},
           ].map(({m,sc,mi,hwColor,hw,netA,netB})=>(
             <div key={mi} style={{flex:1,borderRadius:14,overflow:"hidden",border:`1px solid ${BORDER}`,display:"flex",flexDirection:"column"}}>
-              {/* Team A player */}
-              <div style={{background:`${TEAM_A_COLOR}22`,padding:"10px 6px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+              {/* Team A player — fixed height so VS stays aligned */}
+              <div style={{background:`${TEAM_A_COLOR}22`,padding:"10px 6px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:120}}>
                 <ScoreInput label={m.player1a} hcp={m.hcp1a||0} value={sc.p1a} onChange={v=>setSc(mi,s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={str(m.hcp1a||0)>0?GOLD:null} strokes={str(m.hcp1a||0)||1} par={holePar}/>
               </div>
               {/* VS divider */}
-              <div style={{background:CARD2,padding:"5px 0",textAlign:"center",fontSize:12,fontWeight:900,color:"#556",fontFamily:"monospace",letterSpacing:2,borderTop:`1px solid ${BORDER}`,borderBottom:`1px solid ${BORDER}`}}>VS</div>
-              {/* Team B player */}
-              <div style={{background:`${TEAM_B_COLOR}33`,padding:"10px 6px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <div style={{background:"#222",padding:"5px 0",textAlign:"center",fontSize:12,fontWeight:900,color:"#666",fontFamily:"monospace",letterSpacing:2,borderTop:`1px solid ${BORDER}`,borderBottom:`1px solid ${BORDER}`}}>VS</div>
+              {/* Team B player — fixed height so result banner stays aligned */}
+              <div style={{background:`${TEAM_B_COLOR}33`,padding:"10px 6px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:120}}>
                 <ScoreInput label={m.player2a} hcp={m.hcp2a||0} value={sc.p2a} onChange={v=>setSc(mi,s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={str(m.hcp2a||0)>0?GOLD:null} strokes={str(m.hcp2a||0)||1} par={holePar}/>
               </div>
               {/* Hole result — solid color banner */}
