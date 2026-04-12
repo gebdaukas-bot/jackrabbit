@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 // ── Theme ─────────────────────────────────────────────────────────────────────
 const _DARK  = { bg:"#040d1c", card:"#08142b", card2:"#0b1a35", border:"#0e2448", text:"#ccd", muted:"#446", muted2:"#668" };
 const _LIGHT = { bg:"#f4f6f9", card:"#ffffff", card2:"#eef1f7", border:"#d8e0ed", text:"#1a2a44", muted:"#7a8fa8", muted2:"#5a6e82" };
-const _initTheme = (() => { try { return localStorage.getItem("jr_theme")||"dark"; } catch { return "dark"; } })();
+const _initTheme = (() => { try { return localStorage.getItem("jr_theme")||"light"; } catch { return "light"; } })();
 const _T = _initTheme === "light" ? _LIGHT : _DARK;
 let BG     = _T.bg;
 let CARD   = _T.card;
@@ -543,7 +543,7 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
   };
 
   return (
-    <div style={{position:"fixed",inset:0,background:"#1a1a1a",zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
+    <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
       {showEndEarly&&(
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
@@ -618,7 +618,7 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
                 <ScoreInput label={m.player1a} hcp={m.hcp1a||0} value={sc.p1a} onChange={v=>setSc(mi,s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={str(m.hcp1a||0)>0?GOLD:null} strokes={str(m.hcp1a||0)||1} par={holePar}/>
               </div>
               {/* VS divider */}
-              <div style={{background:"#222",padding:"5px 0",textAlign:"center",fontSize:12,fontWeight:900,color:"#666",fontFamily:"monospace",letterSpacing:2,borderTop:`1px solid ${BORDER}`,borderBottom:`1px solid ${BORDER}`}}>VS</div>
+              <div style={{background:CARD2,padding:"5px 0",textAlign:"center",fontSize:12,fontWeight:900,color:MUTED,fontFamily:"monospace",letterSpacing:2,borderTop:`1px solid ${BORDER}`,borderBottom:`1px solid ${BORDER}`}}>VS</div>
               {/* Team B player — fixed height so result banner stays aligned */}
               <div style={{background:`${TEAM_B_COLOR}33`,padding:"10px 6px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:120}}>
                 <ScoreInput label={m.player2a} hcp={m.hcp2a||0} value={sc.p2a} onChange={v=>setSc(mi,s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={str(m.hcp2a||0)>0?GOLD:null} strokes={str(m.hcp2a||0)||1} par={holePar}/>
