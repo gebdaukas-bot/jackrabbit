@@ -1016,10 +1016,10 @@ export default function App() {
           const disputes = rawDisputes ? Object.values(rawDisputes).filter(v=>v!=null) : [];
           return {
             ...m, scores, disputes,
-            hcp1a: fbMatch.hcp1a ?? m.hcp1a,
-            hcp1b: fbMatch.hcp1b ?? m.hcp1b,
-            hcp2a: fbMatch.hcp2a ?? m.hcp2a,
-            hcp2b: fbMatch.hcp2b ?? m.hcp2b,
+            hcp1a: fbMatch.hcp1a || m.hcp1a,
+            hcp1b: fbMatch.hcp1b || m.hcp1b,
+            hcp2a: fbMatch.hcp2a || m.hcp2a,
+            hcp2b: fbMatch.hcp2b || m.hcp2b,
             grossP1a: fbMatch.grossP1a ? Array.from({length:18},(_,i)=>fbMatch.grossP1a[i]??null) : null,
             grossP1b: fbMatch.grossP1b ? Array.from({length:18},(_,i)=>fbMatch.grossP1b[i]??null) : null,
             grossP2a: fbMatch.grossP2a ? Array.from({length:18},(_,i)=>fbMatch.grossP2a[i]??null) : null,
