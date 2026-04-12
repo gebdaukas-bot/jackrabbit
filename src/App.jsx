@@ -1036,7 +1036,7 @@ export default function App() {
       const data = snapshot.val();
       if (!data) return;
       setDays(prev => prev.map((day,di)=>{
-        const dayKey = di===1?"day2":di===2?"day3":null;
+        const dayKey = di===1?"day2":null; // Sunday pairings are hardcoded in code
         if (!dayKey || !data[dayKey]) return day;
         return {
           ...day,
