@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, set, get } from "firebase/database";
+import { getDatabase, ref, onValue, set, get, push, update } from "firebase/database";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDTzfm5qck08_2I_zNF9pU_WwHXzuo-k7s",
@@ -14,5 +15,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
-export { db, ref, onValue, set, get };
+export { db, ref, onValue, set, get, push, update, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged };
