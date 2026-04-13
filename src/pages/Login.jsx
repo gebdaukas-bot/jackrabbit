@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { auth, googleProvider } from "../firebase";
-import { signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { GOLD } from "../utils/scoring";
 
 export default function Login() {
@@ -9,28 +9,31 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Handle redirect result when returning from Google
-  useEffect(() => {
-    setLoading(true);
-    getRedirectResult(auth)
-      .then(result => { if (!result) setLoading(false); })
-      .catch(err => { console.error(err); setError(err.message); setLoading(false); });
-  }, []);
-
   const handleGoogle = async () => {
     setError("");
+    setLoading(true);
     try {
-      await signInWithRedirect(auth, googleProvider);
+      // Try popup first; fall back to redirect if blocked
+      await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      console.error("Login failed", err);
-      setError(err.message);
+      if (err.code === "auth/popup-blocked" || err.code === "auth/popup-cancelled-by-user") {
+        // Popup blocked — fall back to redirect
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (e) {
+          setError(e.message);
+          setLoading(false);
+        }
+      } else {
+        setError(err.code + ": " + err.message);
+        setLoading(false);
+      }
     }
   };
 
   return (
     <div style={{ minHeight: "100vh", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
       <div style={{ width: "100%", maxWidth: 380 }}>
-        {/* Logo / title */}
         <div style={{ textAlign: "center", marginBottom: 40 }}>
           <div style={{ fontSize: 48, marginBottom: 8 }}>⛳</div>
           <div style={{ fontSize: 28, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 3 }}>JACKRABBIT</div>
@@ -41,8 +44,14 @@ export default function Login() {
           <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, marginBottom: 6, textAlign: "center" }}>Create or join a cup</div>
           <div style={{ fontSize: 11, color: MUTED, marginBottom: 24, textAlign: "center" }}>Sign in to get started</div>
 
-          {error && <div style={{ fontSize: 11, color: "#e74c3c", marginBottom: 12, textAlign: "center" }}>{error}</div>}
-          <button onClick={handleGoogle} disabled={loading} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "14px 16px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 12, cursor: loading ? "wait" : "pointer", fontSize: 14, fontWeight: 600, color: TEXT, opacity: loading ? 0.6 : 1 }}>
+          {error && (
+            <div style={{ fontSize: 11, color: "#e74c3c", marginBottom: 12, padding: "8px 10px", background: "#e74c3c22", borderRadius: 8, fontFamily: "monospace", wordBreak: "break-all" }}>
+              {error}
+            </div>
+          )}
+
+          <button onClick={handleGoogle} disabled={loading}
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "14px 16px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 12, cursor: loading ? "wait" : "pointer", fontSize: 14, fontWeight: 600, color: TEXT, opacity: loading ? 0.6 : 1 }}>
             <svg width="20" height="20" viewBox="0 0 48 48">
               <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.9 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 20-7.5 20-21 0-1.4-.1-2.7-.3-4H44.5v.5z"/>
               <path fill="#34A853" d="M6.3 14.7l7 5.1C15.1 16.5 19.2 14 24 14c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3c-7.6 0-14.2 4.6-17.7 11.7z"/>

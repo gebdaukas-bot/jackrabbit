@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { auth, onAuthStateChanged } from "./firebase";
+import { getRedirectResult } from "firebase/auth";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import CreateCup from "./pages/CreateCup";
@@ -11,6 +12,8 @@ function AuthGate() {
   const [user, setUser] = useState(undefined); // undefined = loading
 
   useEffect(() => {
+    // Process redirect result first (in case returning from Google redirect flow)
+    getRedirectResult(auth).catch(() => {});
     const unsub = onAuthStateChanged(auth, u => setUser(u || null));
     return () => unsub();
   }, []);
