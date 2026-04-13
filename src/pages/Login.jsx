@@ -36,7 +36,7 @@ export default function Login() {
       <div style={{ width: "100%", maxWidth: 380 }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>
           <div style={{ fontSize: 48, marginBottom: 8 }}>⛳</div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 3 }}>JACKRABBIT</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 3 }}>DORMIE</div>
           <div style={{ fontSize: 12, color: MUTED, marginTop: 6, letterSpacing: 1 }}>Match play scoring for your crew</div>
         </div>
 

@@ -54,7 +54,7 @@ export default function Home({ user }) {
     <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
       {/* Top bar */}
       <div style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: 16, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 2 }}>⛳ JACKRABBIT</div>
+        <div style={{ fontSize: 16, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 2 }}>⛳ DORMIE</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={toggle} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
             {theme === "dark" ? "☀" : "☾"}

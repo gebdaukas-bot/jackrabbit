@@ -13,8 +13,8 @@ export default function HcpModal({ match, isSingles, teamAColor, teamBColor, onS
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
       <div style={{fontSize:13,fontWeight:700,color}}>{label}</div>
       <div style={{display:"flex",alignItems:"center"}}>
-        <button onClick={()=>setVals(v=>({...v,[field]:Math.max(0,v[field]-1)}))} style={{width:32,height:34,fontSize:18,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:"#8aa",cursor:"pointer"}}>−</button>
-        <div style={{width:44,height:34,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>{vals[field]}</div>
+        <button onClick={()=>setVals(v=>({...v,[field]:Math.max(-10,v[field]-1)}))} style={{width:32,height:34,fontSize:18,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:"#8aa",cursor:"pointer"}}>−</button>
+        <div style={{width:44,height:34,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>{vals[field]>0?`+${vals[field]}`:vals[field]}</div>
         <button onClick={()=>setVals(v=>({...v,[field]:Math.min(36,v[field]+1)}))} style={{width:32,height:34,fontSize:18,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:"#8aa",cursor:"pointer"}}>+</button>
       </div>
     </div>
