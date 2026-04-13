@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { db, ref, onValue, set } from "../firebase";
+import { db, ref, onValue, set, update } from "../firebase";
 import { computeMatchStatus, computeAllPoints, GOLD } from "../utils/scoring";
 import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
@@ -462,6 +462,37 @@ export default function CupView({ user }) {
         {/* ADMIN TAB */}
         {tab==="admin"&&isAdmin&&(
           <div>
+            {/* Logo */}
+            <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
+              <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>CUP LOGO</div>
+              <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
+                <div style={{width:56,height:56,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
+                  {meta.logoUrl?<img src={meta.logoUrl} alt="logo" style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<div style={{fontSize:28}}>⛳</div>}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <label style={{display:"block",width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",textAlign:"center",marginBottom:6}}>
+                    📁 Upload image
+                    <input type="file" accept="image/*" style={{display:"none"}} onChange={async e=>{
+                      const file=e.target.files?.[0]; if(!file) return;
+                      const reader=new FileReader();
+                      reader.onload=async ev=>{
+                        const dataUrl=ev.target.result;
+                        await update(ref(db,`cups/${cupId}/meta`),{logoUrl:dataUrl});
+                      };
+                      reader.readAsDataURL(file);
+                    }}/>
+                  </label>
+                  <input
+                    placeholder="…or paste image URL"
+                    defaultValue={meta.logoUrl?.startsWith("http")?meta.logoUrl:""}
+                    onBlur={async e=>{const v=e.target.value.trim();if(v)await update(ref(db,`cups/${cupId}/meta`),{logoUrl:v});}}
+                    style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:11,outline:"none"}}
+                  />
+                </div>
+              </div>
+              {meta.logoUrl&&<button onClick={async()=>await update(ref(db,`cups/${cupId}/meta`),{logoUrl:null})} style={{fontSize:10,background:"none",border:"none",color:"#e74c3c",cursor:"pointer",padding:0}}>Remove logo</button>}
+            </div>
+
             <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
               <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>INVITE CODE</div>
               <div style={{display:"flex",alignItems:"center",gap:8}}>
