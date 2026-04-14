@@ -4,13 +4,16 @@ import { useTheme } from "../context/ThemeContext";
 import { db, ref, set } from "../firebase";
 import { GOLD } from "../utils/scoring";
 
-const FORMATS = ["2v2 Best Ball", "Singles"];
+const FORMATS   = ["2v2 Best Ball", "Singles"];
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
 const DEFAULT_HCP = [1,3,17,9,5,13,15,7,11, 2,18,8,4,16,12,6,14,10];
 const DAY_NAMES   = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
+function mkRound() {
+  return { format:"2v2 Best Ball", courseName:"", par:[...DEFAULT_PAR], hcp:[...DEFAULT_HCP], matches:[] };
+}
 function mkDay(n) {
-  return { label:`Day ${n}`, format:"2v2 Best Ball", courseName:"", par:[...DEFAULT_PAR], hcp:[...DEFAULT_HCP], matches:[] };
+  return { label:`Day ${n}`, rounds:[mkRound()] };
 }
 
 // ── Step 1: Cup name + teams + invite code ───────────────────────────────────
@@ -121,27 +124,44 @@ function Step2({ data, setData }) {
   );
 }
 
-// ── Step 3: Days ─────────────────────────────────────────────────────────────
+// ── Step 3: Days + Rounds ────────────────────────────────────────────────────
 function Step3({ data, setData }) {
   const { CARD2, BORDER, TEXT, MUTED, MUTED2 } = useTheme();
 
   const setNumDays = (n) => {
     setData(d => {
       const current = d.days;
-      if (n > current.length) {
-        return { ...d, days:[...current, ...Array.from({length:n-current.length},(_,i)=>mkDay(current.length+i+1))] };
-      }
+      if (n > current.length) return { ...d, days:[...current, ...Array.from({length:n-current.length},(_,i)=>mkDay(current.length+i+1))] };
       return { ...d, days:current.slice(0,n) };
     });
   };
 
-  const updateDay = (i, key, val) => setData(d => {
-    const days=[...d.days]; days[i]={...days[i],[key]:val}; return {...d,days};
+  const updateDayLabel = (di, val) => setData(d => {
+    const days=[...d.days]; days[di]={...days[di],label:val}; return {...d,days};
+  });
+
+  const updateRound = (di, ri, key, val) => setData(d => {
+    const days=[...d.days];
+    const rounds=[...days[di].rounds];
+    rounds[ri]={...rounds[ri],[key]:val};
+    days[di]={...days[di],rounds};
+    return {...d,days};
+  });
+
+  const addRound = (di) => setData(d => {
+    const days=[...d.days];
+    days[di]={...days[di], rounds:[...days[di].rounds, mkRound()]};
+    return {...d,days};
+  });
+
+  const removeRound = (di, ri) => setData(d => {
+    const days=[...d.days];
+    days[di]={...days[di], rounds:days[di].rounds.filter((_,i)=>i!==ri)};
+    return {...d,days};
   });
 
   return (
     <div>
-      {/* How many days */}
       <div style={{ marginBottom:20 }}>
         <div style={{ fontSize:12, color:MUTED, marginBottom:10 }}>How many days is the tournament?</div>
         <div style={{ display:"flex", gap:8 }}>
@@ -154,19 +174,18 @@ function Step3({ data, setData }) {
         </div>
       </div>
 
-      {/* Day configs */}
-      {data.days.map((day,i)=>(
-        <div key={i} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, padding:14, marginBottom:12 }}>
-          <div style={{ fontSize:10, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>DAY {i+1}</div>
+      {data.days.map((day,di)=>(
+        <div key={di} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, padding:14, marginBottom:12 }}>
+          <div style={{ fontSize:10, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>DAY {di+1}</div>
 
-          {/* Label — rename with quick day-of-week buttons */}
-          <div style={{ marginBottom:10 }}>
+          {/* Day label */}
+          <div style={{ marginBottom:12 }}>
             <div style={{ fontSize:10, color:MUTED, marginBottom:4 }}>Label</div>
-            <input value={day.label} onChange={e=>updateDay(i,"label",e.target.value)}
+            <input value={day.label} onChange={e=>updateDayLabel(di,e.target.value)}
               style={{ width:"100%", padding:"8px 10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", boxSizing:"border-box", marginBottom:6 }} />
             <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
               {DAY_NAMES.map(d=>(
-                <button key={d} onClick={()=>updateDay(i,"label",d)}
+                <button key={d} onClick={()=>updateDayLabel(di,d)}
                   style={{ padding:"3px 8px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:MUTED, fontSize:10, cursor:"pointer", fontFamily:"monospace" }}>
                   {d}
                 </button>
@@ -174,25 +193,42 @@ function Step3({ data, setData }) {
             </div>
           </div>
 
-          {/* Format */}
-          <div style={{ marginBottom:10 }}>
-            <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"monospace" }}>FORMAT</div>
-            <div style={{ display:"flex", gap:6 }}>
-              {FORMATS.map(f=>(
-                <button key={f} onClick={()=>updateDay(i,"format",f)}
-                  style={{ flex:1, padding:"7px 4px", background:day.format===f?GOLD:"none", border:`1px solid ${day.format===f?GOLD:BORDER}`, borderRadius:8, color:day.format===f?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:day.format===f?800:400, fontFamily:"monospace" }}>
-                  {f.toUpperCase()}
-                </button>
-              ))}
+          {/* Rounds */}
+          {day.rounds.map((round, ri)=>(
+            <div key={ri} style={{ background:"#060f22", border:`1px solid ${BORDER}`, borderRadius:10, padding:12, marginBottom:8 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                <div style={{ fontSize:10, color:GOLD, fontFamily:"monospace", letterSpacing:1 }}>
+                  {day.rounds.length > 1 ? `ROUND ${ri+1}` : "ROUND"}
+                </div>
+                {day.rounds.length > 1 && (
+                  <button onClick={()=>removeRound(di,ri)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:14, lineHeight:1 }}>×</button>
+                )}
+              </div>
+              <div style={{ marginBottom:8 }}>
+                <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"monospace" }}>FORMAT</div>
+                <div style={{ display:"flex", gap:6 }}>
+                  {FORMATS.map(f=>(
+                    <button key={f} onClick={()=>updateRound(di,ri,"format",f)}
+                      style={{ flex:1, padding:"7px 4px", background:round.format===f?GOLD:"none", border:`1px solid ${round.format===f?GOLD:BORDER}`, borderRadius:8, color:round.format===f?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:round.format===f?800:400, fontFamily:"monospace" }}>
+                      {f.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"monospace" }}>COURSE NAME</div>
+                <input value={round.courseName} onChange={e=>updateRound(di,ri,"courseName",e.target.value)} placeholder="e.g. Pebble Beach Golf Links"
+                  style={{ width:"100%", padding:"8px 10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", boxSizing:"border-box" }} />
+              </div>
             </div>
-          </div>
+          ))}
 
-          {/* Course name */}
-          <div>
-            <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"monospace" }}>COURSE NAME</div>
-            <input value={day.courseName} onChange={e=>updateDay(i,"courseName",e.target.value)} placeholder="e.g. Pebble Beach Golf Links"
-              style={{ width:"100%", padding:"8px 10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", boxSizing:"border-box" }} />
-          </div>
+          {day.rounds.length < 2 && (
+            <button onClick={()=>addRound(di)}
+              style={{ width:"100%", padding:"8px", background:"none", border:`1px dashed ${BORDER}`, borderRadius:8, color:MUTED, fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
+              + ADD ROUND
+            </button>
+          )}
         </div>
       ))}
     </div>
@@ -203,24 +239,37 @@ function Step3({ data, setData }) {
 function Step4({ data, setData }) {
   const { CARD2, BORDER, TEXT, MUTED, MUTED2 } = useTheme();
   const [activeDay, setActiveDay] = useState(0);
+  const [activeRound, setActiveRound] = useState(0);
 
-  const updateHole = (dayIdx, type, holeIdx, val) => {
+  // Reset round tab if switching day
+  const switchDay = (i) => { setActiveDay(i); setActiveRound(0); };
+
+  const updateHole = (type, holeIdx, val) => {
     const num = parseInt(val); if (isNaN(num)) return;
     setData(d => {
-      const days=[...d.days]; const arr=[...days[dayIdx][type]]; arr[holeIdx]=num;
-      days[dayIdx]={...days[dayIdx],[type]:arr}; return {...d,days};
+      const days=[...d.days];
+      const rounds=[...days[activeDay].rounds];
+      const arr=[...rounds[activeRound][type]];
+      arr[holeIdx]=num;
+      rounds[activeRound]={...rounds[activeRound],[type]:arr};
+      days[activeDay]={...days[activeDay],rounds};
+      return {...d,days};
     });
   };
 
   const day = data.days[activeDay];
-  const totalPar = day.par.reduce((a,b)=>a+b,0);
+  // Clamp activeRound if day changed
+  const ri = Math.min(activeRound, day.rounds.length-1);
+  const round = day.rounds[ri];
+  const totalPar = round.par.reduce((a,b)=>a+b,0);
 
   return (
     <div>
+      {/* Day tabs */}
       {data.days.length > 1 && (
-        <div style={{ display:"flex", gap:6, marginBottom:16 }}>
+        <div style={{ display:"flex", gap:6, marginBottom:12 }}>
           {data.days.map((d,i)=>(
-            <button key={i} onClick={()=>setActiveDay(i)}
+            <button key={i} onClick={()=>switchDay(i)}
               style={{ flex:1, padding:"7px 4px", background:activeDay===i?GOLD:"none", border:`1px solid ${activeDay===i?GOLD:BORDER}`, borderRadius:8, color:activeDay===i?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:activeDay===i?800:400, fontFamily:"monospace" }}>
               {d.label}
             </button>
@@ -228,11 +277,22 @@ function Step4({ data, setData }) {
         </div>
       )}
 
+      {/* Round tabs (only if day has > 1 round) */}
+      {day.rounds.length > 1 && (
+        <div style={{ display:"flex", gap:6, marginBottom:12 }}>
+          {day.rounds.map((r,i)=>(
+            <button key={i} onClick={()=>setActiveRound(i)}
+              style={{ flex:1, padding:"6px 4px", background:ri===i?`${GOLD}33`:"none", border:`1px solid ${ri===i?GOLD:BORDER}`, borderRadius:8, color:ri===i?GOLD:MUTED, fontSize:10, cursor:"pointer", fontFamily:"monospace" }}>
+              {r.courseName||`Round ${i+1}`}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div style={{ fontSize:12, color:MUTED, marginBottom:12 }}>
-        <strong style={{ color:TEXT }}>{day.courseName||`Day ${activeDay+1} course`}</strong> — par and handicap index for each hole
+        <strong style={{ color:TEXT }}>{round.courseName||`${day.label} course`}</strong> — par and handicap index for each hole
       </div>
 
-      {/* Front 9 / Back 9 split */}
       {[0,1].map(half => (
         <div key={half} style={{ marginBottom:16 }}>
           <div style={{ fontSize:10, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>{half===0?"FRONT 9":"BACK 9"}</div>
@@ -244,16 +304,16 @@ function Step4({ data, setData }) {
           {Array.from({length:9},(_,i)=>half*9+i).map(i=>(
             <div key={i} style={{ display:"grid", gridTemplateColumns:"28px 1fr 1fr", gap:4, alignItems:"center", marginBottom:3 }}>
               <div style={{ fontSize:11, color:MUTED, textAlign:"center", fontFamily:"monospace" }}>{i+1}</div>
-              <input type="number" min={3} max={6} value={day.par[i]}
-                onChange={e=>updateHole(activeDay,"par",i,e.target.value)}
+              <input type="number" min={3} max={6} value={round.par[i]}
+                onChange={e=>updateHole("par",i,e.target.value)}
                 style={{ padding:"5px 6px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:13, textAlign:"center", outline:"none", width:"100%", boxSizing:"border-box" }} />
-              <input type="number" min={1} max={18} value={day.hcp[i]}
-                onChange={e=>updateHole(activeDay,"hcp",i,e.target.value)}
+              <input type="number" min={1} max={18} value={round.hcp[i]}
+                onChange={e=>updateHole("hcp",i,e.target.value)}
                 style={{ padding:"5px 6px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:13, textAlign:"center", outline:"none", width:"100%", boxSizing:"border-box" }} />
             </div>
           ))}
           <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", marginTop:4 }}>
-            {half===0?"Front":"Back"} par: {day.par.slice(half*9,(half+1)*9).reduce((a,b)=>a+b,0)}
+            {half===0?"Front":"Back"} par: {round.par.slice(half*9,(half+1)*9).reduce((a,b)=>a+b,0)}
           </div>
         </div>
       ))}
@@ -266,46 +326,50 @@ function Step4({ data, setData }) {
 function Step5({ data, setData }) {
   const { CARD2, BORDER, TEXT, MUTED, MUTED2 } = useTheme();
   const [activeDay, setActiveDay] = useState(0);
+  const [activeRound, setActiveRound] = useState(0);
+
+  const switchDay = (i) => { setActiveDay(i); setActiveRound(0); };
 
   const day = data.days[activeDay];
+  const ri = Math.min(activeRound, day.rounds.length-1);
+  const round = day.rounds[ri];
+  const isSingles = round.format === "Singles";
   const teamA = data.players.filter(p=>p.team==="A");
   const teamB = data.players.filter(p=>p.team==="B");
-  const isSingles = day.format==="Singles";
 
-  const addMatch = () => {
-    setData(d=>{
-      const days=[...d.days];
-      const empty = isSingles
-        ? { teeTime:"", player1a:"", hcp1a:0, player1b:null, hcp1b:0, player2a:"", hcp2a:0, player2b:null, hcp2b:0 }
-        : { teeTime:"", player1a:"", hcp1a:0, player1b:"", hcp1b:0, player2a:"", hcp2a:0, player2b:"", hcp2b:0 };
-      days[activeDay]={...days[activeDay], matches:[...days[activeDay].matches, empty]};
-      return {...d,days};
-    });
-  };
+  const mutateRound = (fn) => setData(d => {
+    const days=[...d.days];
+    const rounds=[...days[activeDay].rounds];
+    rounds[ri]=fn(rounds[ri]);
+    days[activeDay]={...days[activeDay],rounds};
+    return {...d,days};
+  });
 
-  const removeMatch = mi => {
-    setData(d=>{const days=[...d.days];days[activeDay]={...days[activeDay],matches:days[activeDay].matches.filter((_,i)=>i!==mi)};return {...d,days};});
-  };
+  const addMatch = () => mutateRound(r => {
+    const empty = isSingles
+      ? { teeTime:"", player1a:"", hcp1a:0, player1b:null, hcp1b:0, player2a:"", hcp2a:0, player2b:null, hcp2b:0 }
+      : { teeTime:"", player1a:"", hcp1a:0, player1b:"", hcp1b:0, player2a:"", hcp2a:0, player2b:"", hcp2b:0 };
+    return { ...r, matches:[...r.matches, empty] };
+  });
 
-  const updateMatch = (mi,key,val) => {
-    setData(d=>{
-      const days=[...d.days]; const matches=[...days[activeDay].matches];
-      if (["player1a","player1b","player2a","player2b"].includes(key)) {
-        const player = data.players.find(p=>p.name===val);
-        const hcpKey = key.replace("player","hcp");
-        matches[mi]={...matches[mi],[key]:val,[hcpKey]:player?player.hcp:0};
-      } else {
-        matches[mi]={...matches[mi],[key]:val};
-      }
-      days[activeDay]={...days[activeDay],matches};
-      return {...d,days};
-    });
-  };
+  const removeMatch = (mi) => mutateRound(r => ({ ...r, matches:r.matches.filter((_,i)=>i!==mi) }));
 
-  const playerSelect = (mi,field,team) => {
+  const updateMatch = (mi, key, val) => mutateRound(r => {
+    const matches=[...r.matches];
+    if (["player1a","player1b","player2a","player2b"].includes(key)) {
+      const player = data.players.find(p=>p.name===val);
+      const hcpKey = key.replace("player","hcp");
+      matches[mi]={...matches[mi],[key]:val,[hcpKey]:player?player.hcp:0};
+    } else {
+      matches[mi]={...matches[mi],[key]:val};
+    }
+    return { ...r, matches };
+  });
+
+  const playerSelect = (mi, field, team) => {
     const players = team==="A"?teamA:teamB;
     return (
-      <select value={day.matches[mi][field]||""} onChange={e=>updateMatch(mi,field,e.target.value)}
+      <select value={round.matches[mi][field]||""} onChange={e=>updateMatch(mi,field,e.target.value)}
         style={{ flex:1, padding:"6px 8px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:7, color:TEXT, fontSize:12, cursor:"pointer", minWidth:0 }}>
         <option value="">—</option>
         {players.map(p=><option key={p.name} value={p.name}>{p.name} {p.hcp>0?`(+${p.hcp})`:p.hcp<0?`(${p.hcp})`:""}</option>)}
@@ -315,20 +379,35 @@ function Step5({ data, setData }) {
 
   return (
     <div>
+      {/* Day tabs */}
       {data.days.length > 1 && (
-        <div style={{ display:"flex", gap:6, marginBottom:16 }}>
+        <div style={{ display:"flex", gap:6, marginBottom:12 }}>
           {data.days.map((d,i)=>(
-            <button key={i} onClick={()=>setActiveDay(i)}
+            <button key={i} onClick={()=>switchDay(i)}
               style={{ flex:1, padding:"7px 4px", background:activeDay===i?GOLD:"none", border:`1px solid ${activeDay===i?GOLD:BORDER}`, borderRadius:8, color:activeDay===i?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:activeDay===i?800:400, fontFamily:"monospace" }}>
               {d.label}
             </button>
           ))}
         </div>
       )}
+
+      {/* Round tabs */}
+      {day.rounds.length > 1 && (
+        <div style={{ display:"flex", gap:6, marginBottom:12 }}>
+          {day.rounds.map((r,i)=>(
+            <button key={i} onClick={()=>setActiveRound(i)}
+              style={{ flex:1, padding:"6px 4px", background:ri===i?`${GOLD}33`:"none", border:`1px solid ${ri===i?GOLD:BORDER}`, borderRadius:8, color:ri===i?GOLD:MUTED, fontSize:10, cursor:"pointer", fontFamily:"monospace" }}>
+              {r.format} {r.courseName?`· ${r.courseName}`:""}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div style={{ fontSize:11, color:MUTED, marginBottom:12, fontFamily:"monospace" }}>
-        {day.label} · {day.format.toUpperCase()} · {day.matches.length} match{day.matches.length!==1?"es":""}
+        {day.label} · {round.format.toUpperCase()} · {round.matches.length} match{round.matches.length!==1?"es":""}
       </div>
-      {day.matches.map((m,mi)=>(
+
+      {round.matches.map((m,mi)=>(
         <div key={mi} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, padding:12, marginBottom:10 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
@@ -386,23 +465,32 @@ export default function CreateCup({ user }) {
       const cupId = `cup_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
       const inviteCode = data.inviteCode.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
 
-      const days = data.days.map((day,di)=>{
-        const matches={};
-        day.matches.forEach((m,mi)=>{
-          const matchId=(di+1)*100+mi+1;
-          matches[`m${matchId}`]={
-            teeTime:m.teeTime||"",
-            player1a:m.player1a||"", hcp1a:m.hcp1a||0,
-            player1b:m.player1b||null, hcp1b:m.hcp1b||0,
-            player2a:m.player2a||"", hcp2a:m.hcp2a||0,
-            player2b:m.player2b||null, hcp2b:m.hcp2b||0,
-            companionId:null,
-          };
+      // Build Firebase days (rounds structure, no matches embedded)
+      const daysMeta = data.days.map(day => ({
+        label: day.label,
+        rounds: day.rounds.map(r => ({ format:r.format, course:{ name:r.courseName, par:r.par, hcp:r.hcp } })),
+      }));
+
+      // Build flat matches map with new ID scheme:
+      // m${(dayIdx+1)*1000 + (roundIdx+1)*100 + matchNum}
+      const allMatches = {};
+      data.days.forEach((day, di) => {
+        day.rounds.forEach((round, ri) => {
+          round.matches.forEach((m, mi) => {
+            const matchId = (di+1)*1000 + (ri+1)*100 + mi + 1;
+            allMatches[`m${matchId}`] = {
+              teeTime: m.teeTime||"",
+              player1a: m.player1a||"", hcp1a: m.hcp1a||0,
+              player1b: m.player1b||null, hcp1b: m.hcp1b||0,
+              player2a: m.player2a||"", hcp2a: m.hcp2a||0,
+              player2b: m.player2b||null, hcp2b: m.hcp2b||0,
+              companionId: null,
+            };
+          });
         });
-        return { label:day.label, format:day.format, course:{name:day.courseName,par:day.par,hcp:day.hcp}, matches };
       });
 
-      const players={};
+      const players = {};
       data.players.forEach(p=>{ players[p.name.toLowerCase().replace(/\s+/g,"_")]={name:p.name,team:p.team,hcp:p.hcp}; });
 
       const meta = {
@@ -413,14 +501,12 @@ export default function CreateCup({ user }) {
 
       await set(ref(db,`cups/${cupId}/meta`), meta);
       await set(ref(db,`cups/${cupId}/players`), players);
-      for (let i=0;i<days.length;i++) {
-        await set(ref(db,`cups/${cupId}/days/${i}`), {label:days[i].label,format:days[i].format,course:days[i].course});
+      for (let i=0; i<daysMeta.length; i++) {
+        await set(ref(db,`cups/${cupId}/days/${i}`), daysMeta[i]);
       }
-      const allMatches={};
-      days.forEach(d=>Object.assign(allMatches,d.matches));
-      if (Object.keys(allMatches).length>0) await set(ref(db,`cups/${cupId}/matches`),allMatches);
-      await set(ref(db,`inviteCodes/${inviteCode}`),cupId);
-      await set(ref(db,`users/${user.uid}/cups/${cupId}`),{name:data.name,teamAName:data.teamAName,teamBName:data.teamBName,createdAt:Date.now()});
+      if (Object.keys(allMatches).length > 0) await set(ref(db,`cups/${cupId}/matches`), allMatches);
+      await set(ref(db,`inviteCodes/${inviteCode}`), cupId);
+      await set(ref(db,`users/${user.uid}/cups/${cupId}`), { name:data.name, teamAName:data.teamAName, teamBName:data.teamBName, createdAt:Date.now() });
 
       nav(`/cup/${cupId}`);
     } catch(e) {
@@ -454,7 +540,7 @@ export default function CreateCup({ user }) {
         <div style={{ fontSize:11, color:MUTED, marginBottom:20, fontFamily:"monospace" }}>
           {step===1&&"Name your cup, set up teams, and choose an invite code."}
           {step===2&&"Add all players with their team and handicap. Use negative for plus-handicappers."}
-          {step===3&&"How many days? Set the format and course for each."}
+          {step===3&&"How many days? Each day can have up to 2 rounds with different formats and courses."}
           {step===4&&"Enter par and handicap index for each hole."}
           {step===5&&"Set matchups. You can change these later from the cup."}
         </div>

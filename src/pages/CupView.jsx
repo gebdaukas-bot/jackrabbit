@@ -101,20 +101,43 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
 function DayBlock({ day, cup, onOpen, canEdit }) {
   const { BORDER } = useTheme();
   const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
+  const rounds = day.rounds || [{ format: day.format, course: day.course }];
+  const multiRound = rounds.length > 1;
+
   return (
     <div style={{ marginBottom:14, borderRadius:10, overflow:"hidden", border:`1px solid ${BORDER}` }}>
+      {/* Day header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"#060f22", padding:"7px 10px", borderBottom:`1px solid ${BORDER}` }}>
         <div style={{ fontSize:10, fontWeight:800, color:GOLD, letterSpacing:2, fontFamily:"monospace" }}>{day.label?.toUpperCase()}</div>
-        <div style={{ fontSize:8, color:"#446", fontFamily:"monospace" }}>{day.course?.name||""}</div>
       </div>
-      <div style={{ display:"flex", background:"#080f20", borderBottom:`1px solid ${BORDER}` }}>
-        <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>
-        <div style={{ width:64, textAlign:"center", padding:"5px 0", fontSize:7, color:"#446", fontFamily:"monospace" }}>{day.format?.toUpperCase()}</div>
-        <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>
-      </div>
-      {day.matches.map(m=>(
-        <MatchCard key={m.id} match={m} cup={cup} onOpen={onOpen} canEdit={canEdit(m.id)}/>
-      ))}
+      {/* Team name header — only show if single round (multi-round has its own per-round) */}
+      {!multiRound && (
+        <div style={{ display:"flex", background:"#080f20", borderBottom:`1px solid ${BORDER}` }}>
+          <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>
+          <div style={{ width:64, textAlign:"center", padding:"5px 0", fontSize:7, color:"#446", fontFamily:"monospace" }}>{rounds[0].format?.toUpperCase()}</div>
+          <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>
+        </div>
+      )}
+      {/* Rounds */}
+      {rounds.map((round, ri)=>{
+        const roundMatches = day.matches.filter(m=>(m.roundIdx??0)===ri);
+        return (
+          <div key={ri}>
+            {multiRound && (
+              <div style={{ display:"flex", background:"#0a1428", borderBottom:`1px solid ${BORDER}`, borderTop:ri>0?`1px solid ${BORDER}`:"none" }}>
+                <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>
+                <div style={{ padding:"5px 10px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>
+                  {round.format?.toUpperCase()}{round.course?.name?` · ${round.course.name}`:""}
+                </div>
+                <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>
+              </div>
+            )}
+            {roundMatches.map(m=>(
+              <MatchCard key={m.id} match={m} cup={cup} onOpen={onOpen} canEdit={canEdit(m.id)}/>
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -153,7 +176,13 @@ export default function CupView({ user }) {
       if (!snap.exists()) return;
       const rawDays = snap.val();
       const dayArr = Array.isArray(rawDays)?rawDays:Object.values(rawDays);
-      setDays(prev=>dayArr.map((d,di)=>({...( prev[di]||{matches:[]}), ...d, matches:(prev[di]||{matches:[]}).matches})));
+      setDays(prev=>dayArr.map((d,di)=>({
+        ...(prev[di]||{matches:[]}),
+        ...d,
+        // normalize: old data has format/course at day level; new data has rounds[]
+        rounds: d.rounds || [{ format:d.format, course:d.course }],
+        matches:(prev[di]||{matches:[]}).matches,
+      })));
     });
     return ()=>unsub();
   },[cupId]);
@@ -166,10 +195,19 @@ export default function CupView({ user }) {
         if (!prev.length) return prev;
         const dayMatches = prev.map(()=>[]);
         Object.entries(rawMatches).forEach(([matchKey,m])=>{
-          const id = parseInt(matchKey.replace("m",""));
-          const dayIdx = Math.floor(id/100)-1;
+          const num = parseInt(matchKey.replace("m",""));
+          let dayIdx, roundIdx;
+          if (num >= 1000) {
+            // New scheme: m${(di+1)*1000 + (ri+1)*100 + matchNum}
+            dayIdx = Math.floor(num/1000)-1;
+            roundIdx = Math.floor((num%1000)/100)-1;
+          } else {
+            // Old scheme: m${(di+1)*100 + matchNum}
+            dayIdx = Math.floor(num/100)-1;
+            roundIdx = 0;
+          }
           if (dayIdx>=0&&dayIdx<prev.length)
-            dayMatches[dayIdx].push({id,...m,scores:Array(18).fill(null),disputes:[]});
+            dayMatches[dayIdx].push({id:num,roundIdx,...m,scores:Array(18).fill(null),disputes:[]});
         });
         return prev.map((day,di)=>({
           ...day,
@@ -331,7 +369,7 @@ export default function CupView({ user }) {
                 <button key={name} onClick={()=>{
                   setCurrentPlayer(name);
                   const pm=findPlayerMatch(days,name,autoDayIdx);
-                  if(pm){const d=days[pm.dayIdx];const m=d?.matches.find(x=>x.id===pm.matchId);if(m?.companionId)setActiveGroup({dayIdx:pm.dayIdx,matchIds:[pm.matchId,m.companionId]});else setActiveMatch(pm);}
+                  if(pm){const d=days[pm.dayIdx];const m=d?.matches.find(x=>x.id===pm.matchId);if(m?.companionId)setActiveGroup({dayIdx:pm.dayIdx,matchIds:[pm.matchId,m.companionId]});else if(m)setActiveMatch(pm);}
                 }} style={{padding:"12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,color:TEXT,fontSize:14,fontWeight:600,cursor:"pointer",textAlign:"left"}}>
                   {name}
                 </button>
@@ -344,17 +382,22 @@ export default function CupView({ user }) {
     );
   }
 
+  const getCourse = (d, m) => {
+    const ri = m?.roundIdx??0;
+    return d?.rounds?.[ri]?.course || d?.course || {};
+  };
+
   // Score entry screens
   if (activeGroup){
     const d=days[activeGroup.dayIdx];
     const groupMatches=activeGroup.matchIds.map(id=>d?.matches.find(x=>x.id===id)).filter(Boolean);
     if (groupMatches.length===2)
-      return <GroupHoleEntry matches={groupMatches} course={d.course} cup={cup} onSave={(mi,upd)=>updateMatch(activeGroup.dayIdx,upd)} onClose={()=>setActiveGroup(null)}/>;
+      return <GroupHoleEntry matches={groupMatches} course={getCourse(d,groupMatches[0])} cup={cup} onSave={(mi,upd)=>updateMatch(activeGroup.dayIdx,upd)} onClose={()=>setActiveGroup(null)}/>;
   }
   if (activeMatch){
     const d=days[activeMatch.dayIdx]; const m=d?.matches.find(x=>x.id===activeMatch.matchId);
-    if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion)return <GroupHoleEntry matches={[m,companion]} course={d.course} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;}
-    if (m) return <HoleEntry match={m} isSingles={!m.player1b} course={d.course} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+    if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion)return <GroupHoleEntry matches={[m,companion]} course={getCourse(d,m)} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;}
+    if (m) return <HoleEntry match={m} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
   }
 
   const playerTeamColor=(()=>{ for(const d of days)for(const m of d.matches){if([m.player1a,m.player1b].includes(currentPlayer))return cup.teamAColor;if([m.player2a,m.player2b].includes(currentPlayer))return cup.teamBColor;} return MUTED; })();
