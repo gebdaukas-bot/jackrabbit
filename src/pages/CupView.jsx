@@ -285,6 +285,7 @@ export default function CupView({ user }) {
     : {actualA:0,actualB:0,projA:0,projB:0};
 
   const totalMatches = days.reduce((s,d)=>s+d.matches.length,0);
+  const doneMatches  = days.reduce((s,d)=>s+d.matches.filter(m=>["complete","halved"].includes(computeMatchStatus(m.scores).state)).length,0);
   const winTarget = totalMatches/2;
   const winner = actualA>winTarget?meta?.teamAName:actualB>winTarget?meta?.teamBName:null;
   const projWinner = !winner&&(projA>winTarget?meta?.teamAName:projB>winTarget?meta?.teamBName:null);
@@ -460,7 +461,7 @@ export default function CupView({ user }) {
 
       {/* Tabs */}
       <div style={{display:"flex",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
-        {[["scoreboard","📊 BOARD"],["matches","⛳ MY MATCH"],...(isAdmin?[["admin","⚙️ ADMIN"]]:[])].map(([key,label])=>(
+        {[["scoreboard","📊 BOARD"],["matches","⛳ MY MATCH"],...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),["leaderboard","🏌️ SCORES"]].map(([key,label])=>(
           <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:MUTED,fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"monospace"}}>{label}</button>
         ))}
       </div>
@@ -483,6 +484,117 @@ export default function CupView({ user }) {
                 onOpen={mid=>{if(canEdit(boardDayIdx,mid))openForScoring(boardDayIdx,mid);}}
                 canEdit={mid=>canEdit(boardDayIdx,mid)}/>
             )}
+
+            {/* Hole-by-hole breakdown */}
+            {boardDay&&boardDay.matches.length>0&&(()=>{
+              const scoreStyle=(gross,par)=>{
+                if(gross===null) return {val:"·",color:"#334",bg:"transparent",border:"none",radius:2};
+                const d=gross-par;
+                if(d<=-2) return {val:gross,color:"#FFD700",bg:"transparent",border:"1.5px double #FFD700",radius:2};
+                if(d===-1) return {val:gross,color:"#4caf50",bg:"transparent",border:"1.5px solid #4caf50",radius:"50%"};
+                if(d===0)  return {val:gross,color:"#ccd",bg:"transparent",border:"none",radius:2};
+                if(d===1)  return {val:gross,color:"#e88",bg:"transparent",border:"1.5px solid #e88",radius:2};
+                if(d===2)  return {val:gross,color:"#e55",bg:"transparent",border:"1.5px solid #e55",radius:2};
+                return           {val:gross,color:"#fff",bg:"#c0392b",border:"none",radius:2};
+              };
+              return (
+                <div>
+                  <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,opacity:0.7}}>HOLE BY HOLE</div>
+                  {boardDay.matches.map(m=>{
+                    const isSingles=!m.player1b;
+                    const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort);
+                    const course=getCourse(boardDay,m);
+                    const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?cup.teamAColor:cup.teamBColor,halved:"#557",gap:"#e67e22"}[st.state];
+                    let lead=0;
+                    const runLeads=m.scores.map(s=>{if(s===null||s===undefined)return null;if(s==="A")lead++;else if(s==="B")lead--;return lead;});
+                    const grossP1a=Array.isArray(m.grossP1a)?m.grossP1a:Array(18).fill(null);
+                    const grossP1b=Array.isArray(m.grossP1b)?m.grossP1b:Array(18).fill(null);
+                    const grossP2a=Array.isArray(m.grossP2a)?m.grossP2a:Array(18).fill(null);
+                    const grossP2b=Array.isArray(m.grossP2b)?m.grossP2b:Array(18).fill(null);
+                    const rowLabels=isSingles?[m.player1a,"SCORE",m.player2a]:[m.player1a,m.player1b,"SCORE",m.player2a,m.player2b];
+                    const rowColors=isSingles?[cup.teamAColor,null,cup.teamBColorDisp]:[cup.teamAColor,cup.teamAColor,null,cup.teamBColorDisp,cup.teamBColorDisp];
+                    const rowData=(hi)=>{
+                      const par=(course.par||[])[hi]||4;
+                      const s=m.scores[hi]; const rl=runLeads[hi];
+                      let scoreCell;
+                      if(s===null||s===undefined){scoreCell={val:<div style={{fontSize:9,color:"#334"}}>·</div>,isScore:true};}
+                      else if(s==="H"){scoreCell={val:<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>,isScore:true};}
+                      else{
+                        const num=rl===null?0:Math.abs(rl);
+                        const isA=s==="A"; const col=isA?cup.teamAColor:cup.teamBColorDisp;
+                        if(num===0){scoreCell={val:<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>,isScore:true};}
+                        else{scoreCell={val:(
+                          <div style={{position:"relative",width:26,height:26,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto"}}>
+                            <div style={{width:0,height:0,borderLeft:"13px solid transparent",borderRight:"13px solid transparent",...(isA?{borderBottom:`26px solid ${col}`}:{borderTop:`26px solid ${col}`}),position:"absolute",top:0,left:0}}/>
+                            <span style={{position:"relative",zIndex:1,fontSize:10,fontWeight:900,color:"#fff",marginTop:isA?6:-6}}>{num}</span>
+                          </div>
+                        ),isScore:true};}
+                      }
+                      if(isSingles) return [scoreStyle(grossP1a[hi],par),scoreCell,scoreStyle(grossP2a[hi],par)];
+                      return [scoreStyle(grossP1a[hi],par),scoreStyle(grossP1b[hi],par),scoreCell,scoreStyle(grossP2a[hi],par),scoreStyle(grossP2b[hi],par)];
+                    };
+                    return (
+                      <div key={m.id} style={{marginBottom:14,background:CARD,borderRadius:10,border:`1px solid ${stColor}44`,overflow:"hidden"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
+                          <div>
+                            <div style={{fontSize:11,fontWeight:700,color:cup.teamAColor}}>{isSingles?m.player1a:`${m.player1a} & ${m.player1b}`}</div>
+                            <div style={{fontSize:8,color:cup.teamAColor,opacity:0.6,fontFamily:"monospace"}}>{cup.teamAShort}</div>
+                          </div>
+                          <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",textAlign:"center",flex:1,padding:"0 8px"}}>{st.longLabel}{st.sublabel?` · ${st.sublabel}`:""}</div>
+                          <div style={{textAlign:"right"}}>
+                            <div style={{fontSize:11,fontWeight:700,color:cup.teamBColorDisp}}>{isSingles?m.player2a:`${m.player2a} & ${m.player2b}`}</div>
+                            <div style={{fontSize:8,color:cup.teamBColorDisp,opacity:0.6,fontFamily:"monospace"}}>{cup.teamBShort}</div>
+                          </div>
+                        </div>
+                        <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+                          <table style={{borderCollapse:"collapse",fontSize:11}}>
+                            <thead>
+                              <tr style={{background:"#080f20",borderBottom:`1px solid ${BORDER}`}}>
+                                <td style={{padding:"5px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",minWidth:70,position:"sticky",left:0,background:"#080f20",zIndex:1}}></td>
+                                {Array.from({length:18},(_,i)=>(
+                                  <td key={i} style={{textAlign:"center",padding:"5px 4px",fontSize:8,color:"#668",fontFamily:"monospace",minWidth:34,borderLeft:i===9?`1px solid ${BORDER}`:undefined,fontWeight:i===9||i===0?"800":"400"}}>
+                                    {i+1}{(m.disputes||[]).includes(i)?<span style={{color:"#e55",fontSize:7,marginLeft:1}}>🚩</span>:null}
+                                  </td>
+                                ))}
+                              </tr>
+                              <tr style={{background:"#080f20",borderBottom:`2px solid ${BORDER}`}}>
+                                <td style={{padding:"4px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",position:"sticky",left:0,background:"#080f20",zIndex:1}}>PAR</td>
+                                {(course.par||Array(18).fill(4)).map((p,i)=>(
+                                  <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"monospace",fontWeight:700,borderLeft:i===9?`1px solid ${BORDER}`:undefined}}>{p}</td>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {rowLabels.map((label,ri)=>{
+                                const isScoreRow=label==="SCORE";
+                                const nameColor=rowColors[ri];
+                                return (
+                                  <tr key={ri} style={{borderBottom:`1px solid ${BORDER}22`,background:isScoreRow?"#060f22":ri%2===0?CARD:CARD2}}>
+                                    <td style={{padding:"6px 10px",fontSize:isScoreRow?8:11,fontWeight:700,color:isScoreRow?"#446":nameColor,whiteSpace:"nowrap",position:"sticky",left:0,background:isScoreRow?"#060f22":ri%2===0?CARD:CARD2,zIndex:1,fontFamily:isScoreRow?"monospace":"inherit",letterSpacing:isScoreRow?1:0}}>{label}</td>
+                                    {Array.from({length:18},(_,hi)=>{
+                                      const cell=rowData(hi)[ri];
+                                      return (
+                                        <td key={hi} style={{textAlign:"center",padding:"4px 2px",borderLeft:hi===9?`1px solid ${BORDER}`:undefined}}>
+                                          {isScoreRow?(
+                                            <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:30}}>{cell.val}</div>
+                                          ):(
+                                            <div style={{width:24,height:24,background:cell.bg,border:cell.border,borderRadius:cell.radius,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:cell.color,margin:"0 auto"}}>{cell.val}</div>
+                                          )}
+                                        </td>
+                                      );
+                                    })}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -514,14 +626,7 @@ export default function CupView({ user }) {
                       {st.state==="pending"?"START SCORING":"ENTER SCORES →"}
                     </button>
                   </div>
-                  {days.map((day,di)=>(
-                    <div key={di} style={{marginBottom:12}}>
-                      <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:2,marginBottom:6}}>{day.label?.toUpperCase()}</div>
-                      {day.matches.map(mx=>(
-                        <MatchCard key={mx.id} match={mx} cup={cup} onOpen={mid=>{if(canEdit(di,mid))openForScoring(di,mid);}} canEdit={canEdit(di,mx.id)}/>
-                      ))}
-                    </div>
-                  ))}
+                  <div style={{textAlign:"center",fontSize:10,color:MUTED,fontFamily:"monospace"}}>{doneMatches}/{totalMatches} matches complete</div>
                 </div>
               );
             })()}
@@ -593,6 +698,120 @@ export default function CupView({ user }) {
             ))}
           </div>
         )}
+
+        {/* SCORES TAB */}
+        {tab==="leaderboard"&&(()=>{
+          const lbDay=days[boardDayIdx];
+          if (!lbDay) return null;
+          const playerRows=[];
+          for (const m of lbDay.matches) {
+            const course=getCourse(lbDay,m);
+            const isSingles=!m.player1b;
+            const players=isSingles
+              ?[{name:m.player1a,gross:m.grossP1a,team:"A"},{name:m.player2a,gross:m.grossP2a,team:"B"}]
+              :[{name:m.player1a,gross:m.grossP1a,team:"A"},{name:m.player1b,gross:m.grossP1b,team:"A"},{name:m.player2a,gross:m.grossP2a,team:"B"},{name:m.player2b,gross:m.grossP2b,team:"B"}];
+            for (const p of players) {
+              if (!p.name) continue;
+              const grossArr=Array.isArray(p.gross)?p.gross:Array(18).fill(null);
+              let toPar=0,holesPlayed=0;
+              for (let i=0;i<18;i++) { if(grossArr[i]!==null){toPar+=grossArr[i]-(course.par?.[i]||4);holesPlayed++;} }
+              playerRows.push({name:p.name,team:p.team,gross:grossArr,toPar,holesPlayed,teeTime:m.teeTime,course});
+            }
+          }
+          const started=playerRows.filter(r=>r.holesPlayed>0).sort((a,b)=>b.holesPlayed-a.holesPlayed||a.toPar-b.toPar);
+          const notStarted=playerRows.filter(r=>r.holesPlayed===0).sort((a,b)=>(a.teeTime||"").localeCompare(b.teeTime||""));
+          let pos=1;
+          for (let i=0;i<started.length;i++){
+            if(i>0&&started[i].toPar===started[i-1].toPar&&started[i].holesPlayed===started[i-1].holesPlayed){started[i].pos="T"+pos;started[i-1].pos="T"+pos;}
+            else{pos=i+1;started[i].pos=String(pos);}
+          }
+          const fmtPar=(n,p)=>p===0?"—":n===0?"E":n>0?`+${n}`:`${n}`;
+          const parColor=(n,p)=>p===0?MUTED:n<0?"#4caf50":n===0?"#ccd":n<=2?"#e88":"#c0392b";
+          const HoleScore=({gross,par})=>{
+            if(gross===null) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#335"}}>·</div>;
+            const d=gross-par;
+            if(d<=-2) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,borderRadius:"50%",border:"1.5px solid #FFD700"}}/><div style={{position:"absolute",width:15,height:15,borderRadius:"50%",border:"1.5px solid #FFD700"}}/><span style={{fontSize:9,fontWeight:900,color:"#FFD700",zIndex:1}}>{gross}</span></div>;
+            if(d===-1) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,borderRadius:"50%",border:"1.5px solid #4caf50"}}/><span style={{fontSize:9,fontWeight:900,color:"#4caf50",zIndex:1}}>{gross}</span></div>;
+            if(d===0) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"#ccd"}}>{gross}</div>;
+            if(d===1) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,border:"1.5px solid #e88",borderRadius:2}}/><span style={{fontSize:9,fontWeight:900,color:"#e88",zIndex:1}}>{gross}</span></div>;
+            if(d===2) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,border:"1.5px solid #e55",borderRadius:2}}/><div style={{position:"absolute",width:15,height:15,border:"1.5px solid #e55",borderRadius:1}}/><span style={{fontSize:9,fontWeight:900,color:"#e55",zIndex:1}}>{gross}</span></div>;
+            return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",background:"#c0392b",borderRadius:2,fontSize:9,fontWeight:900,color:"#fff"}}>{gross}</div>;
+          };
+          const course=lbDay.rounds?.[0]?.course||lbDay.course||{par:Array(18).fill(4)};
+          return (
+            <div style={{paddingBottom:30}}>
+              <div style={{display:"flex",gap:6,marginBottom:12}}>
+                {days.map((d,i)=>(
+                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${cup.teamBColor}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
+                    {d.label?.toUpperCase()||`DAY ${i+1}`}
+                  </button>
+                ))}
+              </div>
+              <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.7}}>{lbDay.label?.toUpperCase()} · INDIVIDUAL SCORES</div>
+              {started.length===0&&notStarted.length===0?(
+                <div style={{textAlign:"center",padding:"40px 20px",color:"#446"}}><div style={{fontSize:24,marginBottom:8}}>⛳</div><div style={{fontSize:12}}>No scores entered yet</div></div>
+              ):(
+                <div>
+                  {started.length>0&&<div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+                    <table style={{borderCollapse:"collapse",width:"100%",minWidth:640,background:CARD,borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`}}>
+                      <thead>
+                        <tr style={{background:"#060f22"}}>
+                          <td style={{width:28,padding:"5px 6px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>POS</td>
+                          <td style={{padding:"5px 8px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PLAYER</td>
+                          {Array.from({length:9},(_,i)=><td key={i} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+1}</td>)}
+                          <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>OUT</td>
+                          {Array.from({length:9},(_,i)=><td key={i+9} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+10}</td>)}
+                          <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>IN</td>
+                          <td style={{width:36,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>TOT</td>
+                          <td style={{width:40,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>TO PAR</td>
+                        </tr>
+                        <tr style={{background:"#080f20"}}>
+                          <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}></td>
+                          <td style={{padding:"3px 8px",fontSize:7,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PAR</td>
+                          {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i]}</td>)}
+                          <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(0,9).reduce((a,b)=>a+b,0)}</td>
+                          {Array.from({length:9},(_,i)=><td key={i+9} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i+9]}</td>)}
+                          <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(9).reduce((a,b)=>a+b,0)}</td>
+                          <td style={{textAlign:"center",padding:"3px 4px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.reduce((a,b)=>a+b,0)}</td>
+                          <td style={{borderBottom:`1px solid ${BORDER}`}}></td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {started.map((row,ri)=>{
+                          const outTotal=row.gross.slice(0,9).some(g=>g!==null)?row.gross.slice(0,9).reduce((a,g)=>a+(g||0),0):null;
+                          const inTotal=row.gross.slice(9).some(g=>g!==null)?row.gross.slice(9).reduce((a,g)=>a+(g||0),0):null;
+                          const outPlayed=row.gross.slice(0,9).filter(g=>g!==null).length;
+                          const inPlayed=row.gross.slice(9).filter(g=>g!==null).length;
+                          return (
+                            <tr key={row.name} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
+                              <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
+                              <td style={{padding:"8px 8px",minWidth:80}}><div style={{fontSize:12,fontWeight:700,color:row.team==="A"?cup.teamAColor:cup.teamBColorDisp,whiteSpace:"nowrap"}}>{row.name}</div></td>
+                              {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i]} par={row.course.par?.[i]||4}/></td>)}
+                              <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?parColor(row.gross.slice(0,9).filter(g=>g!==null).reduce((a,g)=>a+g,0)-row.course.par.slice(0,9).reduce((a,b,i)=>row.gross[i]!==null?a+b:a,0),outPlayed):MUTED,fontFamily:"monospace"}}>{outPlayed>0?outTotal:"—"}</td>
+                              {Array.from({length:9},(_,i)=><td key={i+9} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i+9]} par={row.course.par?.[i+9]||4}/></td>)}
+                              <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:inPlayed>0?parColor(row.gross.slice(9).filter(g=>g!==null).reduce((a,g)=>a+g,0)-row.course.par.slice(9,9+inPlayed).reduce((a,b)=>a+b,0),inPlayed):MUTED,fontFamily:"monospace"}}>{inPlayed>0?inTotal:"—"}</td>
+                              <td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:800,color:parColor(row.toPar,row.holesPlayed),fontFamily:"monospace"}}>{row.holesPlayed>0?row.gross.filter(g=>g!==null).reduce((a,b)=>a+b,0):"—"}</td>
+                              <td style={{textAlign:"center",padding:"4px 4px",fontSize:12,fontWeight:900,color:parColor(row.toPar,row.holesPlayed),fontFamily:"monospace"}}>{fmtPar(row.toPar,row.holesPlayed)}{row.holesPlayed<18&&row.holesPlayed>0?<span style={{fontSize:8,color:MUTED}}> ({row.holesPlayed})</span>:null}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>}
+                  {notStarted.length>0&&<div style={{marginTop:12}}>
+                    <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>NOT STARTED</div>
+                    {notStarted.map(r=>(
+                      <div key={r.name} style={{display:"flex",justifyContent:"space-between",padding:"8px 10px",background:CARD,borderRadius:6,marginBottom:4}}>
+                        <span style={{fontSize:12,fontWeight:700,color:r.team==="A"?cup.teamAColor:cup.teamBColorDisp}}>{r.name}</span>
+                        <span style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>{r.teeTime||"—"}</span>
+                      </div>
+                    ))}
+                  </div>}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

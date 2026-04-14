@@ -70,6 +70,9 @@ function Step2({ data, setData }) {
   const [newName, setNewName] = useState("");
   const [newTeam, setNewTeam] = useState("A");
   const [newHcp, setNewHcp] = useState(0);
+  const [pasteTeam, setPasteTeam] = useState("A");
+  const [pasteText, setPasteText] = useState("");
+  const [showPaste, setShowPaste] = useState(false);
 
   const addPlayer = () => {
     if (!newName.trim()) return;
@@ -78,8 +81,39 @@ function Step2({ data, setData }) {
   };
   const removePlayer = i => setData(d => ({ ...d, players:d.players.filter((_,idx)=>idx!==i) }));
 
+  const pasteList = () => {
+    const names = pasteText.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
+    if (!names.length) return;
+    setData(d => ({ ...d, players:[...d.players, ...names.map(name=>({ name, team:pasteTeam, hcp:0 }))] }));
+    setPasteText(""); setShowPaste(false);
+  };
+
   return (
     <div>
+      {/* Paste list toggle */}
+      <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
+        <button onClick={()=>setShowPaste(s=>!s)} style={{ padding:"4px 10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:MUTED, fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
+          {showPaste?"▲ hide paste":"📋 paste list"}
+        </button>
+      </div>
+
+      {/* Paste panel */}
+      {showPaste&&(
+        <div style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:10, padding:12, marginBottom:14 }}>
+          <div style={{ fontSize:10, color:MUTED, marginBottom:8 }}>Paste names (one per line or comma-separated). All get HCP 0 — edit individually after.</div>
+          <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+            <select value={pasteTeam} onChange={e=>setPasteTeam(e.target.value)}
+              style={{ padding:"6px 8px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:12, cursor:"pointer" }}>
+              <option value="A">{data.teamAName||"Team A"}</option>
+              <option value="B">{data.teamBName||"Team B"}</option>
+            </select>
+            <button onClick={pasteList} style={{ padding:"6px 14px", background:GOLD, border:"none", borderRadius:6, color:"#000", fontWeight:700, fontSize:12, cursor:"pointer" }}>Add All</button>
+          </div>
+          <textarea value={pasteText} onChange={e=>setPasteText(e.target.value)} placeholder={"John Smith\nJane Doe\nBob Jones"} rows={5}
+            style={{ width:"100%", padding:"8px 10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", resize:"vertical", boxSizing:"border-box", fontFamily:"inherit" }} />
+        </div>
+      )}
+
       <div style={{ display:"flex", gap:6, marginBottom:14, flexWrap:"wrap" }}>
         <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Player name"
           onKeyDown={e=>e.key==="Enter"&&addPlayer()}
