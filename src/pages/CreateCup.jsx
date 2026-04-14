@@ -4,13 +4,13 @@ import { useTheme } from "../context/ThemeContext";
 import { db, ref, set } from "../firebase";
 import { GOLD } from "../utils/scoring";
 
-const FORMATS = ["Fourballs", "Foursomes", "Singles"];
+const FORMATS = ["2v2 Best Ball", "Singles"];
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
 const DEFAULT_HCP = [1,3,17,9,5,13,15,7,11, 2,18,8,4,16,12,6,14,10];
 const DAY_NAMES   = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
 function mkDay(n) {
-  return { label:`Day ${n}`, format:"Fourballs", courseName:"", par:[...DEFAULT_PAR], hcp:[...DEFAULT_HCP], matches:[] };
+  return { label:`Day ${n}`, format:"2v2 Best Ball", courseName:"", par:[...DEFAULT_PAR], hcp:[...DEFAULT_HCP], matches:[] };
 }
 
 // ── Step 1: Cup name + teams + invite code ───────────────────────────────────
