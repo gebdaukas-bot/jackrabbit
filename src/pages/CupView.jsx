@@ -5,6 +5,7 @@ import { db, ref, onValue, set, update } from "../firebase";
 import { computeMatchStatus, computeAllPoints, GOLD } from "../utils/scoring";
 import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
+import LiveBackground from "../components/LiveBackground";
 import confetti from "canvas-confetti";
 
 const fmtHcp = v => v < 0 ? `+${Math.abs(v)}` : `${v}`;
@@ -32,6 +33,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
   const { BORDER } = useTheme();
   const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
   const isSingles = !match.player1b;
+  const isScramble = match.format === "Scramble";
   const st = computeMatchStatus(match.scores, teamAShort, teamBShort);
 
   const aWin     = st.state==="complete" && st.leader==="A";
@@ -70,6 +72,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"#ffffffbb", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
           <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:"#fff", fontFamily:"monospace", lineHeight:1 }}>{badgeBot}</div>
+          {isScramble&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"monospace", marginTop:1, letterSpacing:0.5 }}>SCRAMBLE</div>}
         </div>
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
           <div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2a}</div>
@@ -608,7 +611,7 @@ export default function CupView({ user }) {
   useEffect(()=>{ try{if(currentPlayer)localStorage.setItem(`jr_player_${cupId}`,currentPlayer);else localStorage.removeItem(`jr_player_${cupId}`);}catch{} },[currentPlayer,cupId]);
 
   if (!meta||!loaded) {
-    return <div style={{minHeight:"100vh",background:BG,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{color:MUTED,fontFamily:"monospace"}}>Loading cup...</div></div>;
+    return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><LiveBackground/><div style={{color:MUTED,fontFamily:"monospace"}}>Loading cup...</div></div>;
   }
 
   const cup = {
@@ -640,7 +643,8 @@ export default function CupView({ user }) {
   // Login screen
   if (!currentPlayer) {
     return (
-      <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+        <LiveBackground/>
         <div style={{width:"100%",maxWidth:360}}>
           <div style={{textAlign:"center",marginBottom:28}}>
             {meta.logoUrl
@@ -688,14 +692,15 @@ export default function CupView({ user }) {
   if (activeMatch){
     const d=days[activeMatch.dayIdx]; const m=d?.matches.find(x=>x.id===activeMatch.matchId);
     if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion)return <GroupHoleEntry matches={[m,companion]} course={getCourse(d,m)} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;}
-    if (m) return <HoleEntry match={m} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+    if (m) return <HoleEntry match={m} isSingles={m.format==="Scramble"||!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
   }
 
   const playerTeamColor=(()=>{ for(const d of days)for(const m of d.matches){if([m.player1a,m.player1b].includes(currentPlayer))return cup.teamAColor;if([m.player2a,m.player2b].includes(currentPlayer))return cup.teamBColor;} return MUTED; })();
 
   return (
-    <div style={{minHeight:"100vh",background:BG,color:TEXT,paddingBottom:60,fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}@keyframes celebFade{to{opacity:0;pointer-events:none}}*{box-sizing:border-box;margin:0;padding:0}html,body{background:${BG};}`}</style>
+    <div style={{minHeight:"100vh",color:TEXT,paddingBottom:60,fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
+      <LiveBackground/>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}@keyframes celebFade{to{opacity:0;pointer-events:none}}*{box-sizing:border-box;margin:0;padding:0}`}</style>
 
       {matchCelebration&&(
         <div style={{position:"fixed",inset:0,zIndex:1000,background:matchCelebration.color,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",animation:"celebFade 0.3s ease 1.2s forwards",pointerEvents:"none"}}>

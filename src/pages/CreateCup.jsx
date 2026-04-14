@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set } from "../firebase";
 import { GOLD } from "../utils/scoring";
+import LiveBackground from "../components/LiveBackground";
 
 const FORMATS   = ["2v2 Best Ball", "Singles"];
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
@@ -72,7 +73,6 @@ function Step2({ data, setData }) {
   const [newHcp, setNewHcp] = useState(0);
   const [pasteTeam, setPasteTeam] = useState("A");
   const [pasteText, setPasteText] = useState("");
-  const [showPaste, setShowPaste] = useState(false);
 
   const addPlayer = () => {
     if (!newName.trim()) return;
@@ -90,36 +90,31 @@ function Step2({ data, setData }) {
     const names = pasteText.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
     if (!names.length) return;
     setData(d => ({ ...d, players:[...d.players, ...names.map(name=>({ name, team:pasteTeam, hcp:0 }))] }));
-    setPasteText(""); setShowPaste(false);
+    setPasteText("");
   };
 
   return (
     <div>
-      {/* Paste list toggle */}
-      <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
-        <button onClick={()=>setShowPaste(s=>!s)} style={{ padding:"4px 10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:MUTED, fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
-          {showPaste?"▲ hide paste":"📋 paste list"}
-        </button>
+      {/* Paste area — always visible */}
+      <div style={{ marginBottom:16 }}>
+        <div style={{ display:"flex", gap:8, marginBottom:6, alignItems:"center" }}>
+          <select value={pasteTeam} onChange={e=>setPasteTeam(e.target.value)}
+            style={{ padding:"6px 8px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:12, cursor:"pointer" }}>
+            <option value="A">{data.teamAName||"Team A"}</option>
+            <option value="B">{data.teamBName||"Team B"}</option>
+          </select>
+          <button onClick={pasteList} disabled={!pasteText.trim()}
+            style={{ padding:"6px 14px", background:pasteText.trim()?GOLD:"none", border:`1px solid ${pasteText.trim()?GOLD:BORDER}`, borderRadius:6, color:pasteText.trim()?"#000":MUTED, fontWeight:700, fontSize:12, cursor:pasteText.trim()?"pointer":"default" }}>
+            Add All
+          </button>
+        </div>
+        <textarea value={pasteText} onChange={e=>setPasteText(e.target.value)}
+          placeholder="Paste names, one per line…" rows={3}
+          style={{ width:"100%", padding:"8px 10px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", resize:"vertical", boxSizing:"border-box", fontFamily:"inherit" }}/>
       </div>
 
-      {/* Paste panel */}
-      {showPaste&&(
-        <div style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:10, padding:12, marginBottom:14 }}>
-          <div style={{ fontSize:10, color:MUTED, marginBottom:8 }}>Paste names (one per line or comma-separated). All get HCP 0 — edit individually after.</div>
-          <div style={{ display:"flex", gap:8, marginBottom:8 }}>
-            <select value={pasteTeam} onChange={e=>setPasteTeam(e.target.value)}
-              style={{ padding:"6px 8px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:12, cursor:"pointer" }}>
-              <option value="A">{data.teamAName||"Team A"}</option>
-              <option value="B">{data.teamBName||"Team B"}</option>
-            </select>
-            <button onClick={pasteList} style={{ padding:"6px 14px", background:GOLD, border:"none", borderRadius:6, color:"#000", fontWeight:700, fontSize:12, cursor:"pointer" }}>Add All</button>
-          </div>
-          <textarea value={pasteText} onChange={e=>setPasteText(e.target.value)} placeholder={"John Smith\nJane Doe\nBob Jones"} rows={5}
-            style={{ width:"100%", padding:"8px 10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", resize:"vertical", boxSizing:"border-box", fontFamily:"inherit" }} />
-        </div>
-      )}
-
-      <div style={{ display:"flex", gap:6, marginBottom:14, flexWrap:"wrap" }}>
+      {/* Manual add */}
+      <div style={{ display:"flex", gap:6, marginBottom:12, flexWrap:"wrap" }}>
         <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Player name"
           onKeyDown={e=>e.key==="Enter"&&addPlayer()}
           style={{ flex:"1 1 120px", padding:"8px 10px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none" }} />
@@ -128,8 +123,7 @@ function Step2({ data, setData }) {
           <option value="A">{data.teamAName||"Team A"}</option>
           <option value="B">{data.teamBName||"Team B"}</option>
         </select>
-        <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-          <span style={{ fontSize:11, color:MUTED, fontFamily:"monospace" }}>HCP</span>
+        <div style={{ display:"flex", alignItems:"center" }}>
           <button onClick={()=>setNewHcp(h=>Math.max(-10,h-1))} style={{ width:28, height:32, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:"6px 0 0 6px", color:TEXT, cursor:"pointer", fontSize:14 }}>−</button>
           <div style={{ width:40, height:32, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, color:GOLD, fontFamily:"monospace" }}>{newHcp<0?`+${Math.abs(newHcp)}`:newHcp}</div>
           <button onClick={()=>setNewHcp(h=>Math.min(36,h+1))} style={{ width:28, height:32, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:"0 6px 6px 0", color:TEXT, cursor:"pointer", fontSize:14 }}>+</button>
@@ -205,7 +199,6 @@ function Step3({ data, setData }) {
   return (
     <div>
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:12, color:MUTED, marginBottom:10 }}>How many days is the tournament?</div>
         <div style={{ display:"flex", gap:8 }}>
           {[1,2,3,4,5].map(n=>(
             <button key={n} onClick={()=>setNumDays(n)}
@@ -365,8 +358,11 @@ function Step4({ data, setData }) {
 }
 
 // ── Step 5: Pairings ─────────────────────────────────────────────────────────
+const FMT_LABELS = { "Singles":"1v1", "2v2 Best Ball":"Best Ball", "Scramble":"Scramble" };
+const ALL_MATCH_FMTS = ["Singles", "2v2 Best Ball", "Scramble"];
+
 function Step5({ data, setData }) {
-  const { CARD2, BORDER, TEXT, MUTED, MUTED2 } = useTheme();
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
   const [activeDay, setActiveDay] = useState(0);
   const [activeRound, setActiveRound] = useState(0);
 
@@ -375,7 +371,6 @@ function Step5({ data, setData }) {
   const day = data.days[activeDay];
   const ri = Math.min(activeRound, day.rounds.length-1);
   const round = day.rounds[ri];
-  const isSingles = round.format === "Singles";
   const teamA = data.players.filter(p=>p.team==="A");
   const teamB = data.players.filter(p=>p.team==="B");
 
@@ -388,40 +383,55 @@ function Step5({ data, setData }) {
   });
 
   const addMatch = () => mutateRound(r => {
-    const empty = isSingles
-      ? { teeTime:"", player1a:"", hcp1a:0, player1b:null, hcp1b:0, player2a:"", hcp2a:0, player2b:null, hcp2b:0 }
-      : { teeTime:"", player1a:"", hcp1a:0, player1b:"", hcp1b:0, player2a:"", hcp2a:0, player2b:"", hcp2b:0 };
-    return { ...r, matches:[...r.matches, empty] };
+    const fmt = r.format;
+    const isSingles = fmt === "Singles";
+    return { ...r, matches:[...r.matches, {
+      teeTime:"", format:fmt,
+      player1a:"", hcp1a:0, player1b:isSingles?null:"", hcp1b:0,
+      player2a:"", hcp2a:0, player2b:isSingles?null:"", hcp2b:0,
+    }]};
   });
 
   const removeMatch = (mi) => mutateRound(r => ({ ...r, matches:r.matches.filter((_,i)=>i!==mi) }));
 
+  const setMatchFmt = (mi, fmt) => mutateRound(r => {
+    const matches=[...r.matches];
+    const m={...matches[mi]};
+    m.format=fmt;
+    const isSingles=fmt==="Singles";
+    if (isSingles){ m.player1b=null; m.hcp1b=0; m.player2b=null; m.hcp2b=0; }
+    else { if(m.player1b===null)m.player1b=""; if(m.player2b===null)m.player2b=""; }
+    if (fmt==="Scramble"){ m.hcp1a=0; m.hcp1b=0; m.hcp2a=0; m.hcp2b=0; }
+    matches[mi]=m;
+    return { ...r, matches };
+  });
+
   const updateMatch = (mi, key, val) => mutateRound(r => {
     const matches=[...r.matches];
     if (["player1a","player1b","player2a","player2b"].includes(key)) {
-      const player = data.players.find(p=>p.name===val);
-      const hcpKey = key.replace("player","hcp");
-      matches[mi]={...matches[mi],[key]:val,[hcpKey]:player?player.hcp:0};
+      const fmt=matches[mi].format||round.format;
+      const player=data.players.find(p=>p.name===val);
+      const hcpKey=key.replace("player","hcp");
+      matches[mi]={...matches[mi],[key]:val,[hcpKey]:fmt==="Scramble"?0:(player?.hcp||0)};
     } else {
       matches[mi]={...matches[mi],[key]:val};
     }
     return { ...r, matches };
   });
 
-  const playerSelect = (mi, field, team) => {
-    const players = team==="A"?teamA:teamB;
+  const PSel = ({mi, field, team}) => {
+    const players=team==="A"?teamA:teamB;
     return (
       <select value={round.matches[mi][field]||""} onChange={e=>updateMatch(mi,field,e.target.value)}
         style={{ flex:1, padding:"6px 8px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:7, color:TEXT, fontSize:12, cursor:"pointer", minWidth:0 }}>
         <option value="">—</option>
-        {players.map(p=><option key={p.name} value={p.name}>{p.name} {p.hcp<0?`(+${Math.abs(p.hcp)})`:p.hcp>0?`(${p.hcp})`:""}</option>)}
+        {players.map(p=><option key={p.name} value={p.name}>{p.name}{p.hcp<0?` (+${Math.abs(p.hcp)})`:p.hcp>0?` (${p.hcp})`:""}</option>)}
       </select>
     );
   };
 
   return (
     <div>
-      {/* Day tabs */}
       {data.days.length > 1 && (
         <div style={{ display:"flex", gap:6, marginBottom:12 }}>
           {data.days.map((d,i)=>(
@@ -432,45 +442,47 @@ function Step5({ data, setData }) {
           ))}
         </div>
       )}
-
-      {/* Round tabs */}
       {day.rounds.length > 1 && (
         <div style={{ display:"flex", gap:6, marginBottom:12 }}>
           {day.rounds.map((r,i)=>(
             <button key={i} onClick={()=>setActiveRound(i)}
               style={{ flex:1, padding:"6px 4px", background:ri===i?`${GOLD}33`:"none", border:`1px solid ${ri===i?GOLD:BORDER}`, borderRadius:8, color:ri===i?GOLD:MUTED, fontSize:10, cursor:"pointer", fontFamily:"monospace" }}>
-              {r.format} {r.courseName?`· ${r.courseName}`:""}
+              {r.courseName||`Round ${i+1}`}
             </button>
           ))}
         </div>
       )}
-
-      <div style={{ fontSize:11, color:MUTED, marginBottom:12, fontFamily:"monospace" }}>
-        {day.label} · {round.format.toUpperCase()} · {round.matches.length} match{round.matches.length!==1?"es":""}
-      </div>
-
-      {round.matches.map((m,mi)=>(
-        <div key={mi} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, padding:12, marginBottom:10 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <span style={{ fontSize:10, color:MUTED2, fontFamily:"monospace" }}>MATCH {mi+1}</span>
+      {round.matches.map((m,mi)=>{
+        const fmt=m.format||round.format;
+        const isSingles=fmt==="Singles";
+        return (
+          <div key={mi} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, padding:12, marginBottom:10 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
               <input value={m.teeTime||""} onChange={e=>updateMatch(mi,"teeTime",e.target.value)} placeholder="Tee time"
-                style={{ width:70, padding:"4px 6px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:11, outline:"none", fontFamily:"monospace" }} />
+                style={{ width:68, padding:"4px 6px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:11, outline:"none", fontFamily:"monospace" }} />
+              <div style={{ display:"flex", gap:3 }}>
+                {ALL_MATCH_FMTS.map(f=>(
+                  <button key={f} onClick={()=>setMatchFmt(mi,f)}
+                    style={{ padding:"3px 8px", background:fmt===f?GOLD:"none", border:`1px solid ${fmt===f?GOLD:BORDER}`, borderRadius:5, color:fmt===f?"#000":MUTED, fontSize:9, cursor:"pointer", fontFamily:"monospace", fontWeight:fmt===f?800:400 }}>
+                    {FMT_LABELS[f]}
+                  </button>
+                ))}
+              </div>
+              <button onClick={()=>removeMatch(mi)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:14 }}>×</button>
             </div>
-            <button onClick={()=>removeMatch(mi)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:14 }}>×</button>
+            <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:6 }}>
+              <span style={{ fontSize:9, color:data.teamAColor, fontFamily:"monospace", fontWeight:700, width:44, flexShrink:0 }}>{(data.teamAName||"A").substring(0,5)}</span>
+              <PSel mi={mi} field="player1a" team="A"/>
+              {!isSingles&&<PSel mi={mi} field="player1b" team="A"/>}
+            </div>
+            <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+              <span style={{ fontSize:9, color:data.teamBColor, fontFamily:"monospace", fontWeight:700, width:44, flexShrink:0 }}>{(data.teamBName||"B").substring(0,5)}</span>
+              <PSel mi={mi} field="player2a" team="B"/>
+              {!isSingles&&<PSel mi={mi} field="player2b" team="B"/>}
+            </div>
           </div>
-          <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:6 }}>
-            <span style={{ fontSize:9, color:data.teamAColor, fontFamily:"monospace", fontWeight:700, width:50, flexShrink:0 }}>{(data.teamAName||"TEAM A").substring(0,6)}</span>
-            {playerSelect(mi,"player1a","A")}
-            {!isSingles&&playerSelect(mi,"player1b","A")}
-          </div>
-          <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-            <span style={{ fontSize:9, color:data.teamBColor, fontFamily:"monospace", fontWeight:700, width:50, flexShrink:0 }}>{(data.teamBName||"TEAM B").substring(0,6)}</span>
-            {playerSelect(mi,"player2a","B")}
-            {!isSingles&&playerSelect(mi,"player2b","B")}
-          </div>
-        </div>
-      ))}
+        );
+      })}
       <button onClick={addMatch} style={{ width:"100%", padding:"10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:10, color:MUTED, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
         + ADD MATCH
       </button>
@@ -569,6 +581,7 @@ export default function CreateCup({ user }) {
             const matchId = (di+1)*1000 + (ri+1)*100 + mi + 1;
             allMatches[`m${matchId}`] = {
               teeTime: m.teeTime||"",
+              format: m.format||round.format,
               player1a: m.player1a||"", hcp1a: m.hcp1a||0,
               player1b: m.player1b||null, hcp1b: m.hcp1b||0,
               player2a: m.player2a||"", hcp2a: m.hcp2a||0,
@@ -613,36 +626,23 @@ export default function CreateCup({ user }) {
   };
 
   return (
-    <div style={{ minHeight:"100vh", background:BG, color:TEXT }}>
-      <div style={{ background:CARD, borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
+    <div style={{ minHeight:"100vh", color:TEXT }}>
+      <LiveBackground/>
+      <div style={{ background:"rgba(8,20,43,0.85)", backdropFilter:"blur(8px)", borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
         <button onClick={()=>step>1?setStep(s=>s-1):nav("/")}
           style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:8, padding:"5px 10px", color:MUTED, fontSize:11, cursor:"pointer" }}>
           ← Back
         </button>
-        <div style={{ fontSize:14, fontWeight:800, color:TEXT }}>Create Cup</div>
-        <div style={{ marginLeft:"auto", fontSize:11, color:MUTED, fontFamily:"monospace" }}>STEP {step}/{STEPS.length}</div>
-      </div>
-
-      <div style={{ display:"flex", background:CARD, borderBottom:`1px solid ${BORDER}` }}>
-        {STEPS.map((s,i)=>(
-          <div key={i} style={{ flex:1, padding:"6px 2px", textAlign:"center", fontSize:9, fontFamily:"monospace", letterSpacing:0.5, color:i+1===step?GOLD:i+1<step?"#4caf50":MUTED, borderBottom:i+1===step?`2px solid ${GOLD}`:"2px solid transparent" }}>
-            {i+1<step?"✓":i+1}
-          </div>
-        ))}
-      </div>
-
-      <div style={{ maxWidth:520, margin:"0 auto", padding:"20px 16px" }}>
-        <div style={{ fontSize:16, fontWeight:800, color:TEXT, marginBottom:4 }}>{STEPS[step-1]}</div>
-        <div style={{ fontSize:11, color:MUTED, marginBottom:20, fontFamily:"monospace" }}>
-          {step===1&&"Name your cup, set up teams, and choose an invite code."}
-          {step===2&&"Add all players with their team and handicap. Use negative for plus-handicappers."}
-          {step===3&&"How many days? Each day can have up to 2 rounds with different formats and courses."}
-          {step===4&&"Enter par and handicap index for each hole."}
-          {step===5&&"Set matchups. You can change these later from the cup."}
-          {step===6&&"Pick which player you are, and who else can manage the cup."}
+        <div style={{ fontSize:14, fontWeight:800, color:TEXT }}>{STEPS[step-1]}</div>
+        <div style={{ marginLeft:"auto", display:"flex", gap:5 }}>
+          {STEPS.map((_,i)=>(
+            <div key={i} style={{ width:i+1<step?18:i+1===step?18:8, height:6, borderRadius:3, background:i+1<step?"#4caf50":i+1===step?GOLD:BORDER, transition:"all 0.2s" }}/>
+          ))}
         </div>
+      </div>
 
-        <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:16, padding:"20px" }}>
+      <div style={{ maxWidth:520, margin:"0 auto", padding:"16px 16px 32px" }}>
+        <div style={{ background:"rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border:`1px solid ${BORDER}`, borderRadius:16, padding:"20px" }}>
           {step===1&&<Step1 data={data} setData={setData}/>}
           {step===2&&<Step2 data={data} setData={setData}/>}
           {step===3&&<Step3 data={data} setData={setData}/>}
@@ -653,10 +653,10 @@ export default function CreateCup({ user }) {
 
         {error&&<div style={{ fontSize:12, color:"#e74c3c", marginTop:12, textAlign:"center" }}>{error}</div>}
 
-        <div style={{ marginTop:16 }}>
+        <div style={{ marginTop:14 }}>
           {step<STEPS.length?(
             <button onClick={()=>setStep(s=>s+1)} disabled={!canNext()}
-              style={{ width:"100%", padding:"15px", background:canNext()?`linear-gradient(135deg,${GOLD},${GOLD}88)`:CARD2, border:"none", borderRadius:14, color:canNext()?"#000":MUTED, fontWeight:900, fontSize:15, cursor:canNext()?"pointer":"not-allowed", letterSpacing:1, fontFamily:"monospace" }}>
+              style={{ width:"100%", padding:"15px", background:canNext()?`linear-gradient(135deg,${GOLD},${GOLD}88)`:BORDER, border:"none", borderRadius:14, color:canNext()?"#000":MUTED, fontWeight:900, fontSize:15, cursor:canNext()?"pointer":"not-allowed", letterSpacing:1, fontFamily:"monospace" }}>
               NEXT →
             </button>
           ):(

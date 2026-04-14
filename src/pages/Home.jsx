@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { auth, signOut, db, ref, onValue, get, set } from "../firebase";
 import { GOLD } from "../utils/scoring";
+import LiveBackground from "../components/LiveBackground";
 
 export default function Home({ user }) {
   const { BG, CARD, CARD2, BORDER, TEXT, MUTED, MUTED2, theme, toggle } = useTheme();
@@ -51,9 +52,10 @@ export default function Home({ user }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
+    <div style={{ minHeight: "100vh", color: TEXT }}>
+      <LiveBackground/>
       {/* Top bar */}
-      <div style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ background: "rgba(8,20,43,0.85)", backdropFilter:"blur(8px)", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontSize: 16, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 2 }}>⛳ DORMIE</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={toggle} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
@@ -78,7 +80,7 @@ export default function Home({ user }) {
         </button>
 
         {/* Join by code */}
-        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", marginBottom: 24 }}>
+        <div style={{ background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", marginBottom: 24 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: MUTED2, letterSpacing: 1, marginBottom: 10, fontFamily: "monospace" }}>JOIN A CUP</div>
           <div style={{ display: "flex", gap: 8 }}>
             <input
@@ -99,13 +101,13 @@ export default function Home({ user }) {
         {/* Cups list */}
         <div style={{ fontSize: 12, fontWeight: 700, color: MUTED2, letterSpacing: 1, marginBottom: 10, fontFamily: "monospace" }}>YOUR CUPS</div>
         {cups.length === 0 ? (
-          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "24px", textAlign: "center", color: MUTED, fontSize: 12 }}>
+          <div style={{ background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "24px", textAlign: "center", color: MUTED, fontSize: 12 }}>
             No cups yet. Create one or join with an invite code.
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {cups.map(cup => (
-              <button key={cup.id} onClick={() => nav(`/cup/${cup.id}`)} style={{ width: "100%", textAlign: "left", background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
+              <button key={cup.id} onClick={() => nav(`/cup/${cup.id}`)} style={{ width: "100%", textAlign: "left", background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: TEXT, marginBottom: 4 }}>{cup.name}</div>
                 <div style={{ fontSize: 11, color: MUTED }}>
                   <span style={{ color: "#C8102E", fontWeight: 700 }}>{cup.teamAName}</span>
