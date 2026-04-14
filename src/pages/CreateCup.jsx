@@ -80,6 +80,11 @@ function Step2({ data, setData }) {
     setNewName(""); setNewHcp(0);
   };
   const removePlayer = i => setData(d => ({ ...d, players:d.players.filter((_,idx)=>idx!==i) }));
+  const adjustHcp = (i, delta) => setData(d => {
+    const players=[...d.players];
+    players[i]={...players[i], hcp:Math.min(36,Math.max(-10,players[i].hcp+delta))};
+    return {...d,players};
+  });
 
   const pasteList = () => {
     const names = pasteText.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
@@ -142,11 +147,14 @@ function Step2({ data, setData }) {
             {players.map((p,ri)=>{
               const gi = data.players.findIndex(x=>x===p);
               return (
-                <div key={ri} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 10px", background:CARD2, borderRadius:8, marginBottom:4 }}>
+                <div key={ri} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 10px", background:CARD2, borderRadius:8, marginBottom:4 }}>
                   <span style={{ fontSize:13, color:TEXT }}>{p.name}</span>
-                  <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-                    <span style={{ fontSize:11, color:MUTED, fontFamily:"monospace" }}>HCP {p.hcp>0?`+${p.hcp}`:p.hcp}</span>
-                    <button onClick={()=>removePlayer(gi)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:16, lineHeight:1 }}>×</button>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{ fontSize:9, color:MUTED, fontFamily:"monospace" }}>HCP</span>
+                    <button onClick={()=>adjustHcp(gi,-1)} style={{ width:24, height:26, background:"none", border:`1px solid ${BORDER}`, borderRadius:"4px 0 0 4px", color:MUTED, cursor:"pointer", fontSize:13, lineHeight:1 }}>−</button>
+                    <div style={{ width:34, height:26, background:"none", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:GOLD, fontFamily:"monospace" }}>{p.hcp>0?`+${p.hcp}`:p.hcp}</div>
+                    <button onClick={()=>adjustHcp(gi,1)} style={{ width:24, height:26, background:"none", border:`1px solid ${BORDER}`, borderRadius:"0 4px 4px 0", color:MUTED, cursor:"pointer", fontSize:13, lineHeight:1 }}>+</button>
+                    <button onClick={()=>removePlayer(gi)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:16, lineHeight:1, marginLeft:4 }}>×</button>
                   </div>
                 </div>
               );
