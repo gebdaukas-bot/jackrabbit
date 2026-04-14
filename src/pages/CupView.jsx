@@ -7,6 +7,7 @@ import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
 import LiveBackground from "../components/LiveBackground";
 import confetti from "canvas-confetti";
+import { QRCodeSVG } from "qrcode.react";
 
 const fmtHcp = v => v < 0 ? `+${Math.abs(v)}` : `${v}`;
 
@@ -957,15 +958,32 @@ export default function CupView({ user }) {
                 {meta.logoUrl&&<button onClick={async()=>await update(ref(db,`cups/${cupId}/meta`),{logoUrl:null})} style={{fontSize:10,background:"none",border:"none",color:"#e74c3c",cursor:"pointer",padding:0}}>Remove logo</button>}
               </div>
 
-              {/* Invite code */}
-              <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>INVITE CODE</div>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <div style={{flex:1,padding:"12px 14px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:26,fontWeight:900,color:GOLD,letterSpacing:4,textAlign:"center"}}>{meta.inviteCode}</div>
-                  <button onClick={()=>navigator.clipboard?.writeText(meta.inviteCode)} style={{padding:"12px 14px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:GOLD,fontSize:12,cursor:"pointer",fontWeight:700}}>Copy</button>
-                </div>
-                <div style={{fontSize:10,color:MUTED,marginTop:8}}>Share this code with players to join</div>
-              </div>
+              {/* Invite code + link + QR */}
+              {meta.inviteCode && (() => {
+                const joinUrl = `https://dormie-golf.vercel.app/join/${meta.inviteCode}`;
+                return (
+                  <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
+                    <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>INVITE</div>
+                    {/* Code display */}
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                      <div style={{flex:1,padding:"12px 14px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:26,fontWeight:900,color:GOLD,letterSpacing:4,textAlign:"center"}}>{meta.inviteCode}</div>
+                      <button onClick={()=>navigator.clipboard?.writeText(meta.inviteCode)} style={{padding:"12px 14px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:GOLD,fontSize:12,cursor:"pointer",fontWeight:700}}>Code</button>
+                    </div>
+                    {/* Share link */}
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                      <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{joinUrl}</div>
+                      <button onClick={()=>navigator.clipboard?.writeText(joinUrl)} style={{padding:"9px 14px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:GOLD,fontSize:12,cursor:"pointer",fontWeight:700,flexShrink:0}}>Link</button>
+                    </div>
+                    {/* QR code */}
+                    <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
+                      <div style={{background:"#fff",borderRadius:10,padding:10,display:"inline-block"}}>
+                        <QRCodeSVG value={joinUrl} size={160} bgColor="#ffffff" fgColor="#020c18" level="M"/>
+                      </div>
+                    </div>
+                    <div style={{fontSize:10,color:MUTED,textAlign:"center",marginTop:8}}>Scan to join or share the link</div>
+                  </div>
+                );
+              })()}
 
               {/* Admin sections grid */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>

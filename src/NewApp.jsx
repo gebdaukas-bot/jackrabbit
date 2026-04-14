@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import CreateCup from "./pages/CreateCup";
 import CupView from "./pages/CupView";
 import SeedPage from "./pages/SeedPage";
+import JoinPage from "./pages/JoinPage";
 
 function AuthGate() {
   const [user, setUser] = useState(undefined); // undefined = loading
@@ -24,6 +25,7 @@ function AuthGate() {
   if (!user) {
     return (
       <Routes>
+        <Route path="/join/:code" element={<JoinPage user={null} />} />
         <Route path="*" element={<Login />} />
       </Routes>
     );
@@ -35,6 +37,7 @@ function AuthGate() {
       <Route path="/create" element={<CreateCup user={user} />} />
       <Route path="/cup/:cupId" element={<CupView user={user} />} />
       <Route path="/seed" element={<SeedPage user={user} />} />
+      <Route path="/join/:code" element={<JoinPage user={user} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

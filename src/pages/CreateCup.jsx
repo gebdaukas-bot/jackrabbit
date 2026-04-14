@@ -57,8 +57,8 @@ function Step1({ data, setData }) {
         </div>
       </div>
       <div>
-        <label style={{ fontSize:11, color:GOLD, fontFamily:"monospace", letterSpacing:1 }}>INVITE CODE</label>
-        <div style={{ fontSize:10, color:MUTED, marginTop:2, marginBottom:4 }}>Players use this to join the cup. Letters and numbers only.</div>
+        <label style={{ fontSize:11, color:GOLD, fontFamily:"monospace", letterSpacing:1 }}>INVITE CODE <span style={{ color:MUTED, fontWeight:400 }}>(optional)</span></label>
+        <div style={{ fontSize:10, color:MUTED, marginTop:2, marginBottom:4 }}>Leave blank to auto-generate. Letters and numbers only.</div>
         {inp("inviteCode", "e.g. RYDERC26", { fontFamily:"monospace", letterSpacing:2, textTransform:"uppercase" })}
       </div>
     </div>
@@ -554,7 +554,7 @@ export default function CreateCup({ user }) {
   const STEPS = ["Cup Setup","Players","Days","Courses","Pairings","Admins"];
 
   const canNext = () => {
-    if (step===1) return data.name.trim() && data.teamAName.trim() && data.teamBName.trim() && data.inviteCode.trim().length >= 4;
+    if (step===1) return data.name.trim() && data.teamAName.trim() && data.teamBName.trim();
     if (step===2) return data.players.filter(p=>p.team==="A").length>0 && data.players.filter(p=>p.team==="B").length>0;
     if (step===6) return !!data.creatorPlayer;
     return true;
@@ -564,7 +564,7 @@ export default function CreateCup({ user }) {
     setSaving(true); setError("");
     try {
       const cupId = `cup_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-      const inviteCode = data.inviteCode.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
+      const inviteCode = (data.inviteCode.trim() || Math.random().toString(36).slice(2,7)).toUpperCase().replace(/[^A-Z0-9]/g,"");
 
       // Build Firebase days (rounds structure, no matches embedded)
       const daysMeta = data.days.map(day => ({
