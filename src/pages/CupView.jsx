@@ -144,6 +144,230 @@ function DayBlock({ day, cup, onOpen, canEdit }) {
   );
 }
 
+// ── Admin sub-editors ─────────────────────────────────────────────────────────
+
+function AdminHeader({ title, onBack, onSave, saving }) {
+  const { BORDER, MUTED, TEXT } = useTheme();
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16,paddingBottom:12,borderBottom:`1px solid ${BORDER}`}}>
+      <button onClick={onBack} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:8,padding:"5px 10px",color:MUTED,fontSize:11,cursor:"pointer",flexShrink:0}}>← Back</button>
+      <div style={{fontSize:14,fontWeight:800,color:TEXT,flex:1}}>{title}</div>
+      {onSave&&<button onClick={onSave} disabled={saving} style={{padding:"8px 16px",background:GOLD,border:"none",borderRadius:8,color:"#000",fontWeight:800,fontSize:12,cursor:saving?"wait":"pointer",flexShrink:0}}>{saving?"Saving…":"Save"}</button>}
+    </div>
+  );
+}
+
+function AdminPlayers({ initPlayers, teamAColor, teamBColor, onSave, onBack }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  const [players, setPlayers] = useState(initPlayers.map(p=>({...p})));
+  const [saving, setSaving] = useState(false);
+  const fmtH = v => v < 0 ? `+${Math.abs(v)}` : `${v}`;
+  const adj = (i, d) => setPlayers(ps=>ps.map((p,j)=>j===i?{...p,hcp:Math.min(36,Math.max(-10,p.hcp+d))}:p));
+  const handleSave = async () => { setSaving(true); await onSave(players); setSaving(false); onBack(); };
+  return (
+    <div>
+      <AdminHeader title="Players & Handicaps" onBack={onBack} onSave={handleSave} saving={saving}/>
+      {players.map((p,i)=>(
+        <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 0",borderBottom:`1px solid ${BORDER}`}}>
+          <input value={p.name} onChange={e=>setPlayers(ps=>ps.map((x,j)=>j===i?{...x,name:e.target.value}:x))}
+            style={{flex:1,padding:"6px 8px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:12,outline:"none",minWidth:0}}/>
+          <button onClick={()=>setPlayers(ps=>ps.map((x,j)=>j===i?{...x,team:x.team==="A"?"B":"A"}:x))}
+            style={{padding:"5px 9px",background:"none",border:`1px solid ${p.team==="A"?teamAColor:teamBColor}`,borderRadius:6,color:p.team==="A"?teamAColor:teamBColor,fontSize:10,fontWeight:800,cursor:"pointer",flexShrink:0,fontFamily:"monospace"}}>
+            {p.team}
+          </button>
+          <div style={{display:"flex",flexShrink:0}}>
+            <button onClick={()=>adj(i,-1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"4px 0 0 4px",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>−</button>
+            <div style={{width:34,height:28,background:CARD2,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:GOLD,fontFamily:"monospace"}}>{fmtH(p.hcp)}</div>
+            <button onClick={()=>adj(i,1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"0 4px 4px 0",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>+</button>
+          </div>
+          <button onClick={()=>setPlayers(ps=>ps.filter((_,j)=>j!==i))} style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:16,padding:"0 2px",flexShrink:0}}>×</button>
+        </div>
+      ))}
+      <button onClick={()=>setPlayers(ps=>[...ps,{name:"",team:"A",hcp:0}])}
+        style={{width:"100%",marginTop:12,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"monospace"}}>
+        + ADD PLAYER
+      </button>
+    </div>
+  );
+}
+
+function AdminCourses({ initDays, onSave, onBack }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  const [days, setDays] = useState(initDays.map(d=>({...d,rounds:d.rounds.map(r=>({...r,course:{...(r.course||{}),par:[...(r.course?.par||[])],hcp:[...(r.course?.hcp||[])]}}))})));
+  const [saving, setSaving] = useState(false);
+  const [selDay, setSelDay] = useState(0);
+  const [selRound, setSelRound] = useState(0);
+  const course = days[selDay]?.rounds[selRound]?.course || {};
+  const updateHole = (field, hi, val) => {
+    const n = parseInt(val); if (isNaN(n)) return;
+    setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,[field]:r.course[field].map((v,i)=>i===hi?n:v)}})}));
+  };
+  const handleSave = async () => { setSaving(true); await onSave(days); setSaving(false); onBack(); };
+  return (
+    <div>
+      <AdminHeader title="Edit Courses" onBack={onBack} onSave={handleSave} saving={saving}/>
+      {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>{days.map((d,di)=><button key={di} onClick={()=>{setSelDay(di);setSelRound(0);}} style={{padding:"4px 10px",background:selDay===di?GOLD:"none",border:`1px solid ${selDay===di?GOLD:BORDER}`,borderRadius:6,color:selDay===di?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>{d.label}</button>)}</div>}
+      {days[selDay]?.rounds.length>1&&<div style={{display:"flex",gap:6,marginBottom:10}}>{days[selDay].rounds.map((_,ri)=><button key={ri} onClick={()=>setSelRound(ri)} style={{padding:"4px 10px",background:selRound===ri?GOLD:"none",border:`1px solid ${selRound===ri?GOLD:BORDER}`,borderRadius:6,color:selRound===ri?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>Round {ri+1}</button>)}</div>}
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>COURSE NAME</div>
+        <input value={course.name||""} onChange={e=>setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,name:e.target.value}})}))}
+          style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
+      </div>
+      {["par","hcp"].map(field=>(
+        <div key={field} style={{marginBottom:12}}>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>{field==="par"?"PAR PER HOLE":"HANDICAP INDEX"}</div>
+          <div style={{overflowX:"auto"}}>
+            <div style={{display:"flex",gap:3,minWidth:"max-content"}}>
+              {Array.from({length:18},(_,i)=>(
+                <div key={i} style={{textAlign:"center"}}>
+                  <div style={{fontSize:8,color:MUTED,marginBottom:2,fontFamily:"monospace"}}>{i+1}</div>
+                  <input type="number" min={field==="par"?3:1} max={field==="par"?5:18} value={course[field]?.[i]||(field==="par"?4:i+1)}
+                    onChange={e=>updateHole(field,i,e.target.value)}
+                    style={{width:30,height:30,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:11,textAlign:"center",outline:"none",padding:0}}/>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AdminRounds({ initDays, onSave, onBack }) {
+  const { CARD2, BORDER, MUTED } = useTheme();
+  const [days, setDays] = useState(initDays.map(d=>({...d,rounds:d.rounds.map(r=>({...r}))})));
+  const [saving, setSaving] = useState(false);
+  const handleSave = async () => { setSaving(true); await onSave(days); setSaving(false); onBack(); };
+  return (
+    <div>
+      <AdminHeader title="Edit Rounds" onBack={onBack} onSave={handleSave} saving={saving}/>
+      {days.map((day,di)=>(
+        <div key={di} style={{marginBottom:16}}>
+          <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
+          {day.rounds.map((r,ri)=>(
+            <div key={ri} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:12,marginBottom:8}}>
+              {day.rounds.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:8}}>ROUND {ri+1}</div>}
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {["2v2 Best Ball","Singles"].map(f=>(
+                  <button key={f} onClick={()=>setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,rounds:d.rounds.map((x,j)=>j!==ri?x:{...x,format:f})}))}
+                    style={{padding:"6px 12px",background:r.format===f?GOLD:"none",border:`1px solid ${r.format===f?GOLD:BORDER}`,borderRadius:6,color:r.format===f?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace",fontWeight:r.format===f?800:400}}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, onBack }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  const [days, setDays] = useState(initDays.map(d=>({...d,matches:d.matches.map(m=>({...m}))})));
+  const [saving, setSaving] = useState(false);
+  const teamA = cupPlayers.filter(p=>p.team==="A");
+  const teamB = cupPlayers.filter(p=>p.team==="B");
+
+  const setField = (di, matchId, field, val) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.map(m=>{
+    if (m.id!==matchId) return m;
+    const player=cupPlayers.find(p=>p.name===val);
+    const hcpKey=field.replace("player","hcp");
+    return {...m,[field]:val||"",[hcpKey]:player?.hcp||0};
+  })}));
+
+  const addMatch = (di, ri) => {
+    const riMs = days[di].matches.filter(m=>m.roundIdx===ri);
+    const base = (di+1)*1000+(ri+1)*100;
+    const maxId = riMs.length>0 ? Math.max(...riMs.map(m=>m.id)) : base;
+    const newId = Math.max(maxId+1, base+riMs.length+1);
+    setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:[...d.matches,{id:newId,roundIdx:ri,player1a:"",player1b:null,player2a:"",player2b:null,hcp1a:0,hcp1b:0,hcp2a:0,hcp2b:0,teeTime:"",scores:Array(18).fill(null),disputes:[]}]}));
+  };
+
+  const removeMatch = (di, matchId) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.filter(m=>m.id!==matchId)}));
+
+  const handleSave = async () => { setSaving(true); await onSave(days); setSaving(false); onBack(); };
+
+  const PSel = ({di,matchId,field,team})=>{
+    const m=days[di].matches.find(x=>x.id===matchId);
+    const opts=team==="A"?teamA:teamB;
+    return (
+      <select value={m?.[field]||""} onChange={e=>setField(di,matchId,field,e.target.value)}
+        style={{flex:1,padding:"5px 6px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:11,cursor:"pointer",minWidth:0}}>
+        <option value="">—</option>
+        {opts.map(p=><option key={p.name} value={p.name}>{p.name}</option>)}
+      </select>
+    );
+  };
+
+  return (
+    <div>
+      <AdminHeader title="Edit Matchups" onBack={onBack} onSave={handleSave} saving={saving}/>
+      {days.map((day,di)=>(
+        <div key={di} style={{marginBottom:16}}>
+          <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
+          {day.rounds.map((r,ri)=>{
+            const rMs=day.matches.filter(m=>(m.roundIdx??0)===ri);
+            const isSingles=r.format==="Singles";
+            return (
+              <div key={ri} style={{marginBottom:10}}>
+                {day.rounds.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:6}}>ROUND {ri+1} · {r.format}</div>}
+                {rMs.map(m=>(
+                  <div key={m.id} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:10,marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                      <input value={m.teeTime||""} onChange={e=>setField(di,m.id,"teeTime",e.target.value)} placeholder="Tee time"
+                        style={{width:70,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"monospace"}}/>
+                      <button onClick={()=>removeMatch(di,m.id)} style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14}}>×</button>
+                    </div>
+                    <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5}}>
+                      <span style={{fontSize:8,color:teamAColor,fontWeight:800,fontFamily:"monospace",width:10,flexShrink:0}}>A</span>
+                      <PSel di={di} matchId={m.id} field="player1a" team="A"/>
+                      {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" team="A"/>}
+                    </div>
+                    <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                      <span style={{fontSize:8,color:teamBColor,fontWeight:800,fontFamily:"monospace",width:10,flexShrink:0}}>B</span>
+                      <PSel di={di} matchId={m.id} field="player2a" team="B"/>
+                      {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" team="B"/>}
+                    </div>
+                  </div>
+                ))}
+                <button onClick={()=>addMatch(di,ri)} style={{width:"100%",padding:"8px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>+ ADD MATCH</button>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AdminScores({ days, onOpenMatch, onBack }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  return (
+    <div>
+      <AdminHeader title="Edit Scores" onBack={onBack}/>
+      {days.map((day,di)=>(
+        <div key={di} style={{marginBottom:16}}>
+          <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
+          {day.matches.length===0&&<div style={{fontSize:12,color:MUTED,padding:"8px 0"}}>No matches yet.</div>}
+          {day.matches.map(m=>(
+            <button key={m.id} onClick={()=>onOpenMatch(di,m)}
+              style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,color:TEXT,fontSize:12,cursor:"pointer",marginBottom:6,textAlign:"left"}}>
+              <div>
+                <div style={{fontWeight:700}}>{m.player1a||"—"}{m.player1b?` & ${m.player1b}`:""}</div>
+                <div style={{color:MUTED,fontSize:11}}>vs {m.player2a||"—"}{m.player2b?` & ${m.player2b}`:""}</div>
+              </div>
+              <div style={{fontSize:13}}>✏️</div>
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── CupView ───────────────────────────────────────────────────────────────────
 export default function CupView({ user }) {
   const { cupId } = useParams();
@@ -163,6 +387,8 @@ export default function CupView({ user }) {
   const [syncStatus, setSyncStatus] = useState(null);
   const [matchCelebration, setMatchCelebration] = useState(null);
 
+  const [adminSection, setAdminSection] = useState(null);
+
   const dirtyMatchIds = useRef(new Set());
   const prevMatchStates = useRef({});
   const prevWinnerRef = useRef(null);
@@ -179,7 +405,7 @@ export default function CupView({ user }) {
     const unsub = onValue(ref(db,`cups/${cupId}/players`),snap=>{
       if (!snap.exists()) return;
       const data = snap.val();
-      setCupPlayers(Object.values(data).map(p=>p.name).filter(Boolean).sort());
+      setCupPlayers(Object.values(data).filter(p=>p.name).sort((a,b)=>a.name.localeCompare(b.name)));
     });
     return ()=>unsub();
   },[cupId]);
@@ -274,6 +500,41 @@ export default function CupView({ user }) {
     return ()=>unsub();
   },[cupId]);
 
+  const saveAdminPlayers = async (players) => {
+    const obj = {};
+    players.forEach(p=>{ if(p.name.trim()) obj[p.name.trim().toLowerCase().replace(/\s+/g,"_")]={name:p.name.trim(),team:p.team,hcp:p.hcp||0}; });
+    await set(ref(db,`cups/${cupId}/players`),obj);
+  };
+
+  const saveAdminDays = async (editedDays) => {
+    for (let di=0; di<editedDays.length; di++) {
+      const d = editedDays[di];
+      await set(ref(db,`cups/${cupId}/days/${di}`),{
+        label:d.label,
+        rounds:d.rounds.map(r=>({format:r.format,course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[]}})),
+      });
+    }
+  };
+
+  const saveAdminMatchups = async (editedDays) => {
+    const existingIds = new Set(days.flatMap(d=>d.matches.map(m=>`m${m.id}`)));
+    const newIds = new Set(editedDays.flatMap(d=>d.matches.map(m=>`m${m.id}`)));
+    for (const d of editedDays) {
+      for (const m of d.matches) {
+        await set(ref(db,`cups/${cupId}/matches/m${m.id}`),{
+          teeTime:m.teeTime||"", companionId:m.companionId||null,
+          player1a:m.player1a||"", hcp1a:m.hcp1a||0,
+          player1b:m.player1b||null, hcp1b:m.hcp1b||0,
+          player2a:m.player2a||"", hcp2a:m.hcp2a||0,
+          player2b:m.player2b||null, hcp2b:m.hcp2b||0,
+        });
+      }
+    }
+    for (const id of existingIds) {
+      if (!newIds.has(id)) await set(ref(db,`cups/${cupId}/matches/${id}`),null);
+    }
+  };
+
   const updateMatch = async (dayIdx,upd)=>{
     dirtyMatchIds.current.add(upd.id);
     setDays(ds=>ds.map((d,i)=>i!==dayIdx?d:{...d,matches:d.matches.map(m=>m.id===upd.id?upd:m)}));
@@ -359,7 +620,7 @@ export default function CupView({ user }) {
 
   const isAdmin = user?.uid===meta.createdBy || (meta.adminPlayers||[]).includes(currentPlayer);
   const allPlayers = days.flatMap(d=>d.matches.flatMap(m=>[m.player1a,m.player1b,m.player2a,m.player2b].filter(Boolean)));
-  const uniquePlayers = cupPlayers.length>0 ? cupPlayers : [...new Set(allPlayers)];
+  const uniquePlayers = cupPlayers.length>0 ? cupPlayers.map(p=>p.name) : [...new Set(allPlayers)];
 
   const todayDow = new Date().getDay();
   const dowToDay = {5:0,6:1,0:2};
@@ -665,66 +926,104 @@ export default function CupView({ user }) {
         {/* ADMIN TAB */}
         {tab==="admin"&&isAdmin&&(
           <div>
-            {/* Logo */}
-            <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-              <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>CUP LOGO</div>
-              <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
-                <div style={{width:56,height:56,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
-                  {meta.logoUrl?<img src={meta.logoUrl} alt="logo" style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<div style={{fontSize:28}}>⛳</div>}
+            {adminSection===null&&(<>
+              {/* Logo */}
+              <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>CUP LOGO</div>
+                <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
+                  <div style={{width:56,height:56,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
+                    {meta.logoUrl?<img src={meta.logoUrl} alt="logo" style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<div style={{fontSize:28}}>⛳</div>}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <label style={{display:"block",width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",textAlign:"center",marginBottom:6}}>
+                      📁 Upload image
+                      <input type="file" accept="image/*" style={{display:"none"}} onChange={async e=>{
+                        const file=e.target.files?.[0]; if(!file) return;
+                        const reader=new FileReader();
+                        reader.onload=async ev=>{ await update(ref(db,`cups/${cupId}/meta`),{logoUrl:ev.target.result}); };
+                        reader.readAsDataURL(file);
+                      }}/>
+                    </label>
+                    <input placeholder="…or paste image URL" defaultValue={meta.logoUrl?.startsWith("http")?meta.logoUrl:""}
+                      onBlur={async e=>{const v=e.target.value.trim();if(v)await update(ref(db,`cups/${cupId}/meta`),{logoUrl:v});}}
+                      style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:11,outline:"none"}}/>
+                  </div>
                 </div>
-                <div style={{flex:1,minWidth:0}}>
-                  <label style={{display:"block",width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",textAlign:"center",marginBottom:6}}>
-                    📁 Upload image
-                    <input type="file" accept="image/*" style={{display:"none"}} onChange={async e=>{
-                      const file=e.target.files?.[0]; if(!file) return;
-                      const reader=new FileReader();
-                      reader.onload=async ev=>{
-                        const dataUrl=ev.target.result;
-                        await update(ref(db,`cups/${cupId}/meta`),{logoUrl:dataUrl});
-                      };
-                      reader.readAsDataURL(file);
-                    }}/>
-                  </label>
-                  <input
-                    placeholder="…or paste image URL"
-                    defaultValue={meta.logoUrl?.startsWith("http")?meta.logoUrl:""}
-                    onBlur={async e=>{const v=e.target.value.trim();if(v)await update(ref(db,`cups/${cupId}/meta`),{logoUrl:v});}}
-                    style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:11,outline:"none"}}
-                  />
-                </div>
+                {meta.logoUrl&&<button onClick={async()=>await update(ref(db,`cups/${cupId}/meta`),{logoUrl:null})} style={{fontSize:10,background:"none",border:"none",color:"#e74c3c",cursor:"pointer",padding:0}}>Remove logo</button>}
               </div>
-              {meta.logoUrl&&<button onClick={async()=>await update(ref(db,`cups/${cupId}/meta`),{logoUrl:null})} style={{fontSize:10,background:"none",border:"none",color:"#e74c3c",cursor:"pointer",padding:0}}>Remove logo</button>}
-            </div>
 
-            <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-              <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>INVITE CODE</div>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <div style={{flex:1,padding:"12px 14px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:26,fontWeight:900,color:GOLD,letterSpacing:4,textAlign:"center"}}>
-                  {meta.inviteCode}
+              {/* Invite code */}
+              <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>INVITE CODE</div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{flex:1,padding:"12px 14px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:26,fontWeight:900,color:GOLD,letterSpacing:4,textAlign:"center"}}>{meta.inviteCode}</div>
+                  <button onClick={()=>navigator.clipboard?.writeText(meta.inviteCode)} style={{padding:"12px 14px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:GOLD,fontSize:12,cursor:"pointer",fontWeight:700}}>Copy</button>
                 </div>
-                <button onClick={()=>navigator.clipboard?.writeText(meta.inviteCode)} style={{padding:"12px 14px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:GOLD,fontSize:12,cursor:"pointer",fontWeight:700}}>
-                  Copy
-                </button>
+                <div style={{fontSize:10,color:MUTED,marginTop:8}}>Share this code with players to join</div>
               </div>
-              <div style={{fontSize:10,color:MUTED,marginTop:8}}>Share this code with players to join</div>
-            </div>
 
-            {days.map((day,di)=>(
-              <div key={di} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>{day.label?.toUpperCase()}</div>
-                {day.matches.map(m=>(
-                  <div key={m.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${BORDER}`}}>
-                    <div style={{fontSize:12,color:TEXT}}>{m.player1a}{m.player1b?` & ${m.player1b}`:""} vs {m.player2a}{m.player2b?` & ${m.player2b}`:""}</div>
-                    <button onClick={async()=>{
-                      if(!confirm(`Reset match scores for ${m.player1a} vs ${m.player2a}?`))return;
-                      await set(ref(db,`cups/${cupId}/scores/m${m.id}`),null);
-                    }} style={{padding:"4px 10px",background:"none",border:"1px solid #e74c3c",borderRadius:6,color:"#e74c3c",fontSize:10,cursor:"pointer",fontFamily:"monospace"}}>
-                      Reset
+              {/* Admin sections grid */}
+              <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>MANAGE CUP</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  {[
+                    {label:"Players & Handicaps",icon:"👥",key:"players"},
+                    {label:"Courses",icon:"🏌️",key:"courses"},
+                    {label:"Rounds",icon:"📅",key:"rounds"},
+                    {label:"Matchups",icon:"🤝",key:"matchups"},
+                    {label:"Scores",icon:"✏️",key:"scores"},
+                  ].map(({label,icon,key})=>(
+                    <button key={key} onClick={()=>setAdminSection(key)}
+                      style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"14px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:12,color:TEXT,fontSize:12,fontWeight:600,cursor:"pointer",textAlign:"center"}}>
+                      <span style={{fontSize:22}}>{icon}</span>
+                      <span style={{fontSize:11,color:MUTED,lineHeight:1.2}}>{label}</span>
                     </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Match score reset (destructive, kept separate) */}
+              <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
+                <div style={{fontSize:11,color:"#e74c3c",fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>RESET SCORES</div>
+                {days.map((day,di)=>(
+                  <div key={di} style={{marginBottom:di<days.length-1?12:0}}>
+                    {days.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:6}}>{day.label?.toUpperCase()}</div>}
+                    {day.matches.map(m=>(
+                      <div key={m.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${BORDER}`}}>
+                        <div style={{fontSize:11,color:TEXT}}>{m.player1a}{m.player1b?` & ${m.player1b}`:""} vs {m.player2a}{m.player2b?` & ${m.player2b}`:""}</div>
+                        <button onClick={async()=>{if(!confirm(`Reset scores for this match?`))return;await set(ref(db,`cups/${cupId}/scores/m${m.id}`),null);}}
+                          style={{padding:"3px 8px",background:"none",border:"1px solid #e74c3c",borderRadius:6,color:"#e74c3c",fontSize:10,cursor:"pointer",fontFamily:"monospace",flexShrink:0,marginLeft:8}}>
+                          Reset
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
+            </>)}
+
+            {adminSection==="players"&&(
+              <AdminPlayers initPlayers={cupPlayers} teamAColor={cup.teamAColor} teamBColor={cup.teamBColor}
+                onSave={saveAdminPlayers} onBack={()=>setAdminSection(null)}/>
+            )}
+            {adminSection==="courses"&&(
+              <AdminCourses initDays={days} onSave={saveAdminDays} onBack={()=>setAdminSection(null)}/>
+            )}
+            {adminSection==="rounds"&&(
+              <AdminRounds initDays={days} onSave={saveAdminDays} onBack={()=>setAdminSection(null)}/>
+            )}
+            {adminSection==="matchups"&&(
+              <AdminMatchups initDays={days} cupPlayers={cupPlayers} teamAColor={cup.teamAColor} teamBColor={cup.teamBColor}
+                onSave={saveAdminMatchups} onBack={()=>setAdminSection(null)}/>
+            )}
+            {adminSection==="scores"&&(
+              <AdminScores days={days} onBack={()=>setAdminSection(null)}
+                onOpenMatch={(di,m)=>{
+                  if(m.companionId){const companion=days[di].matches.find(x=>x.id===m.companionId);if(companion)setActiveGroup({dayIdx:di,matchIds:[m.id,m.companionId]});else setActiveMatch({dayIdx:di,matchId:m.id});}
+                  else setActiveMatch({dayIdx:di,matchId:m.id});
+                  setAdminSection(null);
+                }}/>
+            )}
           </div>
         )}
 
