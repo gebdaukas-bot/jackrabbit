@@ -25,66 +25,92 @@ function fmt(n) {
   return n%1===0?String(n):n.toFixed(1);
 }
 
-// ── Rich TV-style match card ─────────────────────────────────────────────────
+// ── TV Match Row (matches original CBS style) ─────────────────────────────────
 function MatchCard({ match, cup, onOpen, canEdit }) {
-  const { CARD, CARD2, BORDER, MUTED } = useTheme();
+  const { BORDER } = useTheme();
   const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
   const isSingles = !match.player1b;
   const st = computeMatchStatus(match.scores, teamAShort, teamBShort);
-  const isClickable = canEdit;
 
-  const centerBg = st.state==="complete"||st.state==="halved"
-    ? (st.leader==="A"?teamAColor:st.leader==="B"?teamBColor:"#334455")
-    : st.state==="live"
-      ? (st.leader==="A"?teamAColor:st.leader==="B"?teamBColor:"#1a2a44")
-      : "#111a2e";
+  const aWin     = st.state==="complete" && st.leader==="A";
+  const bWin     = st.state==="complete" && st.leader==="B";
+  const halved   = st.state==="halved";
+  const live     = st.state==="live";
+  const aLeading = live && st.leader==="A";
+  const bLeading = live && st.leader==="B";
+  const allSquare= live && !st.leader;
 
-  const aActive = st.leader==="A";
-  const bActive = st.leader==="B";
+  const aNameColor = (aWin||aLeading) ? "#ffffff" : "#7a8fa8";
+  const bNameColor = (bWin||bLeading) ? "#ffffff" : "#7a8fa8";
+  const aBg = aWin ? teamAColor : aLeading ? `${teamAColor}22` : "#0d1929";
+  const bBg = bWin ? teamBColor : bLeading ? `${teamBColor}22` : "#0d1929";
 
+  const liveBadge = (
+    <div style={{ background:aLeading?`${teamAColor}ee`:bLeading?`${teamBColor}ee`:"#1a2a44", borderRadius:6, padding:"3px 8px", display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, minWidth:54 }}>
+      <div style={{ fontSize:7, fontWeight:800, color:"#ffffffaa", fontFamily:"monospace", letterSpacing:1, lineHeight:1.3 }}>THRU {st.holesPlayed}</div>
+      <div style={{ fontSize:15, fontWeight:900, color:"#fff", fontFamily:"monospace", lineHeight:1.1 }}>{allSquare?"AS":`${st.up}UP`}</div>
+      <div style={{ width:5, height:5, borderRadius:"50%", background:"#4caf50", marginTop:2, animation:"pulse 1.5s infinite" }}/>
+    </div>
+  );
+
+  if (!live) {
+    let badgeBg="#0d1929", badgeTop="", badgeBot="—";
+    if (aWin)       { badgeBg=teamAColor;  badgeTop="WIN";    badgeBot=st.sublabel; }
+    else if (bWin)  { badgeBg=teamBColor;  badgeTop="WIN";    badgeBot=st.sublabel; }
+    else if (halved){ badgeBg="#334455";   badgeTop="HALVED"; badgeBot="½pt"; }
+    return (
+      <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
+        <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
+          <div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1a}</div>
+          {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1b}</div>}
+          {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace" }}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
+        </div>
+        <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
+          {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"#ffffffbb", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
+          <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:"#fff", fontFamily:"monospace", lineHeight:1 }}>{badgeBot}</div>
+        </div>
+        <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
+          <div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2a}</div>
+          {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2b}</div>}
+          {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace", textAlign:"right" }}>HCP {match.hcp2a||0}{!isSingles&&match.hcp2b?`/${match.hcp2b}`:""}</div>}
+        </div>
+      </div>
+    );
+  }
+
+  // LIVE — names fill left/right, badge floats absolutely toward leading side
   return (
-    <div onClick={()=>isClickable&&onOpen(match.id)}
-      style={{ borderRadius:12, overflow:"hidden", marginBottom:8, border:`1px solid ${BORDER}`, cursor:isClickable?"pointer":"default" }}>
-      <div style={{ display:"flex", alignItems:"stretch", minHeight:54 }}>
-        {/* Team A side */}
-        <div style={{ flex:1, background:aActive?teamAColor:`${teamAColor}22`, padding:"8px 10px", minWidth:0 }}>
-          <div style={{ fontSize:8, fontWeight:800, color:aActive?"#ffcccc":teamAColor, letterSpacing:1, fontFamily:"monospace", marginBottom:2 }}>{teamAShort}</div>
-          <div style={{ fontSize:12, fontWeight:700, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1a}</div>
-          {!isSingles&&<div style={{ fontSize:12, fontWeight:700, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1b}</div>}
-        </div>
-        {/* Score center */}
-        <div style={{ background:centerBg, minWidth:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"6px 4px", borderLeft:`1px solid ${BORDER}`, borderRight:`1px solid ${BORDER}`, flexShrink:0 }}>
-          {st.state==="pending"
-            ? <div style={{ fontSize:10, color:"#446", fontFamily:"monospace" }}>{match.teeTime||"—"}</div>
-            : st.state==="complete"||st.state==="halved"
-              ? <><div style={{ fontSize:8, color:"#FFD700", fontFamily:"monospace", fontWeight:800, letterSpacing:1 }}>FINAL</div><div style={{ fontSize:12, fontWeight:900, color:"#fff", fontFamily:"monospace" }}>{st.sublabel||"HALVED"}</div></>
-              : <><div style={{ fontSize:18, fontWeight:900, color:"#fff", fontFamily:"monospace", lineHeight:1 }}>{st.up||"AS"}</div><div style={{ fontSize:8, color:"#88aacc", fontFamily:"monospace" }}>{st.leader?"UP":"ALL SQ"}</div><div style={{ fontSize:8, color:"#446", fontFamily:"monospace" }}>THRU {st.holesPlayed}</div></>
-          }
-        </div>
-        {/* Team B side */}
-        <div style={{ flex:1, background:bActive?teamBColor:`${teamBColor}22`, padding:"8px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
-          <div style={{ fontSize:8, fontWeight:800, color:bActive?"#cce4ff":teamBColorDisp, letterSpacing:1, fontFamily:"monospace", marginBottom:2 }}>{teamBShort}</div>
-          <div style={{ fontSize:12, fontWeight:700, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2a}</div>
-          {!isSingles&&<div style={{ fontSize:12, fontWeight:700, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2b}</div>}
-        </div>
+    <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ position:"relative", display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, overflow:"hidden", opacity:canEdit?1:0.85 }}>
+      <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
+        <div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1a}</div>
+        {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1b}</div>}
+        {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace" }}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
       </div>
-      {/* Hole progress strip */}
-      <div style={{ display:"flex", gap:2, padding:"3px 6px 5px", background:"#060d1e" }}>
-        {match.scores.map((s,i)=>(
-          <div key={i} style={{ flex:1, height:4, borderRadius:2, background:s==="A"?teamAColor:s==="B"?teamBColor:s==="H"?"#334":CARD2 }}/>
-        ))}
+      <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
+        <div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2a}</div>
+        {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2b}</div>}
+        {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace", textAlign:"right" }}>HCP {match.hcp2a||0}{!isSingles&&match.hcp2b?`/${match.hcp2b}`:""}</div>}
       </div>
-      {canEdit&&<div style={{ background:`${GOLD}11`, borderTop:`1px solid ${GOLD}22`, padding:"4px 8px", textAlign:"center", fontSize:9, color:GOLD, fontFamily:"monospace", letterSpacing:1 }}>TAP TO ENTER SCORES</div>}
+      <div style={{ position:"absolute", top:"50%", left:aLeading?"25%":bLeading?"75%":"50%", transform:"translate(-50%,-50%)", zIndex:2, pointerEvents:"none" }}>
+        {liveBadge}
+      </div>
     </div>
   );
 }
 
 function DayBlock({ day, cup, onOpen, canEdit }) {
-  const { MUTED } = useTheme();
+  const { BORDER } = useTheme();
+  const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
   return (
-    <div>
-      <div style={{ fontSize:9, color:MUTED, fontFamily:"monospace", letterSpacing:2, marginBottom:8 }}>
-        {day.label?.toUpperCase()} · {day.format?.toUpperCase()} · {day.course?.name||""}
+    <div style={{ marginBottom:14, borderRadius:10, overflow:"hidden", border:`1px solid ${BORDER}` }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"#060f22", padding:"7px 10px", borderBottom:`1px solid ${BORDER}` }}>
+        <div style={{ fontSize:10, fontWeight:800, color:GOLD, letterSpacing:2, fontFamily:"monospace" }}>{day.label?.toUpperCase()}</div>
+        <div style={{ fontSize:8, color:"#446", fontFamily:"monospace" }}>{day.course?.name||""}</div>
+      </div>
+      <div style={{ display:"flex", background:"#080f20", borderBottom:`1px solid ${BORDER}` }}>
+        <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>
+        <div style={{ width:64, textAlign:"center", padding:"5px 0", fontSize:7, color:"#446", fontFamily:"monospace" }}>{day.format?.toUpperCase()}</div>
+        <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>
       </div>
       {day.matches.map(m=>(
         <MatchCard key={m.id} match={m} cup={cup} onOpen={onOpen} canEdit={canEdit(m.id)}/>
