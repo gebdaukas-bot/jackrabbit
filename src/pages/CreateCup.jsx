@@ -131,7 +131,7 @@ function Step2({ data, setData }) {
         <div style={{ display:"flex", alignItems:"center", gap:4 }}>
           <span style={{ fontSize:11, color:MUTED, fontFamily:"monospace" }}>HCP</span>
           <button onClick={()=>setNewHcp(h=>Math.max(-10,h-1))} style={{ width:28, height:32, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:"6px 0 0 6px", color:TEXT, cursor:"pointer", fontSize:14 }}>−</button>
-          <div style={{ width:40, height:32, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, color:GOLD, fontFamily:"monospace" }}>{newHcp>0?`+${newHcp}`:newHcp}</div>
+          <div style={{ width:40, height:32, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, color:GOLD, fontFamily:"monospace" }}>{newHcp<0?`+${Math.abs(newHcp)}`:newHcp}</div>
           <button onClick={()=>setNewHcp(h=>Math.min(36,h+1))} style={{ width:28, height:32, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:"0 6px 6px 0", color:TEXT, cursor:"pointer", fontSize:14 }}>+</button>
         </div>
         <button onClick={addPlayer} style={{ padding:"8px 14px", background:GOLD, border:"none", borderRadius:8, color:"#000", fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
@@ -152,7 +152,7 @@ function Step2({ data, setData }) {
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                     <span style={{ fontSize:9, color:MUTED, fontFamily:"monospace" }}>HCP</span>
                     <button onClick={()=>adjustHcp(gi,-1)} style={{ width:24, height:26, background:"none", border:`1px solid ${BORDER}`, borderRadius:"4px 0 0 4px", color:MUTED, cursor:"pointer", fontSize:13, lineHeight:1 }}>−</button>
-                    <div style={{ width:34, height:26, background:"none", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:GOLD, fontFamily:"monospace" }}>{p.hcp>0?`+${p.hcp}`:p.hcp}</div>
+                    <div style={{ width:34, height:26, background:"none", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:GOLD, fontFamily:"monospace" }}>{p.hcp<0?`+${Math.abs(p.hcp)}`:p.hcp}</div>
                     <button onClick={()=>adjustHcp(gi,1)} style={{ width:24, height:26, background:"none", border:`1px solid ${BORDER}`, borderRadius:"0 4px 4px 0", color:MUTED, cursor:"pointer", fontSize:13, lineHeight:1 }}>+</button>
                     <button onClick={()=>removePlayer(gi)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:16, lineHeight:1, marginLeft:4 }}>×</button>
                   </div>
@@ -414,7 +414,7 @@ function Step5({ data, setData }) {
       <select value={round.matches[mi][field]||""} onChange={e=>updateMatch(mi,field,e.target.value)}
         style={{ flex:1, padding:"6px 8px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:7, color:TEXT, fontSize:12, cursor:"pointer", minWidth:0 }}>
         <option value="">—</option>
-        {players.map(p=><option key={p.name} value={p.name}>{p.name} {p.hcp>0?`(+${p.hcp})`:p.hcp<0?`(${p.hcp})`:""}</option>)}
+        {players.map(p=><option key={p.name} value={p.name}>{p.name} {p.hcp<0?`(+${Math.abs(p.hcp)})`:p.hcp>0?`(${p.hcp})`:""}</option>)}
       </select>
     );
   };

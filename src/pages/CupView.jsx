@@ -7,6 +7,8 @@ import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
 import confetti from "canvas-confetti";
 
+const fmtHcp = v => v < 0 ? `+${Math.abs(v)}` : `${v}`;
+
 function findPlayerMatch(days, playerName, preferDayIdx = null) {
   const order = preferDayIdx !== null
     ? [preferDayIdx, ...days.map((_,i)=>i).filter(i=>i!==preferDayIdx)]
@@ -63,7 +65,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
         <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
           <div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1a}</div>
           {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1b}</div>}
-          {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace" }}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
+          {((match.hcp1a||0)!==0||(match.hcp1b||0)!==0)&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace" }}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
         </div>
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"#ffffffbb", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
@@ -72,7 +74,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
           <div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2a}</div>
           {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2b}</div>}
-          {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace", textAlign:"right" }}>HCP {match.hcp2a||0}{!isSingles&&match.hcp2b?`/${match.hcp2b}`:""}</div>}
+          {((match.hcp2a||0)!==0||(match.hcp2b||0)!==0)&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace", textAlign:"right" }}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
         </div>
       </div>
     );
@@ -84,12 +86,12 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
       <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
         <div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1a}</div>
         {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1b}</div>}
-        {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace" }}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
+        {((match.hcp1a||0)!==0||(match.hcp1b||0)!==0)&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace" }}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
       </div>
       <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
         <div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2a}</div>
         {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2b}</div>}
-        {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace", textAlign:"right" }}>HCP {match.hcp2a||0}{!isSingles&&match.hcp2b?`/${match.hcp2b}`:""}</div>}
+        {((match.hcp2a||0)!==0||(match.hcp2b||0)!==0)&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace", textAlign:"right" }}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
       </div>
       <div style={{ position:"absolute", top:"50%", left:aLeading?"25%":bLeading?"75%":"50%", transform:"translate(-50%,-50%)", zIndex:2, pointerEvents:"none" }}>
         {liveBadge}
@@ -150,6 +152,7 @@ export default function CupView({ user }) {
 
   const [meta, setMeta] = useState(null);
   const [days, setDays] = useState([]);
+  const [cupPlayers, setCupPlayers] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState("scoreboard");
   const [boardDayOverride, setBoardDayOverride] = useState(null);
@@ -165,9 +168,19 @@ export default function CupView({ user }) {
   const prevWinnerRef = useRef(null);
   const confettiFired = useRef(false);
   const celebTimer = useRef(null);
+  const rawMatchesRef = useRef(null);
 
   useEffect(()=>{
     const unsub = onValue(ref(db,`cups/${cupId}/meta`),snap=>{ if(snap.exists()) setMeta(snap.val()); });
+    return ()=>unsub();
+  },[cupId]);
+
+  useEffect(()=>{
+    const unsub = onValue(ref(db,`cups/${cupId}/players`),snap=>{
+      if (!snap.exists()) return;
+      const data = snap.val();
+      setCupPlayers(Object.values(data).map(p=>p.name).filter(Boolean).sort());
+    });
     return ()=>unsub();
   },[cupId]);
 
@@ -176,13 +189,28 @@ export default function CupView({ user }) {
       if (!snap.exists()) return;
       const rawDays = snap.val();
       const dayArr = Array.isArray(rawDays)?rawDays:Object.values(rawDays);
-      setDays(prev=>dayArr.map((d,di)=>({
-        ...(prev[di]||{matches:[]}),
-        ...d,
-        // normalize: old data has format/course at day level; new data has rounds[]
-        rounds: d.rounds || [{ format:d.format, course:d.course }],
-        matches:(prev[di]||{matches:[]}).matches,
-      })));
+      setDays(prev=>{
+        const base = dayArr.map((d,di)=>({
+          ...(prev[di]||{matches:[]}),
+          ...d,
+          rounds: d.rounds || [{ format:d.format, course:d.course }],
+          matches:(prev[di]||{matches:[]}).matches,
+        }));
+        // Apply any already-received raw matches (handles race condition where matches listener fires first)
+        if (rawMatchesRef.current) {
+          const dayMatches = base.map(()=>[]);
+          Object.entries(rawMatchesRef.current).forEach(([matchKey,m])=>{
+            const num = parseInt(matchKey.replace("m",""));
+            let dayIdx, roundIdx;
+            if (num>=1000){dayIdx=Math.floor(num/1000)-1;roundIdx=Math.floor((num%1000)/100)-1;}
+            else{dayIdx=Math.floor(num/100)-1;roundIdx=0;}
+            if (dayIdx>=0&&dayIdx<base.length)
+              dayMatches[dayIdx].push({id:num,roundIdx,...m,scores:Array(18).fill(null),disputes:[]});
+          });
+          return base.map((day,di)=>({...day,matches:dayMatches[di].length>0?dayMatches[di].sort((a,b)=>a.id-b.id):day.matches}));
+        }
+        return base;
+      });
     });
     return ()=>unsub();
   },[cupId]);
@@ -191,6 +219,7 @@ export default function CupView({ user }) {
     const unsub = onValue(ref(db,`cups/${cupId}/matches`),snap=>{
       if (!snap.exists()){ setLoaded(true); return; }
       const rawMatches = snap.val();
+      rawMatchesRef.current = rawMatches;
       setDays(prev=>{
         if (!prev.length) return prev;
         const dayMatches = prev.map(()=>[]);
@@ -330,7 +359,7 @@ export default function CupView({ user }) {
 
   const isAdmin = user?.uid===meta.createdBy;
   const allPlayers = days.flatMap(d=>d.matches.flatMap(m=>[m.player1a,m.player1b,m.player2a,m.player2b].filter(Boolean)));
-  const uniquePlayers = [...new Set(allPlayers)];
+  const uniquePlayers = cupPlayers.length>0 ? cupPlayers : [...new Set(allPlayers)];
 
   const todayDow = new Date().getDay();
   const dowToDay = {5:0,6:1,0:2};
