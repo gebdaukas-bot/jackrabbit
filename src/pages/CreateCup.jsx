@@ -478,6 +478,51 @@ function Step5({ data, setData }) {
   );
 }
 
+// ── Step 6: Admin setup ───────────────────────────────────────────────────────
+function Step6({ data, setData }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  const allNames = data.players.map(p=>p.name);
+  const toggleAdmin = name => {
+    setData(d => {
+      const cur = d.adminPlayers||[];
+      return { ...d, adminPlayers: cur.includes(name) ? cur.filter(n=>n!==name) : [...cur, name] };
+    });
+  };
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+      <div>
+        <label style={{ fontSize:11, color:GOLD, fontFamily:"monospace", letterSpacing:1 }}>WHICH PLAYER ARE YOU?</label>
+        <div style={{ fontSize:10, color:MUTED, marginTop:2, marginBottom:8 }}>You'll be auto-signed in as this player when you open the cup.</div>
+        <select value={data.creatorPlayer||""} onChange={e=>setData(d=>({...d,creatorPlayer:e.target.value}))}
+          style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box" }}>
+          <option value="">— select yourself —</option>
+          {allNames.map(n=><option key={n} value={n}>{n}</option>)}
+        </select>
+      </div>
+      <div>
+        <label style={{ fontSize:11, color:GOLD, fontFamily:"monospace", letterSpacing:1 }}>ADMIN ACCESS</label>
+        <div style={{ fontSize:10, color:MUTED, marginTop:2, marginBottom:10 }}>Admins can edit scores and manage the cup. You always have admin access.</div>
+        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+          {allNames.filter(n=>n!==data.creatorPlayer).map(name=>{
+            const checked = (data.adminPlayers||[]).includes(name);
+            return (
+              <button key={name} onClick={()=>toggleAdmin(name)} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:checked?`${GOLD}18`:CARD2, border:`1px solid ${checked?GOLD:BORDER}`, borderRadius:10, cursor:"pointer", textAlign:"left" }}>
+                <div style={{ width:18, height:18, borderRadius:4, border:`2px solid ${checked?GOLD:BORDER}`, background:checked?GOLD:"none", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  {checked&&<span style={{ fontSize:12, color:"#000", fontWeight:900, lineHeight:1 }}>✓</span>}
+                </div>
+                <span style={{ fontSize:13, color:TEXT, fontWeight:600 }}>{name}</span>
+              </button>
+            );
+          })}
+          {allNames.filter(n=>n!==data.creatorPlayer).length===0&&(
+            <div style={{ fontSize:12, color:MUTED, textAlign:"center", padding:"12px 0" }}>No other players added yet.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main wizard ──────────────────────────────────────────────────────────────
 export default function CreateCup({ user }) {
   const { BG, CARD, CARD2, BORDER, TEXT, MUTED } = useTheme();
@@ -491,13 +536,15 @@ export default function CreateCup({ user }) {
     teamAColor:"#C8102E", teamBColor:"#003087",
     inviteCode:"",
     players:[], days:[mkDay(1)],
+    creatorPlayer:"", adminPlayers:[],
   });
 
-  const STEPS = ["Cup Setup","Players","Days","Courses","Pairings"];
+  const STEPS = ["Cup Setup","Players","Days","Courses","Pairings","Admins"];
 
   const canNext = () => {
     if (step===1) return data.name.trim() && data.teamAName.trim() && data.teamBName.trim() && data.inviteCode.trim().length >= 4;
     if (step===2) return data.players.filter(p=>p.team==="A").length>0 && data.players.filter(p=>p.team==="B").length>0;
+    if (step===6) return !!data.creatorPlayer;
     return true;
   };
 
@@ -535,10 +582,12 @@ export default function CreateCup({ user }) {
       const players = {};
       data.players.forEach(p=>{ players[p.name.toLowerCase().replace(/\s+/g,"_")]={name:p.name,team:p.team,hcp:p.hcp}; });
 
+      const adminPlayers = [data.creatorPlayer, ...(data.adminPlayers||[])].filter(Boolean);
       const meta = {
         name:data.name, teamAName:data.teamAName, teamBName:data.teamBName,
         teamAColor:data.teamAColor, teamBColor:data.teamBColor,
         createdBy:user.uid, createdAt:Date.now(), inviteCode, status:"active",
+        adminPlayers,
       };
 
       await set(ref(db,`cups/${cupId}/meta`), meta);
@@ -549,6 +598,11 @@ export default function CreateCup({ user }) {
       if (Object.keys(allMatches).length > 0) await set(ref(db,`cups/${cupId}/matches`), allMatches);
       await set(ref(db,`inviteCodes/${inviteCode}`), cupId);
       await set(ref(db,`users/${user.uid}/cups/${cupId}`), { name:data.name, teamAName:data.teamAName, teamBName:data.teamBName, createdAt:Date.now() });
+
+      // Auto-sign the creator in as their chosen player
+      if (data.creatorPlayer) {
+        try { localStorage.setItem(`jr_player_${cupId}`, data.creatorPlayer); } catch {}
+      }
 
       nav(`/cup/${cupId}`);
     } catch(e) {
@@ -585,6 +639,7 @@ export default function CreateCup({ user }) {
           {step===3&&"How many days? Each day can have up to 2 rounds with different formats and courses."}
           {step===4&&"Enter par and handicap index for each hole."}
           {step===5&&"Set matchups. You can change these later from the cup."}
+          {step===6&&"Pick which player you are, and who else can manage the cup."}
         </div>
 
         <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:16, padding:"20px" }}>
@@ -593,6 +648,7 @@ export default function CreateCup({ user }) {
           {step===3&&<Step3 data={data} setData={setData}/>}
           {step===4&&<Step4 data={data} setData={setData}/>}
           {step===5&&<Step5 data={data} setData={setData}/>}
+          {step===6&&<Step6 data={data} setData={setData}/>}
         </div>
 
         {error&&<div style={{ fontSize:12, color:"#e74c3c", marginTop:12, textAlign:"center" }}>{error}</div>}

@@ -357,7 +357,7 @@ export default function CupView({ user }) {
     teamBColor:meta.teamBColor||"#003087", teamBColorDisp:meta.teamBColor||"#4A90D9",
   };
 
-  const isAdmin = user?.uid===meta.createdBy;
+  const isAdmin = user?.uid===meta.createdBy || (meta.adminPlayers||[]).includes(currentPlayer);
   const allPlayers = days.flatMap(d=>d.matches.flatMap(m=>[m.player1a,m.player1b,m.player2a,m.player2b].filter(Boolean)));
   const uniquePlayers = cupPlayers.length>0 ? cupPlayers : [...new Set(allPlayers)];
 
