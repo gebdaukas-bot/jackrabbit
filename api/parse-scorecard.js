@@ -6,26 +6,27 @@ export default async function handler(req, res) {
   const { imageBase64, mediaType } = req.body || {};
   if (!imageBase64) return res.status(400).json({ error: "No image provided" });
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 1024,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "image",
-            source: {
-              type: "base64",
-              media_type: mediaType || "image/jpeg",
-              data: imageBase64,
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mediaType || "image/jpeg",
+                data: imageBase64,
+              },
             },
-          },
-          {
-            type: "text",
-            text: `Parse this golf scorecard image and extract the course data.
+            {
+              type: "text",
+              text: `Parse this golf scorecard image and extract the course data.
 
 Return ONLY a valid JSON object with this exact structure — no explanation, no markdown:
 {
@@ -39,15 +40,13 @@ Rules:
 - "hcp" must be an array of exactly 18 integers representing stroke/handicap index (each value 1–18, used once)
 - If a value is unclear, use a reasonable default (par 4 for unknown holes; for hcp use the sequence 1–18 as a fallback)
 - Return only the JSON object, nothing else`,
-          },
-        ],
-      },
-    ],
-  });
+            },
+          ],
+        },
+      ],
+    });
 
-  try {
     const text = message.content[0].text.trim();
-    // Strip any accidental markdown fences
     const clean = text.replace(/^```json?\s*/i, "").replace(/\s*```$/, "");
     const data = JSON.parse(clean);
 
@@ -60,7 +59,8 @@ Rules:
     }
 
     res.status(200).json(data);
-  } catch {
-    res.status(422).json({ error: "Could not parse scorecard — try a clearer photo" });
+  } catch (err) {
+    console.error("parse-scorecard error:", err?.message || err);
+    res.status(500).json({ error: "Failed to scan scorecard — make sure ANTHROPIC_API_KEY is set in Vercel" });
   }
 }

@@ -283,30 +283,33 @@ function Step4({ data, setData, prevCourses }) {
     if (!file) return;
     setScanError(""); setScanning(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const [header, imageBase64] = e.target.result.split(",");
-        const mediaType = header.match(/:(.*?);/)[1];
-        const res = await fetch("/api/parse-scorecard", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageBase64, mediaType }),
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const [header, imageBase64] = dataUrl.split(",");
+      const mediaType = header.match(/:(.*?);/)[1];
+      const res = await fetch("/api/parse-scorecard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64, mediaType }),
+      });
+      const parsed = await res.json();
+      if (!res.ok) {
+        setScanError(parsed.error || "Failed to parse scorecard");
+      } else {
+        setData(d => {
+          const days = [...d.days];
+          const rounds = [...days[activeDay].rounds];
+          rounds[ri] = { ...rounds[ri], courseName: parsed.name, par: [...parsed.par], hcp: [...parsed.hcp] };
+          days[activeDay] = { ...days[activeDay], rounds };
+          return { ...d, days };
         });
-        const parsed = await res.json();
-        if (!res.ok) { setScanError(parsed.error || "Failed to parse scorecard"); }
-        else {
-          setData(d => {
-            const days = [...d.days];
-            const rounds = [...days[activeDay].rounds];
-            rounds[ri] = { ...rounds[ri], courseName: parsed.name, par: [...parsed.par], hcp: [...parsed.hcp] };
-            days[activeDay] = { ...days[activeDay], rounds };
-            return { ...d, days };
-          });
-        }
-        setScanning(false);
-      };
-      reader.readAsDataURL(file);
-    } catch { setScanError("Something went wrong — try again"); setScanning(false); }
+      }
+    } catch { setScanError("Something went wrong — try again"); }
+    finally { setScanning(false); }
   };
 
   // Reset round tab if switching day

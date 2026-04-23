@@ -156,28 +156,30 @@ export default function CreateMatch({ user }) {
     setScanError("");
     setScanning(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const dataUrl = e.target.result;
-        const [header, imageBase64] = dataUrl.split(",");
-        const mediaType = header.match(/:(.*?);/)[1];
-        const res = await fetch("/api/parse-scorecard", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageBase64, mediaType }),
-        });
-        const data = await res.json();
-        if (!res.ok) { setScanError(data.error || "Failed to parse scorecard"); }
-        else {
-          setCourseName(data.name);
-          setPar([...data.par]);
-          setHcp([...data.hcp]);
-        }
-        setScanning(false);
-      };
-      reader.readAsDataURL(file);
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const [header, imageBase64] = dataUrl.split(",");
+      const mediaType = header.match(/:(.*?);/)[1];
+      const res = await fetch("/api/parse-scorecard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64, mediaType }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setScanError(data.error || "Failed to parse scorecard");
+      } else {
+        setCourseName(data.name);
+        setPar([...data.par]);
+        setHcp([...data.hcp]);
+      }
     } catch {
       setScanError("Something went wrong — try again");
+    } finally {
       setScanning(false);
     }
   };
