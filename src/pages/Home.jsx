@@ -78,7 +78,7 @@ export default function Home({ user }) {
         <button onClick={() => nav("/create")} style={{ width:"100%", padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", marginBottom:10, boxShadow:`0 4px 18px ${GOLD}33` }}>
           + CREATE NEW CUP
         </button>
-        <button onClick={() => nav("/match")} style={{ width:"100%", padding:"14px", background:"none", border:`1px solid ${BORDER}`, borderRadius:14, color:TEXT, fontWeight:700, fontSize:13, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", marginBottom:24 }}>
+        <button onClick={() => nav("/match")} style={{ width:"100%", padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", marginBottom:24, boxShadow:`0 4px 18px ${GOLD}33` }}>
           ⚡ CREATE NEW MATCH
         </button>
 
