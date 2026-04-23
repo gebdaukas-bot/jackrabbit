@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set, get } from "../firebase";
 import { GOLD } from "../utils/scoring";
+import { BUILT_IN_COURSES } from "../utils/courses";
 import LiveBackground from "../components/LiveBackground";
 
 const FORMATS   = ["2v2 Best Ball", "Singles"];
@@ -654,7 +655,8 @@ export default function CreateCup({ user }) {
           }
         }
       }));
-      setPrevCourses(Object.values(seen).sort((a, b) => a.name.localeCompare(b.name)));
+      const merged = { ...Object.fromEntries(BUILT_IN_COURSES.map(c => [c.name, c])), ...seen };
+      setPrevCourses(Object.values(merged).sort((a, b) => a.name.localeCompare(b.name)));
     };
     fetch();
   }, [user.uid]);

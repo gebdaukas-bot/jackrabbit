@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set, get } from "../firebase";
 import { GOLD } from "../utils/scoring";
+import { BUILT_IN_COURSES } from "../utils/courses";
 import LiveBackground from "../components/LiveBackground";
 
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
@@ -71,7 +72,9 @@ export default function CreateMatch({ user }) {
           }
         }
       }));
-      setPrevCourses(Object.values(seen).sort((a, b) => a.name.localeCompare(b.name)));
+      // Merge user's previous courses with built-ins, deduping by name
+      const merged = { ...Object.fromEntries(BUILT_IN_COURSES.map(c => [c.name, c])), ...seen };
+      setPrevCourses(Object.values(merged).sort((a, b) => a.name.localeCompare(b.name)));
     };
     fetch();
   }, [user.uid]);
