@@ -6,6 +6,7 @@ import { getRedirectResult } from "firebase/auth";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import CreateCup from "./pages/CreateCup";
+import CreateMatch from "./pages/CreateMatch";
 import CupView from "./pages/CupView";
 import SeedPage from "./pages/SeedPage";
 import JoinPage from "./pages/JoinPage";
@@ -35,6 +36,7 @@ function AuthGate() {
     <Routes>
       <Route path="/" element={<Home user={user} />} />
       <Route path="/create" element={<CreateCup user={user} />} />
+      <Route path="/match" element={<CreateMatch user={user} />} />
       <Route path="/cup/:cupId" element={<CupView user={user} />} />
       <Route path="/seed" element={<SeedPage user={user} />} />
       <Route path="/join/:code" element={<JoinPage user={user} />} />

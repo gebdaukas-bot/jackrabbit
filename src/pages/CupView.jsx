@@ -611,6 +611,8 @@ export default function CupView({ user }) {
 
   useEffect(()=>{ try{if(currentPlayer)localStorage.setItem(`jr_player_${cupId}`,currentPlayer);else localStorage.removeItem(`jr_player_${cupId}`);}catch{} },[currentPlayer,cupId]);
 
+  useEffect(()=>{ if(meta?.eventType==="live_match") setTab("matches"); },[meta?.eventType]);
+
   if (!meta||!loaded) {
     return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><LiveBackground/><div style={{color:MUTED,fontFamily:"monospace"}}>Loading cup...</div></div>;
   }
@@ -734,10 +736,10 @@ export default function CupView({ user }) {
           </div>
         </div>
 
-        {winner&&<div style={{background:`${GOLD}22`,borderTop:`1px solid ${GOLD}44`,borderBottom:`1px solid ${GOLD}44`,padding:"7px",textAlign:"center"}}><div style={{fontSize:14,fontWeight:900,color:GOLD,letterSpacing:2}}>🏆 {winner} WINS THE CUP!</div></div>}
+        {winner&&<div style={{background:`${GOLD}22`,borderTop:`1px solid ${GOLD}44`,borderBottom:`1px solid ${GOLD}44`,padding:"7px",textAlign:"center"}}><div style={{fontSize:14,fontWeight:900,color:GOLD,letterSpacing:2}}>🏆 {winner} {meta.eventType==="live_match"?"WINS THE MATCH!":"WINS THE CUP!"}</div></div>}
 
-        {/* Big scoreboard */}
-        <div style={{display:"flex",alignItems:"stretch"}}>
+        {/* Big scoreboard — cups only */}
+        {meta.eventType!=="live_match"&&<div style={{display:"flex",alignItems:"stretch"}}>
           <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",minWidth:0}}>
             <div style={{fontSize:10,fontWeight:900,color:"#ffcccc",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamAName}</div>
             <div style={{fontSize:36,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualA)}</div>
@@ -752,12 +754,39 @@ export default function CupView({ user }) {
             <div style={{fontSize:10,fontWeight:900,color:"#cce4ff",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{meta.teamBName}</div>
             <div style={{fontSize:36,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualB)}</div>
           </div>
-        </div>
+        </div>}
+
+        {/* Live match status bar */}
+        {meta.eventType==="live_match"&&(()=>{
+          const lm=days[0]?.matches[0];
+          const st=lm?computeMatchStatus(lm.scores,cup.teamAShort,cup.teamBShort):null;
+          return (
+            <div style={{display:"flex",alignItems:"stretch"}}>
+              <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",minWidth:0}}>
+                <div style={{fontSize:10,fontWeight:900,color:"#ffcccc",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamAName}</div>
+              </div>
+              <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 10px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:80}}>
+                {!st||st.state==="pending"?<div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:1}}>NOT STARTED</div>:null}
+                {st?.state==="live"&&<><div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>THRU {st.holesPlayed}</div><div style={{fontSize:18,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{!st.leader?"AS":`${st.up}UP`}</div><div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:3,animation:"pulse 1.5s infinite"}}/></>}
+                {st?.state==="complete"&&<><div style={{fontSize:7,color:GOLD,fontFamily:"monospace",fontWeight:700}}>WIN</div><div style={{fontSize:14,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{st.sublabel}</div></>}
+                {st?.state==="halved"&&<div style={{fontSize:10,fontWeight:900,color:"#557",fontFamily:"monospace"}}>HALVED</div>}
+              </div>
+              <div style={{flex:1,background:cup.teamBColor,padding:"8px 10px",minWidth:0,textAlign:"right"}}>
+                <div style={{fontSize:10,fontWeight:900,color:"#cce4ff",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamBName}</div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Tabs */}
       <div style={{display:"flex",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
-        {[["scoreboard","📊 BOARD"],["matches","⛳ MY MATCH"],...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),["leaderboard","🏌️ SCORES"]].map(([key,label])=>(
+        {[
+          ...(meta.eventType!=="live_match"?[["scoreboard","📊 BOARD"]]:[]),
+          ["matches","⛳ MY MATCH"],
+          ...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),
+          ...(meta.eventType!=="live_match"?[["leaderboard","🏌️ SCORES"]]:[]),
+        ].map(([key,label])=>(
           <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:MUTED,fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"monospace"}}>{label}</button>
         ))}
       </div>

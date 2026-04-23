@@ -74,9 +74,12 @@ export default function Home({ user }) {
           <div style={{ fontSize: 20, fontWeight: 800, color: TEXT }}>{user.displayName?.split(" ")[0] || "friend"}</div>
         </div>
 
-        {/* Create cup button */}
-        <button onClick={() => nav("/create")} style={{ width: "100%", padding: "16px", background: `linear-gradient(135deg,${GOLD},${GOLD}88)`, border: "none", borderRadius: 14, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", marginBottom: 24, boxShadow: `0 4px 18px ${GOLD}33` }}>
+        {/* Create buttons */}
+        <button onClick={() => nav("/create")} style={{ width:"100%", padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", marginBottom:10, boxShadow:`0 4px 18px ${GOLD}33` }}>
           + CREATE NEW CUP
+        </button>
+        <button onClick={() => nav("/match")} style={{ width:"100%", padding:"14px", background:"none", border:`1px solid ${BORDER}`, borderRadius:14, color:TEXT, fontWeight:700, fontSize:13, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", marginBottom:24 }}>
+          ⚡ CREATE NEW MATCH
         </button>
 
         {/* Join by code */}
@@ -108,11 +111,22 @@ export default function Home({ user }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {cups.map(cup => (
               <button key={cup.id} onClick={() => nav(`/cup/${cup.id}`)} style={{ width: "100%", textAlign: "left", background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: TEXT, marginBottom: 4 }}>{cup.name}</div>
+                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+                  {cup.eventType === "live_match" && (
+                    <span style={{ fontSize:9, fontWeight:800, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, background:"#4A90D922", border:"1px solid #4A90D944", borderRadius:4, padding:"1px 5px" }}>⚡ MATCH</span>
+                  )}
+                  <div style={{ fontSize: 15, fontWeight: 800, color: TEXT }}>{cup.name}</div>
+                </div>
                 <div style={{ fontSize: 11, color: MUTED }}>
-                  <span style={{ color: "#C8102E", fontWeight: 700 }}>{cup.teamAName}</span>
-                  <span style={{ color: MUTED }}> vs </span>
-                  <span style={{ color: "#4A90D9", fontWeight: 700 }}>{cup.teamBName}</span>
+                  {cup.eventType === "live_match" ? (
+                    <span style={{ color: MUTED }}>{cup.teamAName} vs {cup.teamBName}</span>
+                  ) : (
+                    <>
+                      <span style={{ color: "#C8102E", fontWeight: 700 }}>{cup.teamAName}</span>
+                      <span style={{ color: MUTED }}> vs </span>
+                      <span style={{ color: "#4A90D9", fontWeight: 700 }}>{cup.teamBName}</span>
+                    </>
+                  )}
                 </div>
               </button>
             ))}

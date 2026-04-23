@@ -535,6 +535,34 @@ function Step6({ data, setData }) {
   );
 }
 
+// ── Type chooser (step 0) ─────────────────────────────────────────────────────
+function StepType({ onPick }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+      <div style={{ fontSize:13, color:MUTED, textAlign:"center", marginBottom:4 }}>What kind of event are you setting up?</div>
+
+      <button onClick={() => onPick("cup")}
+        style={{ display:"flex", alignItems:"center", gap:16, width:"100%", padding:"18px 16px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:14, cursor:"pointer", textAlign:"left" }}>
+        <div style={{ fontSize:32, lineHeight:1, flexShrink:0 }}>🏆</div>
+        <div>
+          <div style={{ fontSize:15, fontWeight:800, color:TEXT, marginBottom:3 }}>Ryder Cup</div>
+          <div style={{ fontSize:11, color:MUTED, lineHeight:1.4 }}>Multi-day team event with rosters, pairings, and a full scoreboard</div>
+        </div>
+      </button>
+
+      <button onClick={() => onPick("match")}
+        style={{ display:"flex", alignItems:"center", gap:16, width:"100%", padding:"18px 16px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:14, cursor:"pointer", textAlign:"left" }}>
+        <div style={{ fontSize:32, lineHeight:1, flexShrink:0 }}>⚡</div>
+        <div>
+          <div style={{ fontSize:15, fontWeight:800, color:TEXT, marginBottom:3 }}>Live Match</div>
+          <div style={{ fontSize:11, color:MUTED, lineHeight:1.4 }}>A single 1v1 or 2v2 match — pick players, set the course, start scoring</div>
+        </div>
+      </button>
+    </div>
+  );
+}
+
 // ── Main wizard ──────────────────────────────────────────────────────────────
 export default function CreateCup({ user }) {
   const { BG, CARD, CARD2, BORDER, TEXT, MUTED } = useTheme();
