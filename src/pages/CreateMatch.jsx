@@ -8,29 +8,19 @@ import LiveBackground from "../components/LiveBackground";
 
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
 const DEFAULT_HCP = [1,3,17,9,5,13,15,7,11, 2,18,8,4,16,12,6,14,10];
-
 const fmtHcp = v => v < 0 ? `+${Math.abs(v)}` : `${v}`;
 
-function PlayerRow({ label, color, player, onChange }) {
-  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+function HcpStepper({ value, onChange }) {
+  const { CARD2, BORDER, MUTED } = useTheme();
   return (
-    <div>
-      <label style={{ fontSize:11, color, fontFamily:"monospace", letterSpacing:1 }}>{label}</label>
-      <div style={{ display:"flex", gap:8, marginTop:6 }}>
-        <input
-          value={player.name}
-          onChange={e => onChange({ ...player, name: e.target.value })}
-          placeholder="Player name"
-          style={{ flex:1, padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none" }}
-        />
-        <div style={{ display:"flex", flexShrink:0 }}>
-          <button onClick={() => onChange({ ...player, hcp: Math.max(-10, player.hcp - 1) })}
-            style={{ width:28, height:40, background:"none", border:`1px solid ${BORDER}`, borderRadius:"6px 0 0 6px", color:MUTED, cursor:"pointer", fontSize:16, lineHeight:1 }}>−</button>
-          <div style={{ width:42, height:40, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:GOLD, fontFamily:"monospace" }}>{fmtHcp(player.hcp)}</div>
-          <button onClick={() => onChange({ ...player, hcp: Math.min(36, player.hcp + 1) })}
-            style={{ width:28, height:40, background:"none", border:`1px solid ${BORDER}`, borderRadius:"0 6px 6px 0", color:MUTED, cursor:"pointer", fontSize:16, lineHeight:1 }}>+</button>
-        </div>
+    <div style={{ display:"flex", alignItems:"center" }}>
+      <button onClick={() => onChange(Math.max(-10, value - 1))}
+        style={{ width:44, height:44, background:"none", border:`1px solid ${BORDER}`, borderRadius:"10px 0 0 10px", color:MUTED, cursor:"pointer", fontSize:20, lineHeight:1 }}>−</button>
+      <div style={{ width:56, height:44, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:800, color:GOLD, fontFamily:"monospace" }}>
+        {fmtHcp(value)}
       </div>
+      <button onClick={() => onChange(Math.min(36, value + 1))}
+        style={{ width:44, height:44, background:"none", border:`1px solid ${BORDER}`, borderRadius:"0 10px 10px 0", color:MUTED, cursor:"pointer", fontSize:20, lineHeight:1 }}>+</button>
     </div>
   );
 }
@@ -41,120 +31,56 @@ export default function CreateMatch({ user }) {
 
   const [step, setStep] = useState(1);
   const [format, setFormat] = useState("1v1");
+
+  // Player state — names separate from hcps for cleaner steps
+  const [names, setNames] = useState({ a1:"", a2:"", b1:"", b2:"" });
+  const [hcps,  setHcps]  = useState({ a1:0,  a2:0,  b1:0,  b2:0  });
+
+  // Course state
   const [courseName, setCourseName] = useState("");
   const [par, setPar] = useState([...DEFAULT_PAR]);
   const [hcp, setHcp] = useState([...DEFAULT_HCP]);
-  const [creating, setCreating] = useState(false);
-
-  const [p1a, setP1a] = useState({ name: "", hcp: 0 });
-  const [p1b, setP1b] = useState({ name: "", hcp: 0 });
-  const [p2a, setP2a] = useState({ name: "", hcp: 0 });
-  const [p2b, setP2b] = useState({ name: "", hcp: 0 });
+  const [showHoles, setShowHoles] = useState(false);
   const [prevCourses, setPrevCourses] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
 
-  useEffect(() => {
-    const fetch = async () => {
-      const cupsSnap = await get(ref(db, `users/${user.uid}/cups`));
-      if (!cupsSnap.exists()) return;
-      const seen = {};
-      await Promise.all(Object.keys(cupsSnap.val()).map(async cupId => {
-        const daysSnap = await get(ref(db, `cups/${cupId}/days`));
-        if (!daysSnap.exists()) return;
-        const arr = Object.values(daysSnap.val());
-        for (const day of arr) {
-          for (const round of (day.rounds || [{ course: day.course }])) {
-            const c = round.course;
-            if (c?.name && c.par?.length === 18 && c.hcp?.length === 18 && !seen[c.name]) {
-              seen[c.name] = { name: c.name, par: c.par, hcp: c.hcp };
-            }
-          }
-        }
-      }));
-      // Merge user's previous courses with built-ins, deduping by name
-      const merged = { ...Object.fromEntries(BUILT_IN_COURSES.map(c => [c.name, c])), ...seen };
-      setPrevCourses(Object.values(merged).sort((a, b) => a.name.localeCompare(b.name)));
-    };
-    fetch();
-  }, [user.uid]);
+  const [creating, setCreating] = useState(false);
 
   const is2v2 = format !== "1v1";
   const matchFormat = format === "scramble" ? "Scramble" : format === "2v2" ? "2v2 Best Ball" : "Singles";
-  const canProceed = p1a.name.trim() && p2a.name.trim() && (!is2v2 || (p1b.name.trim() && p2b.name.trim()));
 
-  const handleCreate = async () => {
-    if (!canProceed || creating) return;
-    setCreating(true);
-    try {
-      const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-      const cupId = `match_${Date.now()}_${rand}`;
-      const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const namesOk = names.a1.trim() && names.b1.trim() && (!is2v2 || (names.a2.trim() && names.b2.trim()));
 
-      const sideA = is2v2 ? `${p1a.name.trim()} & ${p1b.name.trim()}` : p1a.name.trim();
-      const sideB = is2v2 ? `${p2a.name.trim()} & ${p2b.name.trim()}` : p2a.name.trim();
+  const STEPS = ["Players", "Handicaps", "Course"];
 
-      const meta = {
-        name: `${sideA} vs ${sideB}`,
-        eventType: "live_match",
-        teamAName: sideA,
-        teamBName: sideB,
-        teamAColor: "#C8102E",
-        teamBColor: "#003087",
-        createdBy: user.uid,
-        createdAt: Date.now(),
-        inviteCode,
-        status: "active",
-      };
+  // Fetch previous + built-in courses
+  useEffect(() => {
+    const load = async () => {
+      const seen = {};
+      const cupsSnap = await get(ref(db, `users/${user.uid}/cups`));
+      if (cupsSnap.exists()) {
+        await Promise.all(Object.keys(cupsSnap.val()).map(async cupId => {
+          const daysSnap = await get(ref(db, `cups/${cupId}/days`));
+          if (!daysSnap.exists()) return;
+          for (const day of Object.values(daysSnap.val())) {
+            for (const round of (day.rounds || [{ course: day.course }])) {
+              const c = round.course;
+              if (c?.name && c.par?.length === 18 && c.hcp?.length === 18 && !seen[c.name])
+                seen[c.name] = { name: c.name, par: c.par, hcp: c.hcp };
+            }
+          }
+        }));
+      }
+      const merged = { ...Object.fromEntries(BUILT_IN_COURSES.map(c => [c.name, c])), ...seen };
+      setPrevCourses(Object.values(merged).sort((a, b) => a.name.localeCompare(b.name)));
+    };
+    load();
+  }, [user.uid]);
 
-      const playersObj = {};
-      const addP = (p, team) => {
-        if (!p.name.trim()) return;
-        playersObj[p.name.trim().toLowerCase().replace(/\s+/g, "_")] = { name: p.name.trim(), team, hcp: p.hcp || 0 };
-      };
-      addP(p1a, "A");
-      if (is2v2) addP(p1b, "A");
-      addP(p2a, "B");
-      if (is2v2) addP(p2b, "B");
-
-      const day = {
-        label: "Match",
-        rounds: [{ format: matchFormat, course: { name: courseName.trim() || "Course", par, hcp } }],
-      };
-
-      const match = {
-        teeTime: "",
-        format: matchFormat,
-        player1a: p1a.name.trim(), hcp1a: p1a.hcp || 0,
-        player1b: is2v2 ? p1b.name.trim() : null, hcp1b: is2v2 ? (p1b.hcp || 0) : 0,
-        player2a: p2a.name.trim(), hcp2a: p2a.hcp || 0,
-        player2b: is2v2 ? p2b.name.trim() : null, hcp2b: is2v2 ? (p2b.hcp || 0) : 0,
-        companionId: null,
-      };
-
-      await set(ref(db, `cups/${cupId}/meta`), meta);
-      await set(ref(db, `cups/${cupId}/players`), playersObj);
-      await set(ref(db, `cups/${cupId}/days/0`), day);
-      await set(ref(db, `cups/${cupId}/matches/m1101`), match);
-      await set(ref(db, `inviteCodes/${inviteCode}`), cupId);
-      await set(ref(db, `users/${user.uid}/cups/${cupId}`), {
-        name: meta.name, eventType: "live_match",
-        teamAName: sideA, teamBName: sideB,
-        createdAt: meta.createdAt,
-      });
-
-      localStorage.setItem(`jr_player_${cupId}`, p1a.name.trim());
-      nav(`/cup/${cupId}`);
-    } catch (e) {
-      console.error(e);
-      setCreating(false);
-    }
-  };
-
-  const handleScanScorecard = async (file) => {
+  const handleScan = async (file) => {
     if (!file) return;
-    setScanError("");
-    setScanning(true);
+    setScanError(""); setScanning(true);
     try {
       const dataUrl = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -170,55 +96,121 @@ export default function CreateMatch({ user }) {
         body: JSON.stringify({ imageBase64, mediaType }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setScanError(data.error || "Failed to parse scorecard");
-      } else {
-        setCourseName(data.name);
-        setPar([...data.par]);
-        setHcp([...data.hcp]);
-      }
-    } catch {
-      setScanError("Something went wrong — try again");
-    } finally {
-      setScanning(false);
-    }
+      if (!res.ok) { setScanError(data.error || "Failed to parse scorecard"); }
+      else { setCourseName(data.name); setPar([...data.par]); setHcp([...data.hcp]); }
+    } catch { setScanError("Something went wrong — try again"); }
+    finally { setScanning(false); }
   };
 
   const updateHole = (field, i, val) => {
-    const n = parseInt(val);
-    if (isNaN(n)) return;
+    const n = parseInt(val); if (isNaN(n)) return;
     if (field === "par") setPar(a => a.map((v, j) => j === i ? n : v));
     else setHcp(a => a.map((v, j) => j === i ? n : v));
   };
 
+  const handleCreate = async () => {
+    if (creating) return;
+    setCreating(true);
+    try {
+      const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+      const cupId = `match_${Date.now()}_${rand}`;
+      const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+
+      const sideA = is2v2 ? `${names.a1.trim()} & ${names.a2.trim()}` : names.a1.trim();
+      const sideB = is2v2 ? `${names.b1.trim()} & ${names.b2.trim()}` : names.b1.trim();
+
+      const meta = {
+        name: `${sideA} vs ${sideB}`,
+        eventType: "live_match",
+        teamAName: sideA, teamBName: sideB,
+        teamAColor: "#C8102E", teamBColor: "#003087",
+        createdBy: user.uid, createdAt: Date.now(),
+        inviteCode, status: "active",
+      };
+
+      const playersObj = {};
+      const addP = (name, team, h) => {
+        if (!name.trim()) return;
+        playersObj[name.trim().toLowerCase().replace(/\s+/g, "_")] = { name: name.trim(), team, hcp: h || 0 };
+      };
+      addP(names.a1, "A", hcps.a1);
+      if (is2v2) addP(names.a2, "A", hcps.a2);
+      addP(names.b1, "B", hcps.b1);
+      if (is2v2) addP(names.b2, "B", hcps.b2);
+
+      const day = {
+        label: "Match",
+        rounds: [{ format: matchFormat, course: { name: courseName.trim() || "Course", par, hcp } }],
+      };
+      const match = {
+        teeTime: "", format: matchFormat,
+        player1a: names.a1.trim(), hcp1a: hcps.a1 || 0,
+        player1b: is2v2 ? names.a2.trim() : null, hcp1b: is2v2 ? (hcps.a2 || 0) : 0,
+        player2a: names.b1.trim(), hcp2a: hcps.b1 || 0,
+        player2b: is2v2 ? names.b2.trim() : null, hcp2b: is2v2 ? (hcps.b2 || 0) : 0,
+        companionId: null,
+      };
+
+      await set(ref(db, `cups/${cupId}/meta`), meta);
+      await set(ref(db, `cups/${cupId}/players`), playersObj);
+      await set(ref(db, `cups/${cupId}/days/0`), day);
+      await set(ref(db, `cups/${cupId}/matches/m1101`), match);
+      await set(ref(db, `inviteCodes/${inviteCode}`), cupId);
+      await set(ref(db, `users/${user.uid}/cups/${cupId}`), {
+        name: meta.name, eventType: "live_match",
+        teamAName: sideA, teamBName: sideB, createdAt: meta.createdAt,
+      });
+      localStorage.setItem(`jr_player_${cupId}`, names.a1.trim());
+      nav(`/cup/${cupId}`);
+    } catch (e) {
+      console.error(e);
+      setCreating(false);
+    }
+  };
+
+  const nameInput = (key, placeholder, color) => (
+    <input
+      value={names[key]}
+      onChange={e => setNames(n => ({ ...n, [key]: e.target.value }))}
+      placeholder={placeholder}
+      style={{ flex:1, padding:"14px 16px", background:CARD2, border:`2px solid ${color}33`, borderRadius:12, color:TEXT, fontSize:16, outline:"none", fontWeight:600 }}
+    />
+  );
+
   return (
     <div style={{ minHeight:"100vh", color:TEXT }}>
       <LiveBackground/>
+
       {/* Top bar */}
-      <div style={{ background:"rgba(8,20,43,0.85)", backdropFilter:"blur(8px)", borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+      <div style={{ background:"rgba(8,20,43,0.9)", backdropFilter:"blur(8px)", borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
         <button onClick={() => step > 1 ? setStep(s => s - 1) : nav("/")}
-          style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:8, padding:"4px 10px", color:MUTED, fontSize:11, cursor:"pointer" }}>
+          style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:8, padding:"5px 10px", color:MUTED, fontSize:11, cursor:"pointer" }}>
           ← Back
         </button>
-        <div style={{ fontSize:14, fontWeight:900, color:GOLD, fontFamily:"monospace", letterSpacing:2 }}>
-          ⚡ LIVE MATCH
+        <div style={{ flex:1, textAlign:"center", fontSize:13, fontWeight:900, color:GOLD, fontFamily:"monospace", letterSpacing:2 }}>
+          {STEPS[step - 1].toUpperCase()}
         </div>
-        <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace" }}>{step}/2</div>
+        {/* Step dots */}
+        <div style={{ display:"flex", gap:5 }}>
+          {STEPS.map((_, i) => (
+            <div key={i} style={{ width: i + 1 === step ? 18 : 8, height:6, borderRadius:3, background: i + 1 < step ? "#4caf50" : i + 1 === step ? GOLD : BORDER, transition:"all 0.2s" }}/>
+          ))}
+        </div>
       </div>
 
-      <div style={{ maxWidth:480, margin:"0 auto", padding:"20px 16px" }}>
+      <div style={{ maxWidth:440, margin:"0 auto", padding:"28px 16px" }}>
 
-        {/* ── Step 1: Format + Players ─────────────────────────────────────── */}
+        {/* ── Step 1: Format + Names ──────────────────────────────────────── */}
         {step === 1 && (
-          <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
 
             {/* Format */}
             <div>
-              <div style={{ fontSize:11, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:10 }}>FORMAT</div>
+              <div style={{ fontSize:11, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>FORMAT</div>
               <div style={{ display:"flex", gap:8 }}>
                 {[["1v1","1v1"],["2v2","2v2 Best Ball"],["scramble","Scramble"]].map(([key, label]) => (
                   <button key={key} onClick={() => setFormat(key)}
-                    style={{ flex:1, padding:"12px 4px", background:format===key?GOLD:"none", border:`1px solid ${format===key?GOLD:BORDER}`, borderRadius:10, color:format===key?"#000":MUTED, fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
+                    style={{ flex:1, padding:"14px 4px", background:format===key?GOLD:"none", border:`1px solid ${format===key?GOLD:BORDER}`, borderRadius:12, color:format===key?"#000":MUTED, fontWeight:800, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
                     {label}
                   </button>
                 ))}
@@ -228,71 +220,116 @@ export default function CreateMatch({ user }) {
             {/* Side A */}
             <div>
               <div style={{ fontSize:11, color:"#C8102E", fontFamily:"monospace", letterSpacing:1, marginBottom:10 }}>SIDE A</div>
-              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                <PlayerRow label={is2v2?"PLAYER 1":"PLAYER"} color="#C8102E" player={p1a} onChange={setP1a}/>
-                {is2v2 && <PlayerRow label="PLAYER 2" color="#C8102E" player={p1b} onChange={setP1b}/>}
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {nameInput("a1", is2v2 ? "Player 1 name" : "Player name", "#C8102E")}
+                {is2v2 && nameInput("a2", "Player 2 name", "#C8102E")}
               </div>
             </div>
 
             {/* Side B */}
             <div>
               <div style={{ fontSize:11, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, marginBottom:10 }}>SIDE B</div>
-              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                <PlayerRow label={is2v2?"PLAYER 1":"PLAYER"} color="#4A90D9" player={p2a} onChange={setP2a}/>
-                {is2v2 && <PlayerRow label="PLAYER 2" color="#4A90D9" player={p2b} onChange={setP2b}/>}
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {nameInput("b1", is2v2 ? "Player 1 name" : "Player name", "#4A90D9")}
+                {is2v2 && nameInput("b2", "Player 2 name", "#4A90D9")}
               </div>
             </div>
 
-            <button onClick={() => setStep(2)} disabled={!canProceed}
-              style={{ padding:"14px", background:canProceed?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${canProceed?GOLD:BORDER}`, borderRadius:14, color:canProceed?"#000":MUTED, fontWeight:900, fontSize:14, cursor:canProceed?"pointer":"default", fontFamily:"monospace", letterSpacing:1, opacity:canProceed?1:0.5 }}>
-              SET UP COURSE →
+            <button onClick={() => setStep(2)} disabled={!namesOk}
+              style={{ padding:"16px", background:namesOk?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${namesOk?GOLD:BORDER}`, borderRadius:14, color:namesOk?"#000":MUTED, fontWeight:900, fontSize:15, cursor:namesOk?"pointer":"default", fontFamily:"monospace", letterSpacing:1, opacity:namesOk?1:0.4 }}>
+              NEXT →
             </button>
           </div>
         )}
 
-        {/* ── Step 2: Course ───────────────────────────────────────────────── */}
+        {/* ── Step 2: Handicaps ───────────────────────────────────────────── */}
         {step === 2 && (
-          <div>
-            {/* Course name + scan */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-                <label style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1 }}>COURSE NAME</label>
-                <label style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:scanning?MUTED:GOLD, fontFamily:"monospace", cursor:scanning?"wait":"pointer" }}>
-                  {scanning ? "SCANNING..." : "📷 SCAN SCORECARD"}
-                  <input type="file" accept="image/*" style={{ display:"none" }} disabled={scanning}
-                    onChange={e => handleScanScorecard(e.target.files?.[0])}/>
-                </label>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            <div style={{ fontSize:11, color:MUTED, marginBottom:8 }}>Set each player's handicap index. Use + for a plus-handicap.</div>
+
+            {/* Side A */}
+            <div style={{ background:"rgba(200,16,46,0.08)", border:`1px solid #C8102E44`, borderRadius:14, padding:"16px 16px" }}>
+              <div style={{ fontSize:10, color:"#C8102E", fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>SIDE A</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                {[["a1",names.a1],["a2",names.a2]].filter(([k]) => k==="a1" || is2v2).map(([key, name]) => (
+                  <div key={key} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+                    <div style={{ fontSize:16, fontWeight:700, color:TEXT, flex:1 }}>{name}</div>
+                    <HcpStepper value={hcps[key]} onChange={v => setHcps(h => ({ ...h, [key]: v }))}/>
+                  </div>
+                ))}
               </div>
-              <input
-                value={courseName}
-                onChange={e => setCourseName(e.target.value)}
-                placeholder="e.g. Augusta National"
-                style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box" }}
-              />
-              {scanError && <div style={{ fontSize:11, color:"#e74c3c", marginTop:6 }}>{scanError}</div>}
             </div>
 
-            {/* Previous courses */}
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>LOAD PREVIOUS COURSE</div>
+            {/* Side B */}
+            <div style={{ background:"rgba(74,144,217,0.08)", border:`1px solid #4A90D944`, borderRadius:14, padding:"16px 16px" }}>
+              <div style={{ fontSize:10, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>SIDE B</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                {[["b1",names.b1],["b2",names.b2]].filter(([k]) => k==="b1" || is2v2).map(([key, name]) => (
+                  <div key={key} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+                    <div style={{ fontSize:16, fontWeight:700, color:TEXT, flex:1 }}>{name}</div>
+                    <HcpStepper value={hcps[key]} onChange={v => setHcps(h => ({ ...h, [key]: v }))}/>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button onClick={() => setStep(3)}
+              style={{ marginTop:8, padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", fontFamily:"monospace", letterSpacing:1 }}>
+              NEXT →
+            </button>
+          </div>
+        )}
+
+        {/* ── Step 3: Course ──────────────────────────────────────────────── */}
+        {step === 3 && (
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+
+            {/* Dropdown */}
+            <div>
+              <div style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>SELECT COURSE</div>
               <select
-                value=""
+                value={courseName}
                 onChange={e => {
                   const c = prevCourses.find(x => x.name === e.target.value);
-                  if (!c) return;
-                  setCourseName(c.name);
-                  setPar([...c.par]);
-                  setHcp([...c.hcp]);
+                  if (c) { setCourseName(c.name); setPar([...c.par]); setHcp([...c.hcp]); }
+                  else setCourseName(e.target.value);
                 }}
-                style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", cursor:"pointer" }}
+                style={{ width:"100%", padding:"14px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, color:courseName?TEXT:MUTED, fontSize:14, outline:"none", cursor:"pointer" }}
               >
-                <option value="" disabled>{prevCourses.length === 0 ? "No previous courses yet" : "Select a course…"}</option>
+                <option value="">Choose a course…</option>
                 {prevCourses.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
               </select>
             </div>
-            {["par","hcp"].map(field => (
-              <div key={field} style={{ marginBottom:20 }}>
-                <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>
+
+            {/* Manual name entry */}
+            <div>
+              <div style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>OR ENTER NAME</div>
+              <input
+                value={courseName}
+                onChange={e => setCourseName(e.target.value)}
+                placeholder="Type course name…"
+                style={{ width:"100%", padding:"14px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box" }}
+              />
+            </div>
+
+            {/* Scan button */}
+            <label style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"14px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, cursor:scanning?"wait":"pointer", color:scanning?MUTED:TEXT, fontWeight:700, fontSize:13 }}>
+              {scanning ? "SCANNING…" : "📷 Scan Scorecard"}
+              <input type="file" accept="image/*" style={{ display:"none" }} disabled={scanning}
+                onChange={e => handleScan(e.target.files?.[0])}/>
+            </label>
+            {scanError && <div style={{ fontSize:12, color:"#e74c3c" }}>{scanError}</div>}
+
+            {/* Hole grid — expandable */}
+            <button onClick={() => setShowHoles(s => !s)}
+              style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:10, padding:"10px 14px", color:MUTED, fontSize:12, cursor:"pointer", textAlign:"left", display:"flex", justifyContent:"space-between" }}>
+              <span>Edit par & handicap index per hole</span>
+              <span>{showHoles ? "▲" : "▼"}</span>
+            </button>
+
+            {showHoles && ["par","hcp"].map(field => (
+              <div key={field} style={{ marginBottom:8 }}>
+                <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>
                   {field === "par" ? "PAR PER HOLE" : "HANDICAP INDEX"}
                 </div>
                 <div style={{ overflowX:"auto", WebkitOverflowScrolling:"touch" }}>
@@ -300,14 +337,10 @@ export default function CreateMatch({ user }) {
                     {Array.from({ length:18 }, (_, i) => (
                       <div key={i} style={{ textAlign:"center" }}>
                         <div style={{ fontSize:8, color:MUTED, marginBottom:2, fontFamily:"monospace" }}>{i+1}</div>
-                        <input
-                          type="number"
-                          min={field === "par" ? 3 : 1}
-                          max={field === "par" ? 5 : 18}
-                          value={(field === "par" ? par : hcp)[i]}
+                        <input type="number" min={field==="par"?3:1} max={field==="par"?5:18}
+                          value={(field==="par"?par:hcp)[i]}
                           onChange={e => updateHole(field, i, e.target.value)}
-                          style={{ width:30, height:30, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:4, color:TEXT, fontSize:11, textAlign:"center", outline:"none", padding:0 }}
-                        />
+                          style={{ width:30, height:30, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:4, color:TEXT, fontSize:11, textAlign:"center", outline:"none", padding:0 }}/>
                       </div>
                     ))}
                   </div>
@@ -316,7 +349,7 @@ export default function CreateMatch({ user }) {
             ))}
 
             <button onClick={handleCreate} disabled={creating}
-              style={{ width:"100%", marginTop:8, padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:creating?"wait":"pointer", letterSpacing:1, fontFamily:"monospace", boxShadow:`0 4px 18px ${GOLD}33` }}>
+              style={{ padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:creating?"wait":"pointer", letterSpacing:1, fontFamily:"monospace", boxShadow:`0 4px 18px ${GOLD}33`, marginTop:4 }}>
               {creating ? "CREATING..." : "START MATCH ⛳"}
             </button>
           </div>

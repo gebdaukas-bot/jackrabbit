@@ -951,7 +951,27 @@ export default function CupView({ user }) {
                       {st.state==="pending"?"START SCORING":"ENTER SCORES →"}
                     </button>
                   </div>
-                  <div style={{textAlign:"center",fontSize:10,color:MUTED,fontFamily:"monospace"}}>{doneMatches}/{totalMatches} matches complete</div>
+                  {meta.eventType!=="live_match"&&<div style={{textAlign:"center",fontSize:10,color:MUTED,fontFamily:"monospace"}}>{doneMatches}/{totalMatches} matches complete</div>}
+                  {meta.eventType==="live_match"&&meta.inviteCode&&(()=>{
+                    const joinUrl=`https://dormie-golf.vercel.app/join/${meta.inviteCode}`;
+                    const canShare=typeof navigator!=="undefined"&&!!navigator.share;
+                    return (
+                      <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginTop:4}}>
+                        <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>SHARE WITH SPECTATORS</div>
+                        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                          <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{joinUrl}</div>
+                          <button onClick={()=>navigator.clipboard?.writeText(joinUrl)}
+                            style={{padding:"9px 12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:GOLD,fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>Copy</button>
+                        </div>
+                        {canShare&&(
+                          <button onClick={()=>navigator.share({url:joinUrl,title:meta.name})}
+                            style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${GOLD},${GOLD}88)`,border:"none",borderRadius:10,color:"#000",fontWeight:900,fontSize:13,cursor:"pointer",letterSpacing:1,fontFamily:"monospace"}}>
+                            ↗ Share Link
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })()}
