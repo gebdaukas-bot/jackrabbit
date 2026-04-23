@@ -43,6 +43,7 @@ export default function CreateMatch({ user }) {
   const [showHoles, setShowHoles] = useState(false);
   const [prevCourses, setPrevCourses] = useState([]);
   const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState(false);
   const [scanError, setScanError] = useState("");
 
   const [creating, setCreating] = useState(false);
@@ -97,7 +98,7 @@ export default function CreateMatch({ user }) {
       });
       const data = await res.json();
       if (!res.ok) { setScanError(data.error || "Failed to parse scorecard"); }
-      else { setCourseName(data.name); setPar([...data.par]); setHcp([...data.hcp]); }
+      else { setCourseName(data.name); setPar([...data.par]); setHcp([...data.hcp]); setScanned(true); }
     } catch { setScanError("Something went wrong — try again"); }
     finally { setScanning(false); }
   };
@@ -108,8 +109,10 @@ export default function CreateMatch({ user }) {
     else setHcp(a => a.map((v, j) => j === i ? n : v));
   };
 
+  const courseNameOk = courseName.trim().length >= 6 && courseName.trim().toLowerCase() !== "unknown course";
+
   const handleCreate = async () => {
-    if (creating || !courseName.trim()) return;
+    if (creating || !courseNameOk) return;
     setCreating(true);
     try {
       const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -313,9 +316,9 @@ export default function CreateMatch({ user }) {
             </div>
 
             {/* Scan button */}
-            <label style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"14px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, cursor:scanning?"wait":"pointer", color:scanning?MUTED:TEXT, fontWeight:700, fontSize:13 }}>
-              {scanning ? "SCANNING…" : "📷 Scan Scorecard"}
-              <input type="file" accept="image/*" style={{ display:"none" }} disabled={scanning}
+            <label style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"14px", background:scanned?"#0d2b0d":CARD2, border:`1px solid ${scanned?"#4caf50":BORDER}`, borderRadius:12, cursor:scanned||scanning?"default":"pointer", color:scanned?"#4caf50":scanning?MUTED:TEXT, fontWeight:700, fontSize:13 }}>
+              {scanning ? "SCANNING…" : scanned ? "✓ Course Imported" : "📷 Scan Scorecard"}
+              <input type="file" accept="image/*" style={{ display:"none" }} disabled={scanning||scanned}
                 onChange={e => handleScan(e.target.files?.[0])}/>
             </label>
             {scanError && <div style={{ fontSize:12, color:"#e74c3c" }}>{scanError}</div>}
@@ -348,13 +351,15 @@ export default function CreateMatch({ user }) {
               </div>
             ))}
 
-            {!courseName.trim() && (
+            {!courseNameOk && (
               <div style={{ fontSize:12, color:"#e67e22", fontFamily:"monospace", textAlign:"center" }}>
-                Enter a course name to continue
+                {!courseName.trim() ? "Enter a course name to continue" :
+                 courseName.trim().toLowerCase() === "unknown course" ? "Please enter the real course name" :
+                 `Course name must be at least 6 characters (${courseName.trim().length}/6)`}
               </div>
             )}
-            <button onClick={handleCreate} disabled={creating || !courseName.trim()}
-              style={{ padding:"16px", background:courseName.trim()?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${courseName.trim()?GOLD:BORDER}`, borderRadius:14, color:courseName.trim()?"#000":MUTED, fontWeight:900, fontSize:15, cursor:(creating||!courseName.trim())?"default":"pointer", letterSpacing:1, fontFamily:"monospace", boxShadow:courseName.trim()?`0 4px 18px ${GOLD}33`:"none", marginTop:4, opacity:courseName.trim()?1:0.4 }}>
+            <button onClick={handleCreate} disabled={creating || !courseNameOk}
+              style={{ padding:"16px", background:courseNameOk?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${courseNameOk?GOLD:BORDER}`, borderRadius:14, color:courseNameOk?"#000":MUTED, fontWeight:900, fontSize:15, cursor:(creating||!courseNameOk)?"default":"pointer", letterSpacing:1, fontFamily:"monospace", boxShadow:courseNameOk?`0 4px 18px ${GOLD}33`:"none", marginTop:4, opacity:courseNameOk?1:0.4 }}>
               {creating ? "CREATING..." : "START MATCH ⛳"}
             </button>
           </div>
