@@ -28,7 +28,7 @@ const days = [
     label: "Friday — Fourballs",
     format: "Fourballs",
     course: {
-      name: "The Links Course",
+      name: "Wild Dunes — Links Course",
       par: [5,4,4,3,5,4,4,3,4, 4,4,3,4,5,4,3,4,3],
       hcp: [11,13,5,17,7,3,9,15,1, 12,10,16,2,14,8,18,6,4],
     },
