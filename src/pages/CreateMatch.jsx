@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { db, ref, set } from "../firebase";
+import { db, ref, set, get } from "../firebase";
 import { GOLD } from "../utils/scoring";
 import LiveBackground from "../components/LiveBackground";
 
@@ -49,6 +49,30 @@ export default function CreateMatch({ user }) {
   const [p1b, setP1b] = useState({ name: "", hcp: 0 });
   const [p2a, setP2a] = useState({ name: "", hcp: 0 });
   const [p2b, setP2b] = useState({ name: "", hcp: 0 });
+  const [prevCourses, setPrevCourses] = useState([]);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const cupsSnap = await get(ref(db, `users/${user.uid}/cups`));
+      if (!cupsSnap.exists()) return;
+      const seen = {};
+      await Promise.all(Object.keys(cupsSnap.val()).map(async cupId => {
+        const daysSnap = await get(ref(db, `cups/${cupId}/days`));
+        if (!daysSnap.exists()) return;
+        const arr = Object.values(daysSnap.val());
+        for (const day of arr) {
+          for (const round of (day.rounds || [{ course: day.course }])) {
+            const c = round.course;
+            if (c?.name && c.par?.length === 18 && c.hcp?.length === 18 && !seen[c.name]) {
+              seen[c.name] = { name: c.name, par: c.par, hcp: c.hcp };
+            }
+          }
+        }
+      }));
+      setPrevCourses(Object.values(seen).sort((a, b) => a.name.localeCompare(b.name)));
+    };
+    fetch();
+  }, [user.uid]);
 
   const is2v2 = format !== "1v1";
   const matchFormat = format === "scramble" ? "Scramble" : format === "2v2" ? "2v2 Best Ball" : "Singles";
@@ -204,9 +228,29 @@ export default function CreateMatch({ user }) {
         {/* ── Step 2: Course ───────────────────────────────────────────────── */}
         {step === 2 && (
           <div>
-            <div style={{ fontSize:11, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:16 }}>
+            <div style={{ fontSize:11, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>
               COURSE: PAR & HANDICAP INDEX
             </div>
+
+            {prevCourses.length > 0 && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>LOAD PREVIOUS COURSE</div>
+                <select
+                  defaultValue=""
+                  onChange={e => {
+                    const c = prevCourses.find(x => x.name === e.target.value);
+                    if (!c) return;
+                    setCourseName(c.name);
+                    setPar([...c.par]);
+                    setHcp([...c.hcp]);
+                  }}
+                  style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", cursor:"pointer" }}
+                >
+                  <option value="" disabled>Select a course…</option>
+                  {prevCourses.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+            )}
             {["par","hcp"].map(field => (
               <div key={field} style={{ marginBottom:20 }}>
                 <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>

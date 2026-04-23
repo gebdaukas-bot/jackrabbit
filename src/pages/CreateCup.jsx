@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { db, ref, set } from "../firebase";
+import { db, ref, set, get } from "../firebase";
 import { GOLD } from "../utils/scoring";
 import LiveBackground from "../components/LiveBackground";
 
@@ -271,7 +271,7 @@ function Step3({ data, setData }) {
 }
 
 // ── Step 4: Course data (par + hcp index per hole) ───────────────────────────
-function Step4({ data, setData }) {
+function Step4({ data, setData, prevCourses }) {
   const { CARD2, BORDER, TEXT, MUTED, MUTED2 } = useTheme();
   const [activeDay, setActiveDay] = useState(0);
   const [activeRound, setActiveRound] = useState(0);
@@ -327,6 +327,30 @@ function Step4({ data, setData }) {
       <div style={{ fontSize:12, color:MUTED, marginBottom:12 }}>
         <strong style={{ color:TEXT }}>{round.courseName||`${day.label} course`}</strong> — par and handicap index for each hole
       </div>
+
+      {prevCourses?.length > 0 && (
+        <div style={{ marginBottom:14 }}>
+          <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>LOAD PREVIOUS COURSE</div>
+          <select
+            defaultValue=""
+            onChange={e => {
+              const c = prevCourses.find(x => x.name === e.target.value);
+              if (!c) return;
+              setData(d => {
+                const days = [...d.days];
+                const rounds = [...days[activeDay].rounds];
+                rounds[ri] = { ...rounds[ri], courseName: c.name, par: [...c.par], hcp: [...c.hcp] };
+                days[activeDay] = { ...days[activeDay], rounds };
+                return { ...d, days };
+              });
+            }}
+            style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", cursor:"pointer" }}
+          >
+            <option value="" disabled>Select a course…</option>
+            {prevCourses.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+          </select>
+        </div>
+      )}
 
       {[0,1].map(half => (
         <div key={half} style={{ marginBottom:16 }}>
@@ -570,6 +594,30 @@ export default function CreateCup({ user }) {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [prevCourses, setPrevCourses] = useState([]);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const cupsSnap = await get(ref(db, `users/${user.uid}/cups`));
+      if (!cupsSnap.exists()) return;
+      const seen = {};
+      await Promise.all(Object.keys(cupsSnap.val()).map(async cupId => {
+        const daysSnap = await get(ref(db, `cups/${cupId}/days`));
+        if (!daysSnap.exists()) return;
+        const arr = Object.values(daysSnap.val());
+        for (const day of arr) {
+          for (const round of (day.rounds || [{ course: day.course }])) {
+            const c = round.course;
+            if (c?.name && c.par?.length === 18 && c.hcp?.length === 18 && !seen[c.name]) {
+              seen[c.name] = { name: c.name, par: c.par, hcp: c.hcp };
+            }
+          }
+        }
+      }));
+      setPrevCourses(Object.values(seen).sort((a, b) => a.name.localeCompare(b.name)));
+    };
+    fetch();
+  }, [user.uid]);
 
   const [data, setData] = useState({
     name:"", teamAName:"Team A", teamBName:"Team B",
@@ -674,7 +722,7 @@ export default function CreateCup({ user }) {
           {step===1&&<Step1 data={data} setData={setData}/>}
           {step===2&&<Step2 data={data} setData={setData}/>}
           {step===3&&<Step3 data={data} setData={setData}/>}
-          {step===4&&<Step4 data={data} setData={setData}/>}
+          {step===4&&<Step4 data={data} setData={setData} prevCourses={prevCourses}/>}
           {step===5&&<Step5 data={data} setData={setData}/>}
           {step===6&&<Step6 data={data} setData={setData}/>}
         </div>
