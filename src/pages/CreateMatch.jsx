@@ -109,7 +109,7 @@ export default function CreateMatch({ user }) {
   };
 
   const handleCreate = async () => {
-    if (creating) return;
+    if (creating || !courseName.trim()) return;
     setCreating(true);
     try {
       const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -140,7 +140,7 @@ export default function CreateMatch({ user }) {
 
       const day = {
         label: "Match",
-        rounds: [{ format: matchFormat, course: { name: courseName.trim() || "Course", par, hcp } }],
+        rounds: [{ format: matchFormat, course: { name: courseName.trim(), par, hcp } }],
       };
       const match = {
         teeTime: "", format: matchFormat,
