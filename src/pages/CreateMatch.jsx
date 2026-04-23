@@ -205,19 +205,6 @@ export default function CreateMatch({ user }) {
               </div>
             </div>
 
-            {/* Course name */}
-            <div>
-              <label style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1 }}>
-                COURSE NAME <span style={{ opacity:0.5, fontWeight:400 }}>(optional)</span>
-              </label>
-              <input
-                value={courseName}
-                onChange={e => setCourseName(e.target.value)}
-                placeholder="e.g. Augusta National"
-                style={{ width:"100%", marginTop:6, padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box" }}
-              />
-            </div>
-
             <button onClick={() => setStep(2)} disabled={!canProceed}
               style={{ padding:"14px", background:canProceed?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${canProceed?GOLD:BORDER}`, borderRadius:14, color:canProceed?"#000":MUTED, fontWeight:900, fontSize:14, cursor:canProceed?"pointer":"default", fontFamily:"monospace", letterSpacing:1, opacity:canProceed?1:0.5 }}>
               SET UP COURSE →
@@ -228,29 +215,35 @@ export default function CreateMatch({ user }) {
         {/* ── Step 2: Course ───────────────────────────────────────────────── */}
         {step === 2 && (
           <div>
-            <div style={{ fontSize:11, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>
-              COURSE: PAR & HANDICAP INDEX
+            {/* Course name */}
+            <div style={{ marginBottom:16 }}>
+              <label style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1 }}>COURSE NAME</label>
+              <input
+                value={courseName}
+                onChange={e => setCourseName(e.target.value)}
+                placeholder="e.g. Augusta National"
+                style={{ width:"100%", marginTop:6, padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box" }}
+              />
             </div>
 
-            {prevCourses.length > 0 && (
-              <div style={{ marginBottom:16 }}>
-                <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>LOAD PREVIOUS COURSE</div>
-                <select
-                  defaultValue=""
-                  onChange={e => {
-                    const c = prevCourses.find(x => x.name === e.target.value);
-                    if (!c) return;
-                    setCourseName(c.name);
-                    setPar([...c.par]);
-                    setHcp([...c.hcp]);
-                  }}
-                  style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", cursor:"pointer" }}
-                >
-                  <option value="" disabled>Select a course…</option>
-                  {prevCourses.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                </select>
-              </div>
-            )}
+            {/* Previous courses */}
+            <div style={{ marginBottom:20 }}>
+              <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>LOAD PREVIOUS COURSE</div>
+              <select
+                value=""
+                onChange={e => {
+                  const c = prevCourses.find(x => x.name === e.target.value);
+                  if (!c) return;
+                  setCourseName(c.name);
+                  setPar([...c.par]);
+                  setHcp([...c.hcp]);
+                }}
+                style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", cursor:"pointer" }}
+              >
+                <option value="" disabled>{prevCourses.length === 0 ? "No previous courses yet" : "Select a course…"}</option>
+                {prevCourses.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+              </select>
+            </div>
             {["par","hcp"].map(field => (
               <div key={field} style={{ marginBottom:20 }}>
                 <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>
