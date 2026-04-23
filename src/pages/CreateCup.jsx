@@ -275,6 +275,38 @@ function Step4({ data, setData, prevCourses }) {
   const { CARD2, BORDER, TEXT, MUTED, MUTED2 } = useTheme();
   const [activeDay, setActiveDay] = useState(0);
   const [activeRound, setActiveRound] = useState(0);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState("");
+
+  const handleScan = async (file) => {
+    if (!file) return;
+    setScanError(""); setScanning(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const [header, imageBase64] = e.target.result.split(",");
+        const mediaType = header.match(/:(.*?);/)[1];
+        const res = await fetch("/api/parse-scorecard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64, mediaType }),
+        });
+        const parsed = await res.json();
+        if (!res.ok) { setScanError(parsed.error || "Failed to parse scorecard"); }
+        else {
+          setData(d => {
+            const days = [...d.days];
+            const rounds = [...days[activeDay].rounds];
+            rounds[ri] = { ...rounds[ri], courseName: parsed.name, par: [...parsed.par], hcp: [...parsed.hcp] };
+            days[activeDay] = { ...days[activeDay], rounds };
+            return { ...d, days };
+          });
+        }
+        setScanning(false);
+      };
+      reader.readAsDataURL(file);
+    } catch { setScanError("Something went wrong — try again"); setScanning(false); }
+  };
 
   // Reset round tab if switching day
   const switchDay = (i) => { setActiveDay(i); setActiveRound(0); };
@@ -324,9 +356,17 @@ function Step4({ data, setData, prevCourses }) {
         </div>
       )}
 
-      <div style={{ fontSize:12, color:MUTED, marginBottom:12 }}>
-        <strong style={{ color:TEXT }}>{round.courseName||`${day.label} course`}</strong> — par and handicap index for each hole
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+        <div style={{ fontSize:12, color:MUTED }}>
+          <strong style={{ color:TEXT }}>{round.courseName||`${day.label} course`}</strong> — par and handicap index
+        </div>
+        <label style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:scanning?MUTED:GOLD, fontFamily:"monospace", cursor:scanning?"wait":"pointer", flexShrink:0, marginLeft:10 }}>
+          {scanning ? "SCANNING..." : "📷 SCAN"}
+          <input type="file" accept="image/*" style={{ display:"none" }} disabled={scanning}
+            onChange={e => handleScan(e.target.files?.[0])}/>
+        </label>
       </div>
+      {scanError && <div style={{ fontSize:11, color:"#e74c3c", marginBottom:10 }}>{scanError}</div>}
 
       {prevCourses?.length > 0 && (
         <div style={{ marginBottom:14 }}>

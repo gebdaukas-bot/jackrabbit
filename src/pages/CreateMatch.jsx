@@ -50,6 +50,8 @@ export default function CreateMatch({ user }) {
   const [p2a, setP2a] = useState({ name: "", hcp: 0 });
   const [p2b, setP2b] = useState({ name: "", hcp: 0 });
   const [prevCourses, setPrevCourses] = useState([]);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -146,6 +148,37 @@ export default function CreateMatch({ user }) {
     }
   };
 
+  const handleScanScorecard = async (file) => {
+    if (!file) return;
+    setScanError("");
+    setScanning(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        const [header, imageBase64] = dataUrl.split(",");
+        const mediaType = header.match(/:(.*?);/)[1];
+        const res = await fetch("/api/parse-scorecard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64, mediaType }),
+        });
+        const data = await res.json();
+        if (!res.ok) { setScanError(data.error || "Failed to parse scorecard"); }
+        else {
+          setCourseName(data.name);
+          setPar([...data.par]);
+          setHcp([...data.hcp]);
+        }
+        setScanning(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setScanError("Something went wrong — try again");
+      setScanning(false);
+    }
+  };
+
   const updateHole = (field, i, val) => {
     const n = parseInt(val);
     if (isNaN(n)) return;
@@ -215,15 +248,23 @@ export default function CreateMatch({ user }) {
         {/* ── Step 2: Course ───────────────────────────────────────────────── */}
         {step === 2 && (
           <div>
-            {/* Course name */}
+            {/* Course name + scan */}
             <div style={{ marginBottom:16 }}>
-              <label style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1 }}>COURSE NAME</label>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                <label style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1 }}>COURSE NAME</label>
+                <label style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:scanning?MUTED:GOLD, fontFamily:"monospace", cursor:scanning?"wait":"pointer" }}>
+                  {scanning ? "SCANNING..." : "📷 SCAN SCORECARD"}
+                  <input type="file" accept="image/*" style={{ display:"none" }} disabled={scanning}
+                    onChange={e => handleScanScorecard(e.target.files?.[0])}/>
+                </label>
+              </div>
               <input
                 value={courseName}
                 onChange={e => setCourseName(e.target.value)}
                 placeholder="e.g. Augusta National"
-                style={{ width:"100%", marginTop:6, padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box" }}
+                style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box" }}
               />
+              {scanError && <div style={{ fontSize:11, color:"#e74c3c", marginTop:6 }}>{scanError}</div>}
             </div>
 
             {/* Previous courses */}

@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.90.0",
     "canvas-confetti": "^1.9.3",
     "firebase": "^10.12.0",
     "qrcode.react": "^4.2.0",
