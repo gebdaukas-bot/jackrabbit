@@ -348,8 +348,13 @@ export default function CreateMatch({ user }) {
               </div>
             ))}
 
-            <button onClick={handleCreate} disabled={creating}
-              style={{ padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:creating?"wait":"pointer", letterSpacing:1, fontFamily:"monospace", boxShadow:`0 4px 18px ${GOLD}33`, marginTop:4 }}>
+            {!courseName.trim() && (
+              <div style={{ fontSize:12, color:"#e67e22", fontFamily:"monospace", textAlign:"center" }}>
+                Enter a course name to continue
+              </div>
+            )}
+            <button onClick={handleCreate} disabled={creating || !courseName.trim()}
+              style={{ padding:"16px", background:courseName.trim()?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${courseName.trim()?GOLD:BORDER}`, borderRadius:14, color:courseName.trim()?"#000":MUTED, fontWeight:900, fontSize:15, cursor:(creating||!courseName.trim())?"default":"pointer", letterSpacing:1, fontFamily:"monospace", boxShadow:courseName.trim()?`0 4px 18px ${GOLD}33`:"none", marginTop:4, opacity:courseName.trim()?1:0.4 }}>
               {creating ? "CREATING..." : "START MATCH ⛳"}
             </button>
           </div>
