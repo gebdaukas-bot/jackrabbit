@@ -36,17 +36,18 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   });
 
   const holeHcp = course.hcp[hole], holePar = course.par[hole];
-  // For scramble with 2-person teams, use USGA team handicap: lower×0.35 + higher×0.15
+  // Scramble: 2-person team plays one ball; use USGA team handicap lower×0.35 + higher×0.15
   const isScramble = match.format === "Scramble";
+  const oneScorePerSide = isSingles || isScramble;
   const scrambleTeamHcp = (ha, hb) => Math.round(Math.min(ha,hb) * 0.35 + Math.max(ha,hb) * 0.15);
   const hcpA = isScramble && match.player1b ? scrambleTeamHcp(match.hcp1a||0, match.hcp1b||0) : match.hcp1a||0;
   const hcpB = isScramble && match.player2b ? scrambleTeamHcp(match.hcp2a||0, match.hcp2b||0) : match.hcp2a||0;
   const net1a = netScore(sc.p1a, hcpA, holeHcp);
-  const net1b = isSingles ? 99 : netScore(sc.p1b, match.hcp1b || 0, holeHcp);
+  const net1b = oneScorePerSide ? 99 : netScore(sc.p1b, match.hcp1b || 0, holeHcp);
   const net2a = netScore(sc.p2a, hcpB, holeHcp);
-  const net2b = isSingles ? 99 : netScore(sc.p2b, match.hcp2b || 0, holeHcp);
-  const teamANet = isSingles ? net1a : Math.min(net1a, net1b);
-  const teamBNet = isSingles ? net2a : Math.min(net2a, net2b);
+  const net2b = oneScorePerSide ? 99 : netScore(sc.p2b, match.hcp2b || 0, holeHcp);
+  const teamANet = oneScorePerSide ? net1a : Math.min(net1a, net1b);
+  const teamBNet = oneScorePerSide ? net2a : Math.min(net2a, net2b);
   const hw = teamANet < teamBNet ? "A" : teamBNet < teamANet ? "B" : "H";
   const hwColor = hw === "A" ? teamAColor : hw === "B" ? teamBColor : GOLD;
   const hwLabel = hw === "A" ? `${teamAShort} wins · net ${teamANet} vs ${teamBNet}` :
@@ -143,7 +144,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           <div style={{ flex: 1, background: runLeader === "A" ? teamAColor : "#111a2e", padding: "8px 10px", minWidth: 0 }}>
             <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "A" ? "#ffcccc" : teamAColor, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamAShort}</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1a}</div>
-            {!isSingles && <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1b}</div>}
+            {match.player1b && <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1b}</div>}
           </div>
           <div style={{ background: runLeader === "A" ? teamAColor : runLeader === "B" ? teamBColor : "#1a2a44", minWidth: 68, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "6px 4px", borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}`, flexShrink: 0 }}>
             {cur.state === "pending" ? <div style={{ fontSize: 10, color: "#446", fontFamily: "monospace" }}>—</div>
@@ -153,7 +154,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           <div style={{ flex: 1, background: runLeader === "B" ? teamBColor : "#111a2e", padding: "8px 10px", display: "flex", flexDirection: "column", alignItems: "flex-end", minWidth: 0 }}>
             <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "B" ? "#cce4ff" : teamBColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamBShort}</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2a}</div>
-            {!isSingles && <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2b}</div>}
+            {match.player2b && <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2b}</div>}
           </div>
         </div>
       </div>
@@ -210,20 +211,20 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
 
         <div style={{ background: `${teamAColor}18`, border: `1px solid ${teamAColor}44`, borderRadius: 12, padding: "12px", marginBottom: 8 }}>
           <div style={{ fontSize: 9, color: teamAColor, fontWeight: 800, letterSpacing: 2, fontFamily: "monospace", marginBottom: 10 }}>{teamAShort}</div>
-          <div style={{ display: "flex", justifyContent: isSingles ? "center" : "space-around" }}>
-            <ScoreInput label={match.player1a} hcp={match.hcp1a || 0} value={sc.p1a} onChange={v => setSc(s => ({ ...s, p1a: v }))} color={teamAColor} labelColor={strokeEntries.find(e => e.name === match.player1a)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player1a)?.strokes || 1} par={holePar} />
-            {!isSingles && <ScoreInput label={match.player1b} hcp={match.hcp1b || 0} value={sc.p1b} onChange={v => setSc(s => ({ ...s, p1b: v }))} color={teamAColor} labelColor={strokeEntries.find(e => e.name === match.player1b)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player1b)?.strokes || 1} par={holePar} />}
+          <div style={{ display: "flex", justifyContent: oneScorePerSide ? "center" : "space-around" }}>
+            <ScoreInput label={isScramble && match.player1b ? `${match.player1a} / ${match.player1b}` : match.player1a} hcp={hcpA} value={sc.p1a} onChange={v => setSc(s => ({ ...s, p1a: v }))} color={teamAColor} labelColor={strokeEntries.find(e => e.name?.startsWith(match.player1a))?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name?.startsWith(match.player1a))?.strokes || 1} par={holePar} />
+            {!oneScorePerSide && <ScoreInput label={match.player1b} hcp={match.hcp1b || 0} value={sc.p1b} onChange={v => setSc(s => ({ ...s, p1b: v }))} color={teamAColor} labelColor={strokeEntries.find(e => e.name === match.player1b)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player1b)?.strokes || 1} par={holePar} />}
           </div>
-          {!isSingles && <div style={{ textAlign: "center", marginTop: 8, fontSize: 10, color: "#fff4" }}>best net: <span style={{ color: "#fff", fontWeight: 700 }}>{teamANet}</span></div>}
+          {!oneScorePerSide && <div style={{ textAlign: "center", marginTop: 8, fontSize: 10, color: "#fff4" }}>best net: <span style={{ color: "#fff", fontWeight: 700 }}>{teamANet}</span></div>}
         </div>
 
         <div style={{ background: `${teamBColor}33`, border: `1px solid ${teamBColor}66`, borderRadius: 12, padding: "12px", marginBottom: 10 }}>
           <div style={{ fontSize: 9, color: teamBColorDisp, fontWeight: 800, letterSpacing: 2, fontFamily: "monospace", marginBottom: 10 }}>{teamBShort}</div>
-          <div style={{ display: "flex", justifyContent: isSingles ? "center" : "space-around" }}>
-            <ScoreInput label={match.player2a} hcp={match.hcp2a || 0} value={sc.p2a} onChange={v => setSc(s => ({ ...s, p2a: v }))} color={teamBColorDisp} labelColor={strokeEntries.find(e => e.name === match.player2a)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player2a)?.strokes || 1} par={holePar} />
-            {!isSingles && <ScoreInput label={match.player2b} hcp={match.hcp2b || 0} value={sc.p2b} onChange={v => setSc(s => ({ ...s, p2b: v }))} color={teamBColorDisp} labelColor={strokeEntries.find(e => e.name === match.player2b)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player2b)?.strokes || 1} par={holePar} />}
+          <div style={{ display: "flex", justifyContent: oneScorePerSide ? "center" : "space-around" }}>
+            <ScoreInput label={isScramble && match.player2b ? `${match.player2a} / ${match.player2b}` : match.player2a} hcp={hcpB} value={sc.p2a} onChange={v => setSc(s => ({ ...s, p2a: v }))} color={teamBColorDisp} labelColor={strokeEntries.find(e => e.name?.startsWith(match.player2a))?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name?.startsWith(match.player2a))?.strokes || 1} par={holePar} />
+            {!oneScorePerSide && <ScoreInput label={match.player2b} hcp={match.hcp2b || 0} value={sc.p2b} onChange={v => setSc(s => ({ ...s, p2b: v }))} color={teamBColorDisp} labelColor={strokeEntries.find(e => e.name === match.player2b)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player2b)?.strokes || 1} par={holePar} />}
           </div>
-          {!isSingles && <div style={{ textAlign: "center", marginTop: 8, fontSize: 10, color: "#fff4" }}>best net: <span style={{ color: "#fff", fontWeight: 700 }}>{teamBNet}</span></div>}
+          {!oneScorePerSide && <div style={{ textAlign: "center", marginTop: 8, fontSize: 10, color: "#fff4" }}>best net: <span style={{ color: "#fff", fontWeight: 700 }}>{teamBNet}</span></div>}
         </div>
 
         <div style={{ background: `${hwColor}22`, border: `1px solid ${hwColor}55`, borderRadius: 10, padding: "9px 12px", marginBottom: 10, textAlign: "center" }}>

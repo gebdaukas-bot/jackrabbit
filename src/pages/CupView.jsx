@@ -695,7 +695,7 @@ export default function CupView({ user }) {
   if (activeMatch){
     const d=days[activeMatch.dayIdx]; const m=d?.matches.find(x=>x.id===activeMatch.matchId);
     if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion)return <GroupHoleEntry matches={[m,companion]} course={getCourse(d,m)} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;}
-    if (m) return <HoleEntry match={m} isSingles={m.format==="Scramble"||!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+    if (m) return <HoleEntry match={m} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
   }
 
   const playerTeamColor=(()=>{ for(const d of days)for(const m of d.matches){if([m.player1a,m.player1b].includes(currentPlayer))return cup.teamAColor;if([m.player2a,m.player2b].includes(currentPlayer))return cup.teamBColor;} return MUTED; })();
