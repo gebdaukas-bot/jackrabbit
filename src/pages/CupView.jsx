@@ -294,15 +294,38 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
 
   const handleSave = async () => { setSaving(true); await onSave(days); setSaving(false); onBack(); };
 
-  const PSel = ({di,matchId,field,team})=>{
+  const PSel = ({di,matchId,field,team,isScramble})=>{
     const m=days[di].matches.find(x=>x.id===matchId);
     const opts=team==="A"?teamA:teamB;
     return (
-      <select value={m?.[field]||""} onChange={e=>setField(di,matchId,field,e.target.value)}
+      <select value={m?.[field]||""} onChange={e=>{
+        const val=e.target.value;
+        setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.map(mx=>{
+          if(mx.id!==matchId) return mx;
+          const player=cupPlayers.find(p=>p.name===val);
+          // For scramble, don't auto-set hcp from player — team hcp is set separately
+          if(isScramble) return {...mx,[field]:val||""};
+          const hcpKey=field.replace("player","hcp");
+          return {...mx,[field]:val||"",[hcpKey]:player?.hcp||0};
+        })}));
+      }}
         style={{flex:1,padding:"5px 6px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:11,cursor:"pointer",minWidth:0}}>
         <option value="">—</option>
         {opts.map(p=><option key={p.name} value={p.name}>{p.name}</option>)}
       </select>
+    );
+  };
+
+  const HcpStepper = ({di,matchId,field,color})=>{
+    const m=days[di].matches.find(x=>x.id===matchId);
+    const val=m?.[field]||0;
+    const adj=(d)=>setDays(ds=>ds.map((day,i)=>i!==di?day:{...day,matches:day.matches.map(mx=>mx.id!==matchId?mx:{...mx,[field]:Math.max(0,val+d)})}));
+    return (
+      <div style={{display:"flex",alignItems:"center",gap:0}}>
+        <button onClick={()=>adj(-1)} style={{width:26,height:26,background:"none",border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:MUTED,cursor:"pointer",fontSize:14,lineHeight:1}}>−</button>
+        <div style={{width:34,height:26,background:CARD2,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:color,fontFamily:"monospace"}}>{val}</div>
+        <button onClick={()=>adj(1)} style={{width:26,height:26,background:"none",border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:MUTED,cursor:"pointer",fontSize:14,lineHeight:1}}>+</button>
+      </div>
     );
   };
 
@@ -315,6 +338,7 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
           {day.rounds.map((r,ri)=>{
             const rMs=day.matches.filter(m=>(m.roundIdx??0)===ri);
             const isSingles=r.format==="Singles";
+            const isScramble=r.format==="Scramble";
             return (
               <div key={ri} style={{marginBottom:10}}>
                 {day.rounds.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:6}}>ROUND {ri+1} · {r.format}</div>}
@@ -327,14 +351,17 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
                     </div>
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5}}>
                       <span style={{fontSize:8,color:teamAColor,fontWeight:800,fontFamily:"monospace",width:10,flexShrink:0}}>A</span>
-                      <PSel di={di} matchId={m.id} field="player1a" team="A"/>
-                      {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" team="A"/>}
+                      <PSel di={di} matchId={m.id} field="player1a" team="A" isScramble={isScramble}/>
+                      {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" team="A" isScramble={isScramble}/>}
+                      {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={teamAColor}/>}
                     </div>
                     <div style={{display:"flex",gap:6,alignItems:"center"}}>
                       <span style={{fontSize:8,color:teamBColor,fontWeight:800,fontFamily:"monospace",width:10,flexShrink:0}}>B</span>
-                      <PSel di={di} matchId={m.id} field="player2a" team="B"/>
-                      {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" team="B"/>}
+                      <PSel di={di} matchId={m.id} field="player2a" team="B" isScramble={isScramble}/>
+                      {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" team="B" isScramble={isScramble}/>}
+                      {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={teamBColor}/>}
                     </div>
+                    {isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>Team HCP (lowest = 0)</div>}
                   </div>
                 ))}
                 <button onClick={()=>addMatch(di,ri)} style={{width:"100%",padding:"8px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>+ ADD MATCH</button>

@@ -36,12 +36,12 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   });
 
   const holeHcp = course.hcp[hole], holePar = course.par[hole];
-  // Scramble: 2-person team plays one ball; use USGA team handicap lower×0.35 + higher×0.15
+  // Scramble: one score per team; hcp1a/hcp2a store the manually-set team handicaps
   const isScramble = match.format === "Scramble";
   const oneScorePerSide = isSingles || isScramble;
-  const scrambleTeamHcp = (ha, hb) => Math.round(Math.min(ha,hb) * 0.35 + Math.max(ha,hb) * 0.15);
-  const hcpA = isScramble && match.player1b ? scrambleTeamHcp(match.hcp1a||0, match.hcp1b||0) : match.hcp1a||0;
-  const hcpB = isScramble && match.player2b ? scrambleTeamHcp(match.hcp2a||0, match.hcp2b||0) : match.hcp2a||0;
+  // hcpA/hcpB: effective handicap per side (already normalized lowest=0 at data entry time)
+  const hcpA = match.hcp1a || 0;
+  const hcpB = match.hcp2a || 0;
   const net1a = netScore(sc.p1a, hcpA, holeHcp);
   const net1b = oneScorePerSide ? 99 : netScore(sc.p1b, match.hcp1b || 0, holeHcp);
   const net2a = netScore(sc.p2a, hcpB, holeHcp);
