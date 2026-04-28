@@ -1034,6 +1034,30 @@ export default function CupView({ user }) {
                 );
               })()}
 
+              {/* Team Colors */}
+              <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>TEAM COLORS</div>
+                {[
+                  {label:meta.teamAName,colorKey:"teamAColor",current:meta.teamAColor||"#C8102E"},
+                  {label:meta.teamBName,colorKey:"teamBColor",current:meta.teamBColor||"#003087"},
+                ].map(({label,colorKey,current})=>(
+                  <div key={colorKey} style={{marginBottom:12}}>
+                    <div style={{fontSize:10,color:MUTED,marginBottom:6,fontWeight:700}}>{label}</div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+                      {["#C8102E","#E53935","#1565C0","#003087","#1B5E20","#2E7D32","#E65100","#F57F17","#4A148C","#880E4F","#006064","#212121"].map(color=>(
+                        <button key={color} onClick={async()=>await update(ref(db,`cups/${cupId}/meta`),{[colorKey]:color})}
+                          style={{width:32,height:32,background:color,border:current===color?`3px solid ${GOLD}`:"3px solid transparent",borderRadius:8,cursor:"pointer",flexShrink:0}}/>
+                      ))}
+                      <label style={{display:"flex",alignItems:"center",gap:4,cursor:"pointer",fontSize:10,color:MUTED}}>
+                        <input type="color" value={current} onChange={async e=>await update(ref(db,`cups/${cupId}/meta`),{[colorKey]:e.target.value})}
+                          style={{width:32,height:32,border:"none",background:"none",cursor:"pointer",padding:0,borderRadius:8}}/>
+                        custom
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Admin sections grid */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
                 <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>MANAGE CUP</div>

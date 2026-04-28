@@ -36,9 +36,14 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   });
 
   const holeHcp = course.hcp[hole], holePar = course.par[hole];
-  const net1a = netScore(sc.p1a, match.hcp1a || 0, holeHcp);
+  // For scramble with 2-person teams, use USGA team handicap: lower×0.35 + higher×0.15
+  const isScramble = match.format === "Scramble";
+  const scrambleTeamHcp = (ha, hb) => Math.round(Math.min(ha,hb) * 0.35 + Math.max(ha,hb) * 0.15);
+  const hcpA = isScramble && match.player1b ? scrambleTeamHcp(match.hcp1a||0, match.hcp1b||0) : match.hcp1a||0;
+  const hcpB = isScramble && match.player2b ? scrambleTeamHcp(match.hcp2a||0, match.hcp2b||0) : match.hcp2a||0;
+  const net1a = netScore(sc.p1a, hcpA, holeHcp);
   const net1b = isSingles ? 99 : netScore(sc.p1b, match.hcp1b || 0, holeHcp);
-  const net2a = netScore(sc.p2a, match.hcp2a || 0, holeHcp);
+  const net2a = netScore(sc.p2a, hcpB, holeHcp);
   const net2b = isSingles ? 99 : netScore(sc.p2b, match.hcp2b || 0, holeHcp);
   const teamANet = isSingles ? net1a : Math.min(net1a, net1b);
   const teamBNet = isSingles ? net2a : Math.min(net2a, net2b);
@@ -87,12 +92,17 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   const runAbs = Math.abs(runLead);
   const runLeader = runLead > 0 ? "A" : runLead < 0 ? "B" : null;
 
-  const strokeEntries = [
-    { name: match.player1a, hcp: match.hcp1a || 0 },
-    ...(!isSingles ? [{ name: match.player1b, hcp: match.hcp1b || 0 }] : []),
-    { name: match.player2a, hcp: match.hcp2a || 0 },
-    ...(!isSingles ? [{ name: match.player2b, hcp: match.hcp2b || 0 }] : []),
-  ].map(p => { let s = holeHcp <= p.hcp ? 1 : 0; if (p.hcp > 18 && holeHcp <= p.hcp - 18) s++; return { ...p, strokes: s }; }).filter(e => e.strokes > 0);
+  const strokeEntries = isScramble
+    ? [
+        ...((() => { let s = holeHcp <= hcpA ? 1 : 0; if (hcpA > 18 && holeHcp <= hcpA-18) s++; return s > 0 ? [{ name: match.player1b ? `${match.player1a} & ${match.player1b}` : match.player1a, hcp: hcpA, strokes: s }] : []; })()),
+        ...((() => { let s = holeHcp <= hcpB ? 1 : 0; if (hcpB > 18 && holeHcp <= hcpB-18) s++; return s > 0 ? [{ name: match.player2b ? `${match.player2a} & ${match.player2b}` : match.player2a, hcp: hcpB, strokes: s }] : []; })()),
+      ]
+    : [
+        { name: match.player1a, hcp: match.hcp1a || 0 },
+        ...(!isSingles ? [{ name: match.player1b, hcp: match.hcp1b || 0 }] : []),
+        { name: match.player2a, hcp: match.hcp2a || 0 },
+        ...(!isSingles ? [{ name: match.player2b, hcp: match.hcp2b || 0 }] : []),
+      ].map(p => { let s = holeHcp <= p.hcp ? 1 : 0; if (p.hcp > 18 && holeHcp <= p.hcp - 18) s++; return { ...p, strokes: s }; }).filter(e => e.strokes > 0);
 
   return (
     <div style={{ position: "fixed", inset: 0, background: BG, zIndex: 200, display: "flex", flexDirection: "column", overflowY: "auto" }}>
