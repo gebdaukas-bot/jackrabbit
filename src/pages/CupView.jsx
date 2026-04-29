@@ -292,7 +292,19 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
 
   const removeMatch = (di, matchId) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.filter(m=>m.id!==matchId)}));
 
-  const handleSave = async () => { setSaving(true); await onSave(days); setSaving(false); onBack(); };
+  const handleSave = async () => {
+    setSaving(true);
+    const rounded = days.map(d=>({...d,matches:d.matches.map(m=>({
+      ...m,
+      hcp1a:Math.round(parseFloat(m.hcp1a)||0),
+      hcp1b:Math.round(parseFloat(m.hcp1b)||0),
+      hcp2a:Math.round(parseFloat(m.hcp2a)||0),
+      hcp2b:Math.round(parseFloat(m.hcp2b)||0),
+    }))}));
+    await onSave(rounded);
+    setSaving(false);
+    onBack();
+  };
 
   const PSel = ({di,matchId,field,team,isScramble})=>{
     const m=days[di].matches.find(x=>x.id===matchId);
@@ -318,13 +330,28 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
 
   const HcpStepper = ({di,matchId,field,color})=>{
     const m=days[di].matches.find(x=>x.id===matchId);
-    const val=m?.[field]||0;
-    const adj=(d)=>setDays(ds=>ds.map((day,i)=>i!==di?day:{...day,matches:day.matches.map(mx=>mx.id!==matchId?mx:{...mx,[field]:Math.max(0,val+d)})}));
+    const raw=m?.[field];
+    const display=raw===undefined||raw===""?"":raw;
+    const setVal=(v)=>setDays(ds=>ds.map((day,i)=>i!==di?day:{...day,matches:day.matches.map(mx=>mx.id!==matchId?mx:{...mx,[field]:v})}));
+    const adj=(d)=>{
+      const cur=parseFloat(raw)||0;
+      const next=Math.max(0,Math.round((cur+d)*10)/10);
+      setVal(next);
+    };
     return (
       <div style={{display:"flex",alignItems:"center",gap:0}}>
-        <button onClick={()=>adj(-1)} style={{width:26,height:26,background:"none",border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:MUTED,cursor:"pointer",fontSize:14,lineHeight:1}}>−</button>
-        <div style={{width:34,height:26,background:CARD2,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:color,fontFamily:"monospace"}}>{val}</div>
-        <button onClick={()=>adj(1)} style={{width:26,height:26,background:"none",border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:MUTED,cursor:"pointer",fontSize:14,lineHeight:1}}>+</button>
+        <button onClick={()=>adj(-0.1)} style={{width:22,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:MUTED,cursor:"pointer",fontSize:12,lineHeight:1}}>−</button>
+        <input
+          type="number" inputMode="decimal" step="0.1" min="0"
+          value={display}
+          onChange={e=>setVal(e.target.value)}
+          onBlur={e=>{
+            const n=parseFloat(e.target.value);
+            if(isNaN(n)) setVal(0); else setVal(Math.round(n*10)/10);
+          }}
+          style={{width:44,height:28,background:CARD2,border:`1px solid ${BORDER}`,borderLeft:"none",borderRight:"none",textAlign:"center",fontSize:12,fontWeight:800,color,fontFamily:"monospace",outline:"none",MozAppearance:"textfield"}}
+        />
+        <button onClick={()=>adj(0.1)} style={{width:22,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:MUTED,cursor:"pointer",fontSize:12,lineHeight:1}}>+</button>
       </div>
     );
   };
@@ -352,16 +379,21 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5}}>
                       <span style={{fontSize:8,color:teamAColor,fontWeight:800,fontFamily:"monospace",width:10,flexShrink:0}}>A</span>
                       <PSel di={di} matchId={m.id} field="player1a" team="A" isScramble={isScramble}/>
+                      {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={teamAColor}/>}
                       {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" team="A" isScramble={isScramble}/>}
+                      {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1b" color={teamAColor}/>}
                       {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={teamAColor}/>}
                     </div>
                     <div style={{display:"flex",gap:6,alignItems:"center"}}>
                       <span style={{fontSize:8,color:teamBColor,fontWeight:800,fontFamily:"monospace",width:10,flexShrink:0}}>B</span>
                       <PSel di={di} matchId={m.id} field="player2a" team="B" isScramble={isScramble}/>
+                      {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={teamBColor}/>}
                       {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" team="B" isScramble={isScramble}/>}
+                      {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2b" color={teamBColor}/>}
                       {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={teamBColor}/>}
                     </div>
                     {isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>Team HCP (lowest = 0)</div>}
+                    {!isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>HCP · lowest = 0</div>}
                   </div>
                 ))}
                 <button onClick={()=>addMatch(di,ri)} style={{width:"100%",padding:"8px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>+ ADD MATCH</button>
