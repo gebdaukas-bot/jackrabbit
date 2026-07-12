@@ -458,6 +458,41 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
   );
 }
 
+function AdminAdmins({ allPlayers, initAdminPlayers, onSave, onBack }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  const [adminPlayers, setAdminPlayers] = useState(initAdminPlayers || []);
+  const [saving, setSaving] = useState(false);
+
+  const toggle = (name) =>
+    setAdminPlayers(prev => prev.includes(name) ? prev.filter(n=>n!==name) : [...prev, name]);
+
+  const handleSave = async () => { setSaving(true); await onSave(adminPlayers); setSaving(false); onBack(); };
+
+  return (
+    <div>
+      <AdminHeader title="Admin Access" onBack={onBack} onSave={handleSave} saving={saving}/>
+      <div style={{fontSize:12,color:MUTED,marginBottom:16,lineHeight:1.5}}>
+        Players with admin can edit matchups, scores, courses, and settings.
+      </div>
+      {allPlayers.length === 0 && (
+        <div style={{fontSize:12,color:MUTED,fontFamily:"monospace",padding:"8px 0"}}>No players found. Add players first.</div>
+      )}
+      {allPlayers.map(name => {
+        const isOn = adminPlayers.includes(name);
+        return (
+          <div key={name} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
+            <div style={{fontSize:13,color:TEXT,fontWeight:600}}>{name}</div>
+            <button onClick={()=>toggle(name)}
+              style={{padding:"5px 16px",background:isOn?GOLD:"none",border:`1px solid ${isOn?GOLD:BORDER}`,borderRadius:8,color:isOn?"#000":MUTED,fontSize:11,fontWeight:800,cursor:"pointer",fontFamily:"monospace"}}>
+              {isOn?"ADMIN":"player"}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function AdminScores({ days, onOpenMatch, onBack }) {
   const { CARD2, BORDER, TEXT, MUTED } = useTheme();
   return (
@@ -648,6 +683,10 @@ export default function CupView({ user }) {
     for (const id of existingIds) {
       if (!newIds.has(id)) await set(ref(db,`cups/${cupId}/matches/${id}`),null);
     }
+  };
+
+  const saveAdminAdmins = async (adminPlayers) => {
+    await set(ref(db,`cups/${cupId}/meta/adminPlayers`), adminPlayers.length > 0 ? adminPlayers : null);
   };
 
   const updateMatch = async (dayIdx,upd)=>{
@@ -1179,6 +1218,7 @@ export default function CupView({ user }) {
                     {label:"Rounds",icon:"📅",key:"rounds"},
                     {label:"Matchups",icon:"🤝",key:"matchups"},
                     {label:"Scores",icon:"✏️",key:"scores"},
+                    {label:"Admins",icon:"🔐",key:"admins"},
                   ].map(({label,icon,key})=>(
                     <button key={key} onClick={()=>setAdminSection(key)}
                       style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"14px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:12,color:TEXT,fontSize:12,fontWeight:600,cursor:"pointer",textAlign:"center"}}>
@@ -1222,6 +1262,13 @@ export default function CupView({ user }) {
             {adminSection==="matchups"&&(
               <AdminMatchups initDays={days} cupPlayers={cupPlayers} teamAColor={cup.teamAColor} teamBColor={cup.teamBColor}
                 onSave={saveAdminMatchups} onBack={()=>setAdminSection(null)}/>
+            )}
+            {adminSection==="admins"&&(
+              <AdminAdmins
+                allPlayers={uniquePlayers}
+                initAdminPlayers={meta.adminPlayers||[]}
+                onSave={saveAdminAdmins}
+                onBack={()=>setAdminSection(null)}/>
             )}
             {adminSection==="scores"&&(
               <AdminScores days={days} onBack={()=>setAdminSection(null)}
