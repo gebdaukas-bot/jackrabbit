@@ -1117,7 +1117,7 @@ function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, 
 }
 
 // ── Admin Section ─────────────────────────────────────────────────────────────
-function AdminSection({ days }) {
+function AdminSection({ days, courseSettings }) {
   const [confirmReset, setConfirmReset] = useState(null);
   const [pairings, setPairings] = useState(() => {
     const d2 = {}; days[1].matches.forEach(m=>{ d2[m.id]={player1a:m.player1a,player1b:m.player1b,player2a:m.player2a,player2b:m.player2b}; });
@@ -1125,6 +1125,29 @@ function AdminSection({ days }) {
     return {d2,d3};
   });
   const [pairingSaved, setPairingSaved] = useState(false);
+
+  // Course settings editor
+  const [courseVals, setCourseVals] = useState(() => {
+    const init = {};
+    Object.entries(COURSES).forEach(([key, c]) => {
+      init[key] = {
+        slope: courseSettings?.[key]?.slope ?? c.slope,
+        rating: courseSettings?.[key]?.rating ?? c.rating,
+      };
+    });
+    return init;
+  });
+  const [courseSaved, setCourseSaved] = useState(false);
+
+  const saveCourses = async () => {
+    await Promise.all(Object.entries(courseVals).map(([key, v]) =>
+      set(ref(db, `courseSettings/${key}`), { slope: v.slope, rating: v.rating })
+    ));
+    setCourseSaved(true); setTimeout(()=>setCourseSaved(false), 2000);
+  };
+
+  const setCourseField = (key, field, val) =>
+    setCourseVals(prev => ({ ...prev, [key]: { ...prev[key], [field]: val } }));
 
   const teamANames = ALL_PLAYERS.filter(p=>p.team==="A").map(p=>p.name);
   const teamBNames = ALL_PLAYERS.filter(p=>p.team==="B").map(p=>p.name);
@@ -1161,6 +1184,42 @@ function AdminSection({ days }) {
           </div>
         </div>
       )}
+
+      {/* COURSES */}
+      <div style={{marginBottom:22}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:2,fontFamily:"monospace"}}>COURSES</div>
+          <button onClick={saveCourses} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>
+            {courseSaved?"✓ SAVED":"SAVE"}
+          </button>
+        </div>
+        {Object.entries(COURSES).map(([key, c]) => {
+          const par = c.par.reduce((a,b)=>a+b,0);
+          const vals = courseVals[key] || {};
+          const numStyle = {padding:"5px 6px",background:BG,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:13,fontWeight:700,fontFamily:"monospace",textAlign:"center",width:"100%"};
+          return (
+            <div key={key} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
+              <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"monospace",marginBottom:8}}>{c.name}</div>
+              <div style={{display:"flex",gap:10,alignItems:"flex-end"}}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5,marginBottom:4}}>SLOPE RATING</div>
+                  <input type="number" value={vals.slope ?? c.slope} step="1" min="55" max="155"
+                    onChange={e=>setCourseField(key,"slope",Number(e.target.value))} style={numStyle}/>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5,marginBottom:4}}>COURSE RATING</div>
+                  <input type="number" value={vals.rating ?? c.rating} step="0.1" min="60" max="85"
+                    onChange={e=>setCourseField(key,"rating",parseFloat(e.target.value)||vals.rating)} style={numStyle}/>
+                </div>
+                <div style={{textAlign:"center",paddingBottom:2}}>
+                  <div style={{fontSize:8,color:MUTED,fontFamily:"monospace"}}>PAR</div>
+                  <div style={{fontSize:14,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{par}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* DISPUTES */}
       <div style={{marginBottom:22}}>
@@ -1962,7 +2021,7 @@ export default function App() {
           </div>
         )}
 
-        {tab==="admin"&&isAdmin&&<AdminSection days={days}/>}
+        {tab==="admin"&&isAdmin&&<AdminSection days={days} courseSettings={courseSettings}/>}
 
         {tab==="leaderboard"&&(()=>{
           const lbDay = days[boardDayIdx];
