@@ -217,6 +217,24 @@ function AdminCourses({ initDays, onSave, onBack }) {
         <input value={course.name||""} onChange={e=>setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,name:e.target.value}})}))}
           style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
       </div>
+      <div style={{display:"flex",gap:10,marginBottom:12}}>
+        {[["slope","SLOPE RATING",55,155,1],["rating","COURSE RATING",60,85,0.1]].map(([field,label,mn,mx,step])=>(
+          <div key={field} style={{flex:1}}>
+            <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>{label}</div>
+            <input type="number" step={step} min={mn} max={mx}
+              value={course[field]??(field==="slope"?113:(course.par?.reduce((a,b)=>a+b,0)||72))}
+              onChange={e=>{
+                const v=parseFloat(e.target.value); if(isNaN(v)) return;
+                setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,[field]:v}})}));
+              }}
+              style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontWeight:700,fontFamily:"monospace"}}/>
+          </div>
+        ))}
+        <div style={{textAlign:"center",paddingTop:18}}>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>PAR</div>
+          <div style={{fontSize:15,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{course.par?.reduce((a,b)=>a+b,0)||"—"}</div>
+        </div>
+      </div>
       {["par","hcp"].map(field=>(
         <div key={field} style={{marginBottom:12}}>
           <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>{field==="par"?"PAR PER HOLE":"HANDICAP INDEX"}</div>
@@ -291,6 +309,32 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
   };
 
   const removeMatch = (di, matchId) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.filter(m=>m.id!==matchId)}));
+
+  const recalcHcps = (di, ri) => {
+    const round = days[di]?.rounds[ri];
+    const course = round?.course;
+    if (!course?.par?.length || !course.slope || !course.rating) return;
+    const par = course.par.reduce((a,b)=>a+b,0);
+    const toCh = idx => (Number(idx)||0) * (course.slope/113) + (course.rating - par);
+    const isSingles = round.format === "Singles";
+    const isScramble = round.format === "Scramble";
+    setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>{
+      if ((m.roundIdx??0)!==ri) return m;
+      const p1a=cupPlayers.find(p=>p.name===m.player1a), p1b=cupPlayers.find(p=>p.name===m.player1b);
+      const p2a=cupPlayers.find(p=>p.name===m.player2a), p2b=cupPlayers.find(p=>p.name===m.player2b);
+      const ch1a=toCh(p1a?.hcp||0), ch1b=toCh(p1b?.hcp||0);
+      const ch2a=toCh(p2a?.hcp||0), ch2b=toCh(p2b?.hcp||0);
+      if (isScramble && !isSingles) {
+        const tA=0.35*Math.min(ch1a,ch1b)+0.15*Math.max(ch1a,ch1b);
+        const tB=0.35*Math.min(ch2a,ch2b)+0.15*Math.max(ch2a,ch2b);
+        const adj=Math.min(tA,tB);
+        return {...m,hcp1a:Math.round(tA-adj),hcp1b:0,hcp2a:Math.round(tB-adj),hcp2b:0};
+      }
+      const all=isSingles?[ch1a,ch2a]:[ch1a,ch1b,ch2a,ch2b];
+      const adj=Math.min(...all);
+      return {...m,hcp1a:Math.round(ch1a-adj),hcp1b:isSingles?0:Math.round(ch1b-adj),hcp2a:Math.round(ch2a-adj),hcp2b:isSingles?0:Math.round(ch2b-adj)};
+    })}));
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -368,7 +412,15 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
             const isScramble=r.format==="Scramble";
             return (
               <div key={ri} style={{marginBottom:10}}>
-                {day.rounds.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:6}}>ROUND {ri+1} · {r.format}</div>}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  {day.rounds.length>1
+                    ? <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>ROUND {ri+1} · {r.format}</div>
+                    : <div/>}
+                  <button onClick={()=>recalcHcps(di,ri)}
+                    style={{padding:"4px 10px",background:"none",border:`1px solid ${GOLD}`,borderRadius:6,color:GOLD,fontSize:9,fontWeight:800,cursor:"pointer",fontFamily:"monospace",letterSpacing:0.5}}>
+                    ⟳ RECALC HCPs
+                  </button>
+                </div>
                 {rMs.map(m=>(
                   <div key={m.id} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:10,marginBottom:8}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -574,7 +626,7 @@ export default function CupView({ user }) {
       const d = editedDays[di];
       await set(ref(db,`cups/${cupId}/days/${di}`),{
         label:d.label,
-        rounds:d.rounds.map(r=>({format:r.format,course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[]}})),
+        rounds:d.rounds.map(r=>({format:r.format,course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72)}})),
       });
     }
   };
