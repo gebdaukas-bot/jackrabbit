@@ -814,11 +814,8 @@ export default function CupView({ user }) {
             <div style={{fontSize:13,color:MUTED,marginBottom:16,textAlign:"center"}}>Who are you?</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {uniquePlayers.map(name=>(
-                <button key={name} onClick={()=>{
-                  setCurrentPlayer(name);
-                  const pm=findPlayerMatch(days,name,autoDayIdx);
-                  if(pm){const d=days[pm.dayIdx];const m=d?.matches.find(x=>x.id===pm.matchId);if(m?.companionId)setActiveGroup({dayIdx:pm.dayIdx,matchIds:[pm.matchId,m.companionId]});else if(m)setActiveMatch(pm);}
-                }} style={{padding:"12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,color:TEXT,fontSize:14,fontWeight:600,cursor:"pointer",textAlign:"left"}}>
+                <button key={name} onClick={()=>setCurrentPlayer(name)}
+                  style={{padding:"12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,color:TEXT,fontSize:14,fontWeight:600,cursor:"pointer",textAlign:"left"}}>
                   {name}
                 </button>
               ))}
