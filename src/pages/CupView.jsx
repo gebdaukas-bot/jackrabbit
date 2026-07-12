@@ -768,9 +768,11 @@ export default function CupView({ user }) {
   }
 
   const cup = {
-    teamAName:meta.teamAName, teamAShort:meta.teamAName?.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,6)||"A",
+    teamAName:meta.teamAName,
+    teamAShort:meta.teamAShort||meta.teamAName?.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,6)||"A",
     teamAColor:meta.teamAColor||"#C8102E",
-    teamBName:meta.teamBName, teamBShort:meta.teamBName?.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,6)||"B",
+    teamBName:meta.teamBName,
+    teamBShort:meta.teamBShort||meta.teamBName?.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,6)||"B",
     teamBColor:meta.teamBColor||"#003087", teamBColorDisp:meta.teamBColor||"#4A90D9",
   };
 
@@ -1194,6 +1196,28 @@ export default function CupView({ user }) {
               {/* Cup Settings */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
                 <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>CUP SETTINGS</div>
+                {[
+                  {nameKey:"teamAName",shortKey:"teamAShort",color:cup.teamAColor,currentName:meta.teamAName||"",currentShort:meta.teamAShort||""},
+                  {nameKey:"teamBName",shortKey:"teamBShort",color:cup.teamBColor,currentName:meta.teamBName||"",currentShort:meta.teamBShort||""},
+                ].map(({nameKey,shortKey,color,currentName,currentShort})=>(
+                  <div key={nameKey} style={{marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${BORDER}`}}>
+                    <div style={{width:12,height:12,borderRadius:"50%",background:color,display:"inline-block",marginBottom:8}}/>
+                    <div style={{display:"flex",gap:8}}>
+                      <div style={{flex:2}}>
+                        <div style={{fontSize:10,color:MUTED,marginBottom:4,fontWeight:700}}>FULL NAME</div>
+                        <input defaultValue={currentName}
+                          onBlur={async e=>await update(ref(db,`cups/${cupId}/meta`),{[nameKey]:e.target.value.trim()||currentName})}
+                          style={{width:"100%",padding:"7px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
+                      </div>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:10,color:MUTED,marginBottom:4,fontWeight:700}}>NICKNAME</div>
+                        <input defaultValue={currentShort} maxLength={8} placeholder="auto"
+                          onBlur={async e=>await update(ref(db,`cups/${cupId}/meta`),{[shortKey]:e.target.value.trim()||null})}
+                          style={{width:"100%",padding:"7px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"monospace",fontWeight:700}}/>
+                      </div>
+                    </div>
+                  </div>
+                ))}
                 <div style={{marginBottom:16}}>
                   <div style={{fontSize:10,color:MUTED,marginBottom:6,fontWeight:700}}>FIRST ROUND DATE</div>
                   <div style={{fontSize:11,color:MUTED,marginBottom:8,lineHeight:1.4}}>Day 1 of the cup. The app uses this to show the right day's scoreboard automatically.</div>
