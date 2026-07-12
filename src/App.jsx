@@ -15,6 +15,34 @@ let TEXT   = _T.text;
 let MUTED  = _T.muted;
 let MUTED2 = _T.muted2;
 
+const fmtHcp = v => { const n = Number(v) || 0; return n < 0 ? `+${Math.abs(n).toFixed(1)}` : n.toFixed(1); };
+
+function calcPlayingHcps(idxVals, course, format, isSingles) {
+  const par = course.par.reduce((a,b)=>a+b, 0);
+  const toCourseHcp = idx => (Number(idx)||0) * (course.slope / 113) + (course.rating - par);
+  const ch1a = toCourseHcp(idxVals.idx1a);
+  const ch1b = toCourseHcp(idxVals.idx1b);
+  const ch2a = toCourseHcp(idxVals.idx2a);
+  const ch2b = toCourseHcp(idxVals.idx2b);
+
+  if (format === "Scramble" && !isSingles) {
+    const teamA = 0.35 * Math.min(ch1a, ch1b) + 0.15 * Math.max(ch1a, ch1b);
+    const teamB = 0.35 * Math.min(ch2a, ch2b) + 0.15 * Math.max(ch2a, ch2b);
+    const adj = Math.min(teamA, teamB);
+    return { hcp1a: Math.round(teamA - adj), hcp1b: 0, hcp2a: Math.round(teamB - adj), hcp2b: 0,
+             courseHcps: { ch1a, ch1b, ch2a, ch2b }, teamA, teamB };
+  }
+  const all = isSingles ? [ch1a, ch2a] : [ch1a, ch1b, ch2a, ch2b];
+  const adj = Math.min(...all);
+  return {
+    hcp1a: Math.round(ch1a - adj),
+    hcp1b: isSingles ? 0 : Math.round(ch1b - adj),
+    hcp2a: Math.round(ch2a - adj),
+    hcp2b: isSingles ? 0 : Math.round(ch2b - adj),
+    courseHcps: { ch1a, ch1b, ch2a, ch2b },
+  };
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TEAM_A       = "GABBY'S INTERNS";
 const TEAM_A_SHORT = "INTERNS";
@@ -28,16 +56,19 @@ const GOLD         = "#C4A44A";
 const COURSES = {
   day1: {
     name: "The Links Course",
+    slope: 130, rating: 71.5,
     par: [5,4,4,3,5,4,4,3,4, 4,4,3,4,5,4,3,4,3],
     hcp: [11,13,5,17,7,3,9,15,1, 12,10,16,2,14,8,18,6,4],
   },
   day2: {
     name: "Wild Dunes — Harbor Course",
+    slope: 125, rating: 70.2,
     par: [5,4,3,4,3,4,3,5,5, 4,3,4,3,5,4,3,4,4],
     hcp: [5,3,17,1,13,11,15,7,9, 10,18,6,14,12,8,16,2,4],
   },
   day3: {
     name: "Charleston National",
+    slope: 128, rating: 72.0,
     par: [4,3,4,4,5,4,3,4,5, 5,4,5,4,3,4,3,4,3],
     hcp: [3,17,5,11,13,15,9,1,7, 10,2,12,4,14,8,18,6,16],
   },
@@ -340,7 +371,7 @@ function ScoreInput({ label, hcp, value, onChange, color, labelColor, par, strok
       <div style={{fontSize:11,fontWeight:700,color:labelColor||color,fontFamily:"monospace",textAlign:"center",maxWidth:90,lineHeight:1.2}}>
         {labelColor ? `${"★".repeat(strokes)} ${label}` : label}
       </div>
-      {hcp>0&&<div style={{fontSize:9,color:GOLD,fontFamily:"monospace"}}>HCP {hcp}</div>}
+      {hcp>0&&<div style={{fontSize:9,color:GOLD,fontFamily:"monospace"}}>HCP {fmtHcp(hcp)}</div>}
       <div style={{display:"flex",alignItems:"center",gap:0}}>
         <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"#8aa",cursor:"pointer"}}>−</button>
         <div style={{width:52,height:52,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -358,30 +389,99 @@ function ScoreInput({ label, hcp, value, onChange, color, labelColor, par, strok
 }
 
 // ── HCP Modal ─────────────────────────────────────────────────────────────────
-function HcpModal({ match, isSingles, onSave, onClose }) {
-  const [vals,setVals]=useState({hcp1a:match.hcp1a||0,hcp1b:match.hcp1b||0,hcp2a:match.hcp2a||0,hcp2b:match.hcp2b||0});
-  const Row=({label,field,color})=>(
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
-      <div style={{fontSize:13,fontWeight:700,color}}>{label}</div>
-      <div style={{display:"flex",alignItems:"center"}}>
-        <button onClick={()=>setVals(v=>({...v,[field]:Math.max(0,v[field]-1)}))} style={{width:32,height:34,fontSize:18,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:"#8aa",cursor:"pointer"}}>−</button>
-        <div style={{width:44,height:34,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>{vals[field]}</div>
-        <button onClick={()=>setVals(v=>({...v,[field]:Math.min(36,v[field]+1)}))} style={{width:32,height:34,fontSize:18,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:"#8aa",cursor:"pointer"}}>+</button>
+function HcpModal({ match, isSingles, course, format, playerIndexes, onSave, onClose }) {
+  const [idxVals, setIdxVals] = useState({
+    idx1a: playerIndexes?.[match.player1a] ?? match.idx1a ?? 0,
+    idx1b: playerIndexes?.[match.player1b] ?? match.idx1b ?? 0,
+    idx2a: playerIndexes?.[match.player2a] ?? match.idx2a ?? 0,
+    idx2b: playerIndexes?.[match.player2b] ?? match.idx2b ?? 0,
+  });
+
+  const computed = course
+    ? calcPlayingHcps(idxVals, course, format, isSingles)
+    : { hcp1a: match.hcp1a||0, hcp1b: match.hcp1b||0, hcp2a: match.hcp2a||0, hcp2b: match.hcp2b||0, courseHcps: {} };
+
+  const adjIdx = (field, delta) =>
+    setIdxVals(v => ({ ...v, [field]: Math.round(Math.max(-10, Math.min(36, v[field] + delta)) * 10) / 10 }));
+
+  const handleSave = async () => {
+    if (course) {
+      const writes = [
+        set(ref(db, `players/${match.player1a}/index`), idxVals.idx1a),
+        set(ref(db, `players/${match.player2a}/index`), idxVals.idx2a),
+      ];
+      if (!isSingles) {
+        writes.push(set(ref(db, `players/${match.player1b}/index`), idxVals.idx1b));
+        writes.push(set(ref(db, `players/${match.player2b}/index`), idxVals.idx2b));
+      }
+      await Promise.all(writes);
+    }
+    onSave({ hcp1a: computed.hcp1a, hcp1b: computed.hcp1b, hcp2a: computed.hcp2a, hcp2b: computed.hcp2b });
+  };
+
+  const ch = computed.courseHcps || {};
+  const isScramble = format === "Scramble" && !isSingles;
+
+  const PlayerRow = ({ label, idxField, chVal, finalHcp, color }) => (
+    <div style={{padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
+      <div style={{fontSize:12,fontWeight:700,color,marginBottom:6}}>{label}</div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+        <div style={{display:"flex",flexDirection:"column",gap:2}}>
+          <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>HANDICAP INDEX</div>
+          <div style={{display:"flex",alignItems:"center"}}>
+            <button onClick={()=>adjIdx(idxField,-0.1)} style={{width:30,height:32,fontSize:17,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:"#8aa",cursor:"pointer"}}>−</button>
+            <div style={{width:52,height:32,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>{fmtHcp(idxVals[idxField])}</div>
+            <button onClick={()=>adjIdx(idxField,0.1)} style={{width:30,height:32,fontSize:17,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:"#8aa",cursor:"pointer"}}>+</button>
+          </div>
+        </div>
+        {course && (
+          <div style={{display:"flex",gap:10}}>
+            <div style={{textAlign:"center"}}>
+              <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>COURSE HCP</div>
+              <div style={{fontSize:13,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{chVal !== undefined ? fmtHcp(Math.round(chVal*10)/10) : "—"}</div>
+            </div>
+            {!isScramble && (
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>PLAYING HCP</div>
+                <div style={{fontSize:13,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>{finalHcp}</div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
+
   return (
     <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:20,width:"100%",maxWidth:340}}>
-        <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:4,letterSpacing:1,fontFamily:"monospace"}}>SET HANDICAPS</div>
-        <div style={{fontSize:11,color:"#446",marginBottom:14}}>Strokes given on lowest handicap index holes first</div>
-        <Row label={match.player1a} field="hcp1a" color={TEAM_A_COLOR}/>
-        {!isSingles&&<Row label={match.player1b} field="hcp1b" color={TEAM_A_COLOR}/>}
-        <Row label={match.player2a} field="hcp2a" color={TEAM_B_DISP}/>
-        {!isSingles&&<Row label={match.player2b} field="hcp2b" color={TEAM_B_DISP}/>}
+      <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:20,width:"100%",maxWidth:360,maxHeight:"90vh",overflowY:"auto"}}>
+        <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:2,letterSpacing:1,fontFamily:"monospace"}}>SET HANDICAPS</div>
+        {course && <div style={{fontSize:9,color:MUTED,marginBottom:4,fontFamily:"monospace"}}>{course.name} · Slope {course.slope} · Rating {course.rating}</div>}
+        <div style={{fontSize:10,color:"#446",marginBottom:12}}>Strokes given on lowest handicap index holes first</div>
+        <PlayerRow label={match.player1a} idxField="idx1a" chVal={ch.ch1a} finalHcp={computed.hcp1a} color={TEAM_A_COLOR}/>
+        {!isSingles && <PlayerRow label={match.player1b} idxField="idx1b" chVal={ch.ch1b} finalHcp={computed.hcp1b} color={TEAM_A_COLOR}/>}
+        <PlayerRow label={match.player2a} idxField="idx2a" chVal={ch.ch2a} finalHcp={computed.hcp2a} color={TEAM_B_DISP}/>
+        {!isSingles && <PlayerRow label={match.player2b} idxField="idx2b" chVal={ch.ch2b} finalHcp={computed.hcp2b} color={TEAM_B_DISP}/>}
+        {isScramble && course && (
+          <div style={{padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
+            <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",marginBottom:6}}>SCRAMBLE TEAM HANDICAP (0.35 lower + 0.15 higher)</div>
+            <div style={{display:"flex",justifyContent:"space-between"}}>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:9,color:TEAM_A_COLOR,fontFamily:"monospace",fontWeight:700}}>TEAM A</div>
+                <div style={{fontSize:13,color:TEXT,fontFamily:"monospace"}}>{fmtHcp(Math.round((computed.teamA||0)*10)/10)}</div>
+                <div style={{fontSize:11,color:GOLD,fontFamily:"monospace",fontWeight:900}}>→ plays {computed.hcp1a}</div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:9,color:TEAM_B_DISP,fontFamily:"monospace",fontWeight:700}}>TEAM B</div>
+                <div style={{fontSize:13,color:TEXT,fontFamily:"monospace"}}>{fmtHcp(Math.round((computed.teamB||0)*10)/10)}</div>
+                <div style={{fontSize:11,color:GOLD,fontFamily:"monospace",fontWeight:900}}>→ plays {computed.hcp2a}</div>
+              </div>
+            </div>
+          </div>
+        )}
         <div style={{display:"flex",gap:10,marginTop:16}}>
           <button onClick={onClose} style={{flex:1,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#668",fontSize:12,cursor:"pointer"}}>Cancel</button>
-          <button onClick={()=>onSave(vals)} style={{flex:2,padding:"10px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}44)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:10,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer"}}>SAVE</button>
+          <button onClick={handleSave} style={{flex:2,padding:"10px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}44)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:10,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer"}}>SAVE</button>
         </div>
       </div>
     </div>
@@ -648,7 +748,7 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
 }
 
 // ── Hole Entry ────────────────────────────────────────────────────────────────
-function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
+function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, onSave, onClose }) {
   const course = COURSES[courseKey];
   const status = computeMatchStatus(match.scores);
   const [hole,setHole] = useState(status.holesPlayed<18?status.holesPlayed:17);
@@ -751,7 +851,7 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
 
   return (
     <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
-      {showHcp&&<HcpModal match={match} isSingles={isSingles} onSave={v=>{onSave({...match,...v});setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
+      {showHcp&&<HcpModal match={match} isSingles={isSingles} course={course} format={format} playerIndexes={playerIndexes} onSave={v=>{onSave({...match,...v});setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
       {showEndEarly&&(
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
@@ -880,7 +980,7 @@ function HoleEntry({ match, isSingles, courseKey, onSave, onClose }) {
 }
 
 // ── Admin Match Editor ────────────────────────────────────────────────────────
-function AdminMatchEditor({ match, isSingles, courseKey, onSave, onClose }) {
+function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, onSave, onClose }) {
   const course = COURSES[courseKey];
   const [gross, setGross] = useState(() => Array.from({length:18}, (_,i) => ({
     p1a: (Array.isArray(match.grossP1a) && match.grossP1a[i] != null) ? match.grossP1a[i] : course.par[i],
@@ -935,7 +1035,7 @@ function AdminMatchEditor({ match, isSingles, courseKey, onSave, onClose }) {
 
   return (
     <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
-      {showHcp&&<HcpModal match={{...match,...hcpVals}} isSingles={isSingles} onSave={v=>{setHcpVals(v);setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
+      {showHcp&&<HcpModal match={{...match,...hcpVals}} isSingles={isSingles} course={course} format={format} playerIndexes={playerIndexes} onSave={v=>{setHcpVals(v);setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
       <style>{`*{box-sizing:border-box;margin:0;padding:0}`}</style>
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10,flexShrink:0}}>
         <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:MUTED,padding:"5px 10px",cursor:"pointer",fontSize:11}}>← Back</button>
@@ -1155,7 +1255,7 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
         <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
           {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
-          {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace"}}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
+          {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace"}}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
         </div>
         <div style={{background:badgeBg,width:64,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"4px",flexShrink:0}}>
           {badgeTop&&<div style={{fontSize:7,fontWeight:800,color:aWin||bWin?"#FFD700":"#ffffffbb",fontFamily:"monospace",letterSpacing:0.5}}>{badgeTop}</div>}
@@ -1164,7 +1264,7 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
         <div style={{flex:1,background:bBg,padding:"10px 10px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2a}</div>
           {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2b}</div>}
-          {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace",textAlign:"right"}}>HCP {match.hcp2a||0}{!isSingles&&match.hcp2b?`/${match.hcp2b}`:""}</div>}
+          {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace",textAlign:"right"}}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
         </div>
       </div>
     );
@@ -1178,13 +1278,13 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
       <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
         <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
         {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
-        {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace"}}>HCP {match.hcp1a||0}{!isSingles&&match.hcp1b?`/${match.hcp1b}`:""}</div>}
+        {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace"}}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
       </div>
       {/* Team B — names right-pinned */}
       <div style={{flex:1,background:bBg,padding:"10px 10px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
         <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2a}</div>
         {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2b}</div>}
-        {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace",textAlign:"right"}}>HCP {match.hcp2a||0}{!isSingles&&match.hcp2b?`/${match.hcp2b}`:""}</div>}
+        {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace",textAlign:"right"}}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
       </div>
       {/* Badge — absolutely centred, then shifted 25% toward leading team */}
       <div style={{
@@ -1237,6 +1337,7 @@ export default function App() {
   const [offlineQueue, setOfflineQueue] = useState(()=>{ try{return JSON.parse(localStorage.getItem("jr_offline_queue")||"[]");}catch{return [];} });
   const [syncStatus, setSyncStatus] = useState(null);
   const [matchCelebration, setMatchCelebration] = useState(null);
+  const [playerIndexes, setPlayerIndexes] = useState({});
   const isSaving = useRef(false);
   const dirtyMatchIds = useRef(new Set()); // match IDs with unconfirmed local writes
   const prevWinnerRef = useRef(null);
@@ -1307,6 +1408,18 @@ export default function App() {
           })
         };
       }));
+    });
+    return ()=> unsub();
+  }, []);
+
+  // ── Firebase: subscribe to player handicap indexes ──
+  useEffect(()=>{
+    const unsub = onValue(ref(db,"players"), snapshot=>{
+      const data = snapshot.val();
+      if (!data) return;
+      const idxs = {};
+      Object.entries(data).forEach(([name, pd]) => { if (pd?.index !== undefined) idxs[name] = pd.index; });
+      setPlayerIndexes(idxs);
     });
     return ()=> unsub();
   }, []);
@@ -1467,7 +1580,7 @@ export default function App() {
   if (adminEditMatch) {
     const d=days[adminEditMatch.dayIdx];
     const m=d.matches.find(x=>x.id===adminEditMatch.matchId);
-    return <AdminMatchEditor match={m} isSingles={!m.player1b} courseKey={d.courseKey}
+    return <AdminMatchEditor match={m} isSingles={!m.player1b} courseKey={d.courseKey} format={d.format} playerIndexes={playerIndexes}
       onSave={upd=>{updateMatch(adminEditMatch.dayIdx,upd);setAdminEditMatch(null);}}
       onClose={()=>setAdminEditMatch(null)}/>;
   }
@@ -1498,7 +1611,7 @@ export default function App() {
         />;
       }
     }
-    return <HoleEntry match={m} isSingles={!m.player1b} courseKey={d.courseKey} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+    return <HoleEntry match={m} isSingles={!m.player1b} courseKey={d.courseKey} format={d.format} playerIndexes={playerIndexes} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
   }
 
   const playerInfo = ALL_PLAYERS.find(p=>p.name===currentPlayer);
