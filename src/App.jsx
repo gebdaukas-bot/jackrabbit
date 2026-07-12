@@ -389,7 +389,10 @@ function ScoreInput({ label, hcp, value, onChange, color, labelColor, par, strok
 }
 
 // ── HCP Modal ─────────────────────────────────────────────────────────────────
-function HcpModal({ match, isSingles, course, format, playerIndexes, onSave, onClose }) {
+function HcpModal({ match, isSingles, course, courseKey, format, playerIndexes, onSave, onClose }) {
+  const par = course?.par?.reduce((a,b)=>a+b,0) ?? 72;
+  const [slope, setSlope] = useState(course?.slope ?? 113);
+  const [rating, setRating] = useState(course?.rating ?? par);
   const [idxVals, setIdxVals] = useState({
     idx1a: playerIndexes?.[match.player1a] ?? match.idx1a ?? 0,
     idx1b: playerIndexes?.[match.player1b] ?? match.idx1b ?? 0,
@@ -397,30 +400,31 @@ function HcpModal({ match, isSingles, course, format, playerIndexes, onSave, onC
     idx2b: playerIndexes?.[match.player2b] ?? match.idx2b ?? 0,
   });
 
-  const computed = course
-    ? calcPlayingHcps(idxVals, course, format, isSingles)
+  const effectiveCourse = course ? { ...course, slope, rating } : null;
+  const computed = effectiveCourse
+    ? calcPlayingHcps(idxVals, effectiveCourse, format, isSingles)
     : { hcp1a: match.hcp1a||0, hcp1b: match.hcp1b||0, hcp2a: match.hcp2a||0, hcp2b: match.hcp2b||0, courseHcps: {} };
 
   const adjIdx = (field, delta) =>
     setIdxVals(v => ({ ...v, [field]: Math.round(Math.max(-10, Math.min(36, v[field] + delta)) * 10) / 10 }));
 
   const handleSave = async () => {
-    if (course) {
-      const writes = [
-        set(ref(db, `players/${match.player1a}/index`), idxVals.idx1a),
-        set(ref(db, `players/${match.player2a}/index`), idxVals.idx2a),
-      ];
-      if (!isSingles) {
-        writes.push(set(ref(db, `players/${match.player1b}/index`), idxVals.idx1b));
-        writes.push(set(ref(db, `players/${match.player2b}/index`), idxVals.idx2b));
-      }
-      await Promise.all(writes);
+    const writes = [
+      set(ref(db, `players/${match.player1a}/index`), idxVals.idx1a),
+      set(ref(db, `players/${match.player2a}/index`), idxVals.idx2a),
+    ];
+    if (!isSingles) {
+      writes.push(set(ref(db, `players/${match.player1b}/index`), idxVals.idx1b));
+      writes.push(set(ref(db, `players/${match.player2b}/index`), idxVals.idx2b));
     }
+    if (courseKey) writes.push(set(ref(db, `courseSettings/${courseKey}`), { slope, rating }));
+    await Promise.all(writes);
     onSave({ hcp1a: computed.hcp1a, hcp1b: computed.hcp1b, hcp2a: computed.hcp2a, hcp2b: computed.hcp2b });
   };
 
   const ch = computed.courseHcps || {};
   const isScramble = format === "Scramble" && !isSingles;
+  const numInput = {padding:"5px 6px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:13,fontWeight:700,fontFamily:"monospace",textAlign:"center",width:"100%"};
 
   const PlayerRow = ({ label, idxField, chVal, finalHcp, color }) => (
     <div style={{padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
@@ -434,7 +438,7 @@ function HcpModal({ match, isSingles, course, format, playerIndexes, onSave, onC
             <button onClick={()=>adjIdx(idxField,0.1)} style={{width:30,height:32,fontSize:17,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:"#8aa",cursor:"pointer"}}>+</button>
           </div>
         </div>
-        {course && (
+        {effectiveCourse && (
           <div style={{display:"flex",gap:10}}>
             <div style={{textAlign:"center"}}>
               <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>COURSE HCP</div>
@@ -455,14 +459,37 @@ function HcpModal({ match, isSingles, course, format, playerIndexes, onSave, onC
   return (
     <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:20,width:"100%",maxWidth:360,maxHeight:"90vh",overflowY:"auto"}}>
-        <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:2,letterSpacing:1,fontFamily:"monospace"}}>SET HANDICAPS</div>
-        {course && <div style={{fontSize:9,color:MUTED,marginBottom:4,fontFamily:"monospace"}}>{course.name} · Slope {course.slope} · Rating {course.rating}</div>}
+        <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:10,letterSpacing:1,fontFamily:"monospace"}}>SET HANDICAPS</div>
+
+        {/* Editable course slope / rating */}
+        {course && (
+          <div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:12}}>
+            <div style={{fontSize:9,color:MUTED2,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{course.name}</div>
+            <div style={{display:"flex",gap:10,alignItems:"flex-end"}}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5,marginBottom:4}}>SLOPE RATING</div>
+                <input type="number" value={slope} step="1" min="55" max="155"
+                  onChange={e=>setSlope(Number(e.target.value))} style={numInput}/>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5,marginBottom:4}}>COURSE RATING</div>
+                <input type="number" value={rating} step="0.1" min="60" max="85"
+                  onChange={e=>setRating(parseFloat(e.target.value)||rating)} style={numInput}/>
+              </div>
+              <div style={{textAlign:"center",paddingBottom:2}}>
+                <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>PAR</div>
+                <div style={{fontSize:14,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{par}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div style={{fontSize:10,color:"#446",marginBottom:12}}>Strokes given on lowest handicap index holes first</div>
         <PlayerRow label={match.player1a} idxField="idx1a" chVal={ch.ch1a} finalHcp={computed.hcp1a} color={TEAM_A_COLOR}/>
         {!isSingles && <PlayerRow label={match.player1b} idxField="idx1b" chVal={ch.ch1b} finalHcp={computed.hcp1b} color={TEAM_A_COLOR}/>}
         <PlayerRow label={match.player2a} idxField="idx2a" chVal={ch.ch2a} finalHcp={computed.hcp2a} color={TEAM_B_DISP}/>
         {!isSingles && <PlayerRow label={match.player2b} idxField="idx2b" chVal={ch.ch2b} finalHcp={computed.hcp2b} color={TEAM_B_DISP}/>}
-        {isScramble && course && (
+        {isScramble && effectiveCourse && (
           <div style={{padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
             <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",marginBottom:6}}>SCRAMBLE TEAM HANDICAP (0.35 lower + 0.15 higher)</div>
             <div style={{display:"flex",justifyContent:"space-between"}}>
@@ -748,8 +775,8 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
 }
 
 // ── Hole Entry ────────────────────────────────────────────────────────────────
-function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, onSave, onClose }) {
-  const course = COURSES[courseKey];
+function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effectiveCourse, onSave, onClose }) {
+  const course = effectiveCourse || COURSES[courseKey];
   const status = computeMatchStatus(match.scores);
   const [hole,setHole] = useState(status.holesPlayed<18?status.holesPlayed:17);
   const [showHcp,setShowHcp] = useState(false);
@@ -851,7 +878,7 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, onSave,
 
   return (
     <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
-      {showHcp&&<HcpModal match={match} isSingles={isSingles} course={course} format={format} playerIndexes={playerIndexes} onSave={v=>{onSave({...match,...v});setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
+      {showHcp&&<HcpModal match={match} isSingles={isSingles} course={course} courseKey={courseKey} format={format} playerIndexes={playerIndexes} onSave={v=>{onSave({...match,...v});setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
       {showEndEarly&&(
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
@@ -980,8 +1007,8 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, onSave,
 }
 
 // ── Admin Match Editor ────────────────────────────────────────────────────────
-function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, onSave, onClose }) {
-  const course = COURSES[courseKey];
+function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, effectiveCourse, onSave, onClose }) {
+  const course = effectiveCourse || COURSES[courseKey];
   const [gross, setGross] = useState(() => Array.from({length:18}, (_,i) => ({
     p1a: (Array.isArray(match.grossP1a) && match.grossP1a[i] != null) ? match.grossP1a[i] : course.par[i],
     p1b: (Array.isArray(match.grossP1b) && match.grossP1b[i] != null) ? match.grossP1b[i] : course.par[i],
@@ -1035,7 +1062,7 @@ function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, 
 
   return (
     <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
-      {showHcp&&<HcpModal match={{...match,...hcpVals}} isSingles={isSingles} course={course} format={format} playerIndexes={playerIndexes} onSave={v=>{setHcpVals(v);setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
+      {showHcp&&<HcpModal match={{...match,...hcpVals}} isSingles={isSingles} course={course} courseKey={courseKey} format={format} playerIndexes={playerIndexes} onSave={v=>{setHcpVals(v);setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
       <style>{`*{box-sizing:border-box;margin:0;padding:0}`}</style>
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10,flexShrink:0}}>
         <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:MUTED,padding:"5px 10px",cursor:"pointer",fontSize:11}}>← Back</button>
@@ -1338,6 +1365,7 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState(null);
   const [matchCelebration, setMatchCelebration] = useState(null);
   const [playerIndexes, setPlayerIndexes] = useState({});
+  const [courseSettings, setCourseSettings] = useState({});
   const isSaving = useRef(false);
   const dirtyMatchIds = useRef(new Set()); // match IDs with unconfirmed local writes
   const prevWinnerRef = useRef(null);
@@ -1408,6 +1436,14 @@ export default function App() {
           })
         };
       }));
+    });
+    return ()=> unsub();
+  }, []);
+
+  // ── Firebase: subscribe to course slope/rating overrides ──
+  useEffect(()=>{
+    const unsub = onValue(ref(db,"courseSettings"), snapshot=>{
+      setCourseSettings(snapshot.val() || {});
     });
     return ()=> unsub();
   }, []);
@@ -1581,6 +1617,7 @@ export default function App() {
     const d=days[adminEditMatch.dayIdx];
     const m=d.matches.find(x=>x.id===adminEditMatch.matchId);
     return <AdminMatchEditor match={m} isSingles={!m.player1b} courseKey={d.courseKey} format={d.format} playerIndexes={playerIndexes}
+      effectiveCourse={{...COURSES[d.courseKey],...courseSettings[d.courseKey]}}
       onSave={upd=>{updateMatch(adminEditMatch.dayIdx,upd);setAdminEditMatch(null);}}
       onClose={()=>setAdminEditMatch(null)}/>;
   }
@@ -1611,7 +1648,9 @@ export default function App() {
         />;
       }
     }
-    return <HoleEntry match={m} isSingles={!m.player1b} courseKey={d.courseKey} format={d.format} playerIndexes={playerIndexes} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+    return <HoleEntry match={m} isSingles={!m.player1b} courseKey={d.courseKey} format={d.format} playerIndexes={playerIndexes}
+      effectiveCourse={{...COURSES[d.courseKey],...courseSettings[d.courseKey]}}
+      onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
   }
 
   const playerInfo = ALL_PLAYERS.find(p=>p.name===currentPlayer);
