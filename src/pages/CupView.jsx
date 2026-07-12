@@ -75,7 +75,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
             {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
           </div>}
-          {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:8,color:GOLD,fontFamily:"monospace",marginTop:1}}>Team ({fmtHcp(match.hcp1a||0)})</div>}
+          {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:GOLD,fontFamily:"monospace",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
         </div>
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"#ffffffbb", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
@@ -91,7 +91,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
             {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
             <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
           </div>}
-          {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:8,color:GOLD,fontFamily:"monospace",marginTop:1,textAlign:"right"}}>Team ({fmtHcp(match.hcp2a||0)})</div>}
+          {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:GOLD,fontFamily:"monospace",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
         </div>
       </div>
     );
@@ -109,7 +109,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
           {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
         </div>}
-        {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:8,color:GOLD,fontFamily:"monospace",marginTop:1}}>Team ({fmtHcp(match.hcp1a||0)})</div>}
+        {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:GOLD,fontFamily:"monospace",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
       </div>
       <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
@@ -120,7 +120,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
           {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
         </div>}
-        {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:8,color:GOLD,fontFamily:"monospace",marginTop:1,textAlign:"right"}}>Team ({fmtHcp(match.hcp2a||0)})</div>}
+        {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:GOLD,fontFamily:"monospace",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
       </div>
       <div style={{ position:"absolute", top:"50%", left:aLeading?"25%":bLeading?"75%":"50%", transform:"translate(-50%,-50%)", zIndex:2, pointerEvents:"none" }}>
         {liveBadge}
@@ -900,7 +900,7 @@ export default function CupView({ user }) {
   if (activeMatch){
     const d=days[activeMatch.dayIdx]; const m=d?.matches.find(x=>x.id===activeMatch.matchId);
     if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion)return <GroupHoleEntry matches={[m,companion]} course={getCourse(d,m)} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;}
-    if (m) return <HoleEntry match={m} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+    if (m) { const format=d?.rounds?.[m.roundIdx??0]?.format||""; return <HoleEntry match={{...m,format}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>; }
   }
 
   const playerTeamColor=(()=>{ for(const d of days)for(const m of d.matches){if([m.player1a,m.player1b].includes(currentPlayer))return cup.teamAColor;if([m.player2a,m.player2b].includes(currentPlayer))return cup.teamBColor;} return MUTED; })();
