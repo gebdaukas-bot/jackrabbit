@@ -151,7 +151,8 @@ function DayBlock({ day, cup, onOpen, canEdit }) {
       )}
       {/* Rounds */}
       {rounds.map((round, ri)=>{
-        const roundMatches = day.matches.filter(m=>(m.roundIdx??0)===ri);
+        const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};
+        const roundMatches = [...day.matches.filter(m=>(m.roundIdx??0)===ri)].sort((a,b)=>toMin(a.teeTime)-toMin(b.teeTime));
         return (
           <div key={ri}>
             {multiRound && (
