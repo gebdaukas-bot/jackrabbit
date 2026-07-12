@@ -67,9 +67,15 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
     return (
       <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
         <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
-          <div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1a}</div>
-          {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1b}</div>}
-          {((match.hcp1a||0)!==0||(match.hcp1b||0)!==0)&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace" }}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
+          <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
+            <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
+            {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
+          </div>
+          {!isSingles&&<div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
+            <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
+            {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
+          </div>}
+          {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:8,color:GOLD,fontFamily:"monospace",marginTop:1}}>Team ({fmtHcp(match.hcp1a||0)})</div>}
         </div>
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"#ffffffbb", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
@@ -77,9 +83,15 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
           {isScramble&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"monospace", marginTop:1, letterSpacing:0.5 }}>SCRAMBLE</div>}
         </div>
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
-          <div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2a}</div>
-          {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2b}</div>}
-          {((match.hcp2a||0)!==0||(match.hcp2b||0)!==0)&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace", textAlign:"right" }}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
+            {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
+            <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
+          </div>
+          {!isSingles&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
+            {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
+            <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
+          </div>}
+          {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:8,color:GOLD,fontFamily:"monospace",marginTop:1,textAlign:"right"}}>Team ({fmtHcp(match.hcp2a||0)})</div>}
         </div>
       </div>
     );
@@ -89,14 +101,26 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
   return (
     <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ position:"relative", display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, overflow:"hidden", opacity:canEdit?1:0.85 }}>
       <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
-        <div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1a}</div>
-        {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:aNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{match.player1b}</div>}
-        {((match.hcp1a||0)!==0||(match.hcp1b||0)!==0)&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace" }}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
+        <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
+          <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
+          {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
+        </div>
+        {!isSingles&&<div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
+          <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
+          {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
+        </div>}
+        {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:8,color:GOLD,fontFamily:"monospace",marginTop:1}}>Team ({fmtHcp(match.hcp1a||0)})</div>}
       </div>
       <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
-        <div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2a}</div>
-        {!isSingles&&<div style={{ fontSize:12, fontWeight:800, color:bNameColor, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right", width:"100%" }}>{match.player2b}</div>}
-        {((match.hcp2a||0)!==0||(match.hcp2b||0)!==0)&&<div style={{ fontSize:7, color:GOLD, marginTop:2, fontFamily:"monospace", textAlign:"right" }}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
+          {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
+          <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
+        </div>
+        {!isSingles&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
+          {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
+          <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
+        </div>}
+        {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:8,color:GOLD,fontFamily:"monospace",marginTop:1,textAlign:"right"}}>Team ({fmtHcp(match.hcp2a||0)})</div>}
       </div>
       <div style={{ position:"absolute", top:"50%", left:aLeading?"25%":bLeading?"75%":"50%", transform:"translate(-50%,-50%)", zIndex:2, pointerEvents:"none" }}>
         {liveBadge}
@@ -1005,7 +1029,7 @@ export default function CupView({ user }) {
               return (
                 <div>
                   <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,opacity:0.7}}>HOLE BY HOLE</div>
-                  {boardDay.matches.map(m=>{
+                  {[...boardDay.matches].sort((a,b)=>{const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
                     const isSingles=!m.player1b;
                     const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort);
                     const course=getCourse(boardDay,m);
@@ -1040,15 +1064,10 @@ export default function CupView({ user }) {
                     };
                     return (
                       <div key={m.id} style={{marginBottom:14,background:CARD,borderRadius:10,border:`1px solid ${stColor}44`,overflow:"hidden"}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
-                          <div>
-                            <div style={{fontSize:11,fontWeight:700,color:cup.teamAColor}}>{isSingles?m.player1a:`${m.player1a} & ${m.player1b}`}</div>
-                            <div style={{fontSize:8,color:cup.teamAColor,opacity:0.6,fontFamily:"monospace"}}>{cup.teamAShort}</div>
-                          </div>
-                          <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",textAlign:"center",flex:1,padding:"0 8px"}}>{st.longLabel}{st.sublabel?` · ${st.sublabel}`:""}</div>
-                          <div style={{textAlign:"right"}}>
-                            <div style={{fontSize:11,fontWeight:700,color:cup.teamBColorDisp}}>{isSingles?m.player2a:`${m.player2a} & ${m.player2b}`}</div>
-                            <div style={{fontSize:8,color:cup.teamBColorDisp,opacity:0.6,fontFamily:"monospace"}}>{cup.teamBShort}</div>
+                        <div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"6px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`,gap:8}}>
+                          <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",textAlign:"center"}}>{st.longLabel}{st.sublabel?` · ${st.sublabel}`:""}</div>
+                          <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",textAlign:"center"}}>
+                            {m.teeTime?`${m.teeTime} · `:""}{`Match ${mi+1}`}
                           </div>
                         </div>
                         <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
