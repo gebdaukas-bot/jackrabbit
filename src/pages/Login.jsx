@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { auth, googleProvider } from "../firebase";
-import { signInWithPopup, signInWithRedirect } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 
 const GOLD = "#C4A44A";
 
@@ -25,17 +25,10 @@ export default function Login() {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      if (err.code === "auth/popup-blocked" || err.code === "auth/popup-cancelled-by-user") {
-        try {
-          await signInWithRedirect(auth, googleProvider);
-        } catch (e) {
-          setError(e.message);
-          setLoading(false);
-        }
-      } else {
+      if (err.code !== "auth/popup-cancelled-by-user" && err.code !== "auth/cancelled-popup-request") {
         setError(err.code + ": " + err.message);
-        setLoading(false);
       }
+      setLoading(false);
     }
   };
 
