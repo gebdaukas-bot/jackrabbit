@@ -12,6 +12,7 @@ export default function Home({ user }) {
   const [joinCode, setJoinCode] = useState("");
   const [joinError, setJoinError] = useState("");
   const [joining, setJoining] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -26,6 +27,11 @@ export default function Home({ user }) {
     });
     return () => unsub();
   }, [user]);
+
+  const handleDelete = async (cupId) => {
+    await set(ref(db, `users/${user.uid}/cups/${cupId}`), null);
+    setConfirmDelete(null);
+  };
 
   const handleJoin = async () => {
     if (!joinCode.trim()) return;
@@ -110,25 +116,40 @@ export default function Home({ user }) {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {cups.map(cup => (
-              <button key={cup.id} onClick={() => nav(`/cup/${cup.id}`)} style={{ width: "100%", textAlign: "left", background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
-                  {cup.eventType === "live_match" && (
-                    <span style={{ fontSize:9, fontWeight:800, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, background:"#4A90D922", border:"1px solid #4A90D944", borderRadius:4, padding:"1px 5px" }}>⚡ MATCH</span>
-                  )}
-                  <div style={{ fontSize: 15, fontWeight: 800, color: TEXT }}>{cup.name}</div>
-                </div>
-                <div style={{ fontSize: 11, color: MUTED }}>
-                  {cup.eventType === "live_match" ? (
-                    <span style={{ color: MUTED }}>{cup.teamAName} vs {cup.teamBName}</span>
-                  ) : (
-                    <>
-                      <span style={{ color: "#C8102E", fontWeight: 700 }}>{cup.teamAName}</span>
-                      <span style={{ color: MUTED }}> vs </span>
-                      <span style={{ color: "#4A90D9", fontWeight: 700 }}>{cup.teamBName}</span>
-                    </>
-                  )}
-                </div>
-              </button>
+              <div key={cup.id} style={{ position: "relative" }}>
+                {confirmDelete === cup.id ? (
+                  <div style={{ background: "rgba(8,20,43,0.95)", border: `1px solid #e74c3c`, borderRadius: 14, padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                    <div style={{ fontSize: 12, color: "#e74c3c", fontWeight: 700 }}>Remove "{cup.name}" from your list?</div>
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                      <button onClick={() => setConfirmDelete(null)} style={{ padding: "6px 12px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, color: MUTED, fontSize: 12, cursor: "pointer" }}>Cancel</button>
+                      <button onClick={() => handleDelete(cup.id)} style={{ padding: "6px 12px", background: "#e74c3c", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Remove</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <button onClick={() => nav(`/cup/${cup.id}`)} style={{ width: "100%", textAlign: "left", background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+                        {cup.eventType === "live_match" && (
+                          <span style={{ fontSize:9, fontWeight:800, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, background:"#4A90D922", border:"1px solid #4A90D944", borderRadius:4, padding:"1px 5px" }}>⚡ MATCH</span>
+                        )}
+                        <div style={{ fontSize: 15, fontWeight: 800, color: TEXT }}>{cup.name}</div>
+                      </div>
+                      <div style={{ fontSize: 11, color: MUTED }}>
+                        {cup.eventType === "live_match" ? (
+                          <span style={{ color: MUTED }}>{cup.teamAName} vs {cup.teamBName}</span>
+                        ) : (
+                          <>
+                            <span style={{ color: "#C8102E", fontWeight: 700 }}>{cup.teamAName}</span>
+                            <span style={{ color: MUTED }}> vs </span>
+                            <span style={{ color: "#4A90D9", fontWeight: 700 }}>{cup.teamBName}</span>
+                          </>
+                        )}
+                      </div>
+                    </button>
+                    <button onClick={e => { e.stopPropagation(); setConfirmDelete(cup.id); }} style={{ position: "absolute", top: 10, right: 10, background: "none", border: "none", color: MUTED, fontSize: 16, cursor: "pointer", lineHeight: 1, padding: "2px 6px" }}>×</button>
+                  </>
+                )}
+              </div>
             ))}
           </div>
         )}

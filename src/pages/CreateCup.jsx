@@ -88,11 +88,26 @@ function Step2({ data, setData }) {
   });
 
   const pasteList = () => {
-    const names = pasteText.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
-    if (!names.length) return;
-    setData(d => ({ ...d, players:[...d.players, ...names.map(name=>({ name, team:pasteTeam, hcp:0 }))] }));
+    const lines = pasteText.split(/\n/).map(s=>s.trim()).filter(Boolean);
+    if (!lines.length) return;
+    const parsed = lines.map(line => {
+      const m = line.match(/^(.*?)[\s,\t]+([+-]?\d+\.?\d*)$/);
+      if (m) {
+        const name = m[1].trim();
+        const hcp = Math.round(Math.min(36, Math.max(-10, parseFloat(m[2]))) * 10) / 10;
+        if (name) return { name, team: pasteTeam, hcp };
+      }
+      return { name: line.trim(), team: pasteTeam, hcp: 0 };
+    }).filter(p => p.name);
+    setData(d => ({ ...d, players:[...d.players, ...parsed] }));
     setPasteText("");
   };
+  const setPlayerHcp = (i, val) => setData(d => {
+    const players = [...d.players];
+    const n = parseFloat(val);
+    players[i] = {...players[i], hcp: isNaN(n) ? 0 : Math.round(Math.min(36, Math.max(-10, n)) * 10) / 10};
+    return {...d, players};
+  });
 
   return (
     <div>
@@ -110,7 +125,7 @@ function Step2({ data, setData }) {
           </button>
         </div>
         <textarea value={pasteText} onChange={e=>setPasteText(e.target.value)}
-          placeholder="Paste names, one per line…" rows={3}
+          placeholder={"Paste names, one per line…\nAdd handicap after name: 'Tiger Woods 8.4'"}  rows={3}
           style={{ width:"100%", padding:"8px 10px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", resize:"vertical", boxSizing:"border-box", fontFamily:"inherit" }}/>
       </div>
 
@@ -147,7 +162,11 @@ function Step2({ data, setData }) {
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                     <span style={{ fontSize:9, color:MUTED, fontFamily:"monospace" }}>HCP</span>
                     <button onClick={()=>adjustHcp(gi,-0.1)} style={{ width:24, height:26, background:"none", border:`1px solid ${BORDER}`, borderRadius:"4px 0 0 4px", color:MUTED, cursor:"pointer", fontSize:13, lineHeight:1 }}>−</button>
-                    <div style={{ width:48, height:26, background:"none", border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:GOLD, fontFamily:"monospace" }}>{p.hcp<0?`+${Math.abs(p.hcp).toFixed(1)}`:Number(p.hcp).toFixed(1)}</div>
+                    <input type="number" inputMode="decimal" step="0.1" min="-10" max="36"
+                      value={p.hcp}
+                      onChange={e=>setPlayerHcp(gi, e.target.value)}
+                      onBlur={e=>setPlayerHcp(gi, e.target.value)}
+                      style={{ width:52, height:26, background:"none", border:`1px solid ${BORDER}`, borderLeft:"none", borderRight:"none", color:GOLD, fontFamily:"monospace", fontSize:12, fontWeight:700, textAlign:"center", outline:"none", MozAppearance:"textfield" }}/>
                     <button onClick={()=>adjustHcp(gi,0.1)} style={{ width:24, height:26, background:"none", border:`1px solid ${BORDER}`, borderRadius:"0 4px 4px 0", color:MUTED, cursor:"pointer", fontSize:13, lineHeight:1 }}>+</button>
                     <button onClick={()=>removePlayer(gi)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:16, lineHeight:1, marginLeft:4 }}>×</button>
                   </div>
