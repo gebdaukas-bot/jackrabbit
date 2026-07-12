@@ -6,7 +6,7 @@ import { GOLD } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import LiveBackground from "../components/LiveBackground";
 
-const FORMATS   = ["2v2 Best Ball", "Singles"];
+const FORMATS   = ["2v2 Best Ball", "Singles", "Scramble"];
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
 const DEFAULT_HCP = [1,3,17,9,5,13,15,7,11, 2,18,8,4,16,12,6,14,10];
 const DAY_NAMES   = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];

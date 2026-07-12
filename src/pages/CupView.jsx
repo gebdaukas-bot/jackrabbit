@@ -253,7 +253,7 @@ function AdminRounds({ initDays, onSave, onBack }) {
             <div key={ri} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:12,marginBottom:8}}>
               {day.rounds.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:8}}>ROUND {ri+1}</div>}
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {["2v2 Best Ball","Singles"].map(f=>(
+                {["2v2 Best Ball","Singles","Scramble"].map(f=>(
                   <button key={f} onClick={()=>setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,rounds:d.rounds.map((x,j)=>j!==ri?x:{...x,format:f})}))}
                     style={{padding:"6px 12px",background:r.format===f?GOLD:"none",border:`1px solid ${r.format===f?GOLD:BORDER}`,borderRadius:6,color:r.format===f?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace",fontWeight:r.format===f?800:400}}>
                     {f}
