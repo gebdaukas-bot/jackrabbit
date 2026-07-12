@@ -9,7 +9,7 @@ import LiveBackground from "../components/LiveBackground";
 import confetti from "canvas-confetti";
 import { QRCodeSVG } from "qrcode.react";
 
-const fmtHcp = v => v < 0 ? `+${Math.abs(v)}` : `${v}`;
+const fmtHcp = v => { const n = Number(v) || 0; return n < 0 ? `+${Math.abs(n).toFixed(1)}` : n.toFixed(1); };
 
 function findPlayerMatch(days, playerName, preferDayIdx = null) {
   const order = preferDayIdx !== null
@@ -165,8 +165,8 @@ function AdminPlayers({ initPlayers, teamAColor, teamBColor, onSave, onBack }) {
   const { CARD2, BORDER, TEXT, MUTED } = useTheme();
   const [players, setPlayers] = useState(initPlayers.map(p=>({...p})));
   const [saving, setSaving] = useState(false);
-  const fmtH = v => v < 0 ? `+${Math.abs(v)}` : `${v}`;
-  const adj = (i, d) => setPlayers(ps=>ps.map((p,j)=>j===i?{...p,hcp:Math.min(36,Math.max(-10,p.hcp+d))}:p));
+  const fmtH = v => { const n = Number(v) || 0; return n < 0 ? `+${Math.abs(n).toFixed(1)}` : n.toFixed(1); };
+  const adj = (i, d) => setPlayers(ps=>ps.map((p,j)=>j===i?{...p,hcp:Math.round(Math.min(36,Math.max(-10,p.hcp+d))*10)/10}:p));
   const handleSave = async () => { setSaving(true); await onSave(players); setSaving(false); onBack(); };
   return (
     <div>
@@ -180,9 +180,9 @@ function AdminPlayers({ initPlayers, teamAColor, teamBColor, onSave, onBack }) {
             {p.team}
           </button>
           <div style={{display:"flex",flexShrink:0}}>
-            <button onClick={()=>adj(i,-1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"4px 0 0 4px",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>−</button>
-            <div style={{width:34,height:28,background:CARD2,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:GOLD,fontFamily:"monospace"}}>{fmtH(p.hcp)}</div>
-            <button onClick={()=>adj(i,1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"0 4px 4px 0",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>+</button>
+            <button onClick={()=>adj(i,-0.1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"4px 0 0 4px",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>−</button>
+            <div style={{width:48,height:28,background:CARD2,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:GOLD,fontFamily:"monospace"}}>{fmtH(p.hcp)}</div>
+            <button onClick={()=>adj(i,0.1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"0 4px 4px 0",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>+</button>
           </div>
           <button onClick={()=>setPlayers(ps=>ps.filter((_,j)=>j!==i))} style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:16,padding:"0 2px",flexShrink:0}}>×</button>
         </div>
@@ -296,10 +296,10 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
     setSaving(true);
     const rounded = days.map(d=>({...d,matches:d.matches.map(m=>({
       ...m,
-      hcp1a:Math.round(parseFloat(m.hcp1a)||0),
-      hcp1b:Math.round(parseFloat(m.hcp1b)||0),
-      hcp2a:Math.round(parseFloat(m.hcp2a)||0),
-      hcp2b:Math.round(parseFloat(m.hcp2b)||0),
+      hcp1a:Math.round((parseFloat(m.hcp1a)||0)*10)/10,
+      hcp1b:Math.round((parseFloat(m.hcp1b)||0)*10)/10,
+      hcp2a:Math.round((parseFloat(m.hcp2a)||0)*10)/10,
+      hcp2b:Math.round((parseFloat(m.hcp2b)||0)*10)/10,
     }))}));
     await onSave(rounded);
     setSaving(false);

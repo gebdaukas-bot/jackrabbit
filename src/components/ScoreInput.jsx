@@ -51,7 +51,7 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
       <div style={{fontSize:11,fontWeight:700,color:labelColor||color,fontFamily:"monospace",textAlign:"center",maxWidth:90,lineHeight:1.2}}>
         {labelColor ? `${"★".repeat(strokes)} ${label}` : label}
       </div>
-      {hcp > 0 && <div style={{fontSize:9,color:GOLD,fontFamily:"monospace"}}>HCP {hcp}</div>}
+      {hcp > 0 && <div style={{fontSize:9,color:GOLD,fontFamily:"monospace"}}>HCP {Number(hcp).toFixed(1)}</div>}
       <div style={{display:"flex",alignItems:"center",gap:0}}>
         <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"#8aa",cursor:"pointer"}}>−</button>
         <div style={{width:52,height:52,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
