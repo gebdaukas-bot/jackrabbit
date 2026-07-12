@@ -778,9 +778,19 @@ export default function CupView({ user }) {
   const allPlayers = days.flatMap(d=>d.matches.flatMap(m=>[m.player1a,m.player1b,m.player2a,m.player2b].filter(Boolean)));
   const uniquePlayers = cupPlayers.length>0 ? cupPlayers.map(p=>p.name) : [...new Set(allPlayers)];
 
-  const todayDow = new Date().getDay();
-  const dowToDay = {5:0,6:1,0:2};
-  let autoDayIdx = dowToDay[todayDow]!==undefined?dowToDay[todayDow]:-1;
+  let autoDayIdx = -1;
+  if (meta.startDate) {
+    const start = new Date(meta.startDate + "T12:00:00");
+    const today = new Date(); today.setHours(12,0,0,0);
+    const dayOffset = Math.round((today - start) / 86400000);
+    if (dayOffset >= 0 && dayOffset < days.length) autoDayIdx = dayOffset;
+    else if (dayOffset < 0) autoDayIdx = 0;
+    else autoDayIdx = days.length - 1;
+  } else {
+    const dowToDay = {5:0,6:1,0:2};
+    const dow = new Date().getDay();
+    autoDayIdx = dowToDay[dow]!==undefined ? dowToDay[dow] : -1;
+  }
   if (autoDayIdx===-1){let best=0;for(let i=0;i<days.length;i++)if(days[i].matches.some(m=>m.scores.some(s=>s!==null)))best=i;autoDayIdx=best;}
   const boardDayIdx = boardDayOverride!==null?boardDayOverride:autoDayIdx;
   const boardDay = days[boardDayIdx];
@@ -1181,8 +1191,15 @@ export default function CupView({ user }) {
                 );
               })()}
 
-              {/* Team Colors */}
+              {/* Cup Settings */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>CUP SETTINGS</div>
+                <div style={{marginBottom:16}}>
+                  <div style={{fontSize:10,color:MUTED,marginBottom:6,fontWeight:700}}>FIRST ROUND DATE</div>
+                  <div style={{fontSize:11,color:MUTED,marginBottom:8,lineHeight:1.4}}>Day 1 of the cup. The app uses this to show the right day's scoreboard automatically.</div>
+                  <input type="date" value={meta.startDate||""} onChange={async e=>await update(ref(db,`cups/${cupId}/meta`),{startDate:e.target.value||null})}
+                    style={{padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",width:"100%",boxSizing:"border-box"}}/>
+                </div>
                 <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>TEAM COLORS</div>
                 {[
                   {label:meta.teamAName,colorKey:"teamAColor",current:meta.teamAColor||"#C8102E"},
