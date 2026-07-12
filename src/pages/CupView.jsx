@@ -63,6 +63,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
     if (aWin)       { badgeBg=teamAColor;  badgeTop="WIN";    badgeBot=st.sublabel; }
     else if (bWin)  { badgeBg=teamBColor;  badgeTop="WIN";    badgeBot=st.sublabel; }
     else if (halved){ badgeBg="#334455";   badgeTop="HALVED"; badgeBot="½pt"; }
+    else if (match.teeTime){ badgeTop="TEE"; badgeBot=match.teeTime; }
     return (
       <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
         <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
@@ -295,10 +296,22 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
 
   const setField = (di, matchId, field, val) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.map(m=>{
     if (m.id!==matchId) return m;
+    if (!field.startsWith("player")) return {...m,[field]:val};
     const player=cupPlayers.find(p=>p.name===val);
     const hcpKey=field.replace("player","hcp");
     return {...m,[field]:val||"",[hcpKey]:player?.hcp||0};
   })}));
+
+  const moveMatch = (di, matchId, direction, ri) => setDays(ds=>ds.map((d,i)=>{
+    if (i!==di) return d;
+    const riIndices=d.matches.map((m,idx)=>((m.roundIdx??0)===ri?idx:-1)).filter(idx=>idx>=0);
+    const riMatchPos=riIndices.findIndex(idx=>d.matches[idx].id===matchId);
+    const targetRiPos=riMatchPos+direction;
+    if (targetRiPos<0||targetRiPos>=riIndices.length) return d;
+    const newMatches=[...d.matches];
+    [newMatches[riIndices[riMatchPos]],newMatches[riIndices[targetRiPos]]]=[newMatches[riIndices[targetRiPos]],newMatches[riIndices[riMatchPos]]];
+    return {...d,matches:newMatches};
+  }));
 
   const addMatch = (di, ri) => {
     const riMs = days[di].matches.filter(m=>m.roundIdx===ri);
@@ -421,11 +434,19 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
                     ⟳ RECALC HCPs
                   </button>
                 </div>
-                {rMs.map(m=>(
+                {rMs.map((m,mi)=>(
                   <div key={m.id} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:10,marginBottom:8}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                      <input value={m.teeTime||""} onChange={e=>setField(di,m.id,"teeTime",e.target.value)} placeholder="Tee time"
-                        style={{width:70,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"monospace"}}/>
+                      <div style={{display:"flex",alignItems:"center",gap:4}}>
+                        <input value={m.teeTime||""} onChange={e=>setField(di,m.id,"teeTime",e.target.value)} placeholder="Tee time"
+                          style={{width:70,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"monospace"}}/>
+                        <div style={{display:"flex",flexDirection:"column",gap:1}}>
+                          <button onClick={()=>moveMatch(di,m.id,-1,ri)} disabled={mi===0}
+                            style={{width:20,height:18,background:"none",border:`1px solid ${BORDER}`,borderRadius:3,color:mi===0?"#334":MUTED,cursor:mi===0?"default":"pointer",fontSize:9,lineHeight:1,padding:0}}>▲</button>
+                          <button onClick={()=>moveMatch(di,m.id,1,ri)} disabled={mi===rMs.length-1}
+                            style={{width:20,height:18,background:"none",border:`1px solid ${BORDER}`,borderRadius:3,color:mi===rMs.length-1?"#334":MUTED,cursor:mi===rMs.length-1?"default":"pointer",fontSize:9,lineHeight:1,padding:0}}>▼</button>
+                        </div>
+                      </div>
                       <button onClick={()=>removeMatch(di,m.id)} style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14}}>×</button>
                     </div>
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5}}>
