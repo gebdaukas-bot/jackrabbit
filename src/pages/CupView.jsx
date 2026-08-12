@@ -351,9 +351,11 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
   const recalcHcps = (di, ri) => {
     const round = days[di]?.rounds[ri];
     const course = round?.course;
-    if (!course?.par?.length || !course.slope || !course.rating) return;
+    if (!course?.par?.length) return;
     const par = course.par.reduce((a,b)=>a+b,0);
-    const toCh = idx => (Number(idx)||0) * (course.slope/113) + (course.rating - par);
+    const slope = course.slope || 113;
+    const rating = course.rating || par;
+    const toCh = idx => (Number(idx)||0) * (slope/113) + (rating - par);
     const isSingles = round.format === "Singles";
     const isScramble = round.format === "Scramble";
     setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>{
