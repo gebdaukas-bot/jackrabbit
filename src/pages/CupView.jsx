@@ -35,7 +35,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
   const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
   const isSingles = !match.player1b;
   const isScramble = match.format === "Scramble";
-  const st = computeMatchStatus(match.scores, teamAShort, teamBShort);
+  const st = computeMatchStatus(match.scores, teamAShort, teamBShort, match.startHole || 0);
 
   const aWin     = st.state==="complete" && st.leader==="A";
   const bWin     = st.state==="complete" && st.leader==="B";
@@ -467,6 +467,10 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
                       <div style={{display:"flex",alignItems:"center",gap:4}}>
                         <input value={m.teeTime||""} onChange={e=>setField(di,m.id,"teeTime",e.target.value)} placeholder="Tee time"
                           style={{width:70,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"monospace"}}/>
+                        <input type="number" min={1} max={18} value={(m.startHole||0)+1}
+                          onChange={e=>{const n=parseInt(e.target.value,10); setField(di,m.id,"startHole", isNaN(n)?0:Math.min(18,Math.max(1,n))-1);}}
+                          title="Starting hole (for shotgun/split starts — rest of the round follows in order from here)" placeholder="Hole 1"
+                          style={{width:44,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"monospace"}}/>
                         <div style={{display:"flex",flexDirection:"column",gap:1}}>
                           <button onClick={()=>moveMatch(di,m.id,-1,ri)} disabled={mi===0}
                             style={{width:20,height:18,background:"none",border:`1px solid ${BORDER}`,borderRadius:3,color:mi===0?"#334":MUTED,cursor:mi===0?"default":"pointer",fontSize:9,lineHeight:1,padding:0}}>▲</button>
@@ -777,11 +781,11 @@ export default function CupView({ user }) {
     : {actualA:0,actualB:0,projA:0,projB:0};
 
   const totalMatches = days.reduce((s,d)=>s+d.matches.length,0);
-  const doneMatches  = days.reduce((s,d)=>s+d.matches.filter(m=>["complete","halved"].includes(computeMatchStatus(m.scores).state)).length,0);
+  const doneMatches  = days.reduce((s,d)=>s+d.matches.filter(m=>["complete","halved"].includes(computeMatchStatus(m.scores,undefined,undefined,m.startHole||0).state)).length,0);
   const winTarget = totalMatches/2;
   const winner = actualA>winTarget?meta?.teamAName:actualB>winTarget?meta?.teamBName:null;
   const projWinner = !winner&&(projA>winTarget?meta?.teamAName:projB>winTarget?meta?.teamBName:null);
-  const liveCount = days.reduce((s,d)=>s+d.matches.filter(m=>computeMatchStatus(m.scores).state==="live").length,0);
+  const liveCount = days.reduce((s,d)=>s+d.matches.filter(m=>computeMatchStatus(m.scores,undefined,undefined,m.startHole||0).state==="live").length,0);
 
   useEffect(()=>{
     if (winner&&!prevWinnerRef.current&&!confettiFired.current){
@@ -795,7 +799,7 @@ export default function CupView({ user }) {
   useEffect(()=>{
     if (!meta) return;
     for (const day of days) for (const m of day.matches){
-      const s=computeMatchStatus(m.scores,meta.teamAName,meta.teamBName);
+      const s=computeMatchStatus(m.scores,meta.teamAName,meta.teamBName,m.startHole||0);
       const prev=prevMatchStates.current[m.id];
       if (prev!==undefined&&prev==="live"&&(s.state==="complete"||s.state==="halved")){
         const color=s.state==="halved"?"#334455":s.leader==="A"?meta.teamAColor:meta.teamBColor;
@@ -966,7 +970,7 @@ export default function CupView({ user }) {
         {/* Live match status bar */}
         {meta.eventType==="live_match"&&(()=>{
           const lm=days[0]?.matches[0];
-          const st=lm?computeMatchStatus(lm.scores,cup.teamAShort,cup.teamBShort):null;
+          const st=lm?computeMatchStatus(lm.scores,cup.teamAShort,cup.teamBShort,lm.startHole||0):null;
           return (
             <div style={{display:"flex",alignItems:"stretch"}}>
               <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",minWidth:0}}>
@@ -1034,11 +1038,22 @@ export default function CupView({ user }) {
                   <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,opacity:0.7}}>HOLE BY HOLE</div>
                   {[...boardDay.matches].sort((a,b)=>{const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
                     const isSingles=!m.player1b;
-                    const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort);
+                    const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0);
                     const course=getCourse(boardDay,m);
                     const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?cup.teamAColor:cup.teamBColor,halved:"#557",gap:"#e67e22"}[st.state];
+                    // Walk holes in this match's actual play order (shotgun/split starts don't
+                    // necessarily begin on hole 1), then place each running lead back on its
+                    // physical hole for the table below.
                     let lead=0;
-                    const runLeads=m.scores.map(s=>{if(s===null||s===undefined)return null;if(s==="A")lead++;else if(s==="B")lead--;return lead;});
+                    const trendStartHole=m.startHole||0;
+                    const runLeads=Array(18).fill(null);
+                    for(let k=0;k<18;k++){
+                      const i=(trendStartHole+k)%18;
+                      const s=m.scores[i];
+                      if(s===null||s===undefined)continue;
+                      if(s==="A")lead++;else if(s==="B")lead--;
+                      runLeads[i]=lead;
+                    }
                     const grossP1a=Array.isArray(m.grossP1a)?m.grossP1a:Array(18).fill(null);
                     const grossP1b=Array.isArray(m.grossP1b)?m.grossP1b:Array(18).fill(null);
                     const grossP2a=Array.isArray(m.grossP2a)?m.grossP2a:Array(18).fill(null);
@@ -1134,7 +1149,7 @@ export default function CupView({ user }) {
               const d=days[playerMatch.dayIdx];
               const m=d?.matches.find(x=>x.id===playerMatch.matchId);
               if (!m) return null;
-              const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort);
+              const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0);
               const companion=m.companionId?d.matches.find(x=>x.id===m.companionId):null;
               return (
                 <div>

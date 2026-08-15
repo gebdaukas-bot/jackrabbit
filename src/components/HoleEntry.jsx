@@ -8,8 +8,9 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   const { BG, CARD, CARD2, BORDER, TEXT, MUTED } = useTheme();
   const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
 
-  const status = computeMatchStatus(match.scores, teamAShort, teamBShort);
-  const [hole, setHole] = useState(status.holesPlayed < 18 ? status.holesPlayed : 17);
+  const startHole = match.startHole || 0; // 0-indexed hole this match tees off on (shotgun/split starts)
+  const status = computeMatchStatus(match.scores, teamAShort, teamBShort, startHole);
+  const [hole, setHole] = useState(status.holesPlayed < 18 ? (startHole + status.holesPlayed) % 18 : (startHole + 17) % 18);
   const [showHcp, setShowHcp] = useState(false);
   const [showEndEarly, setShowEndEarly] = useState(false);
   const [grossScores, setGrossScores] = useState(() =>
@@ -68,28 +69,34 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
       grossP2a: toArr(match.grossP2a, sc.p2a),
       grossP2b: isSingles ? match.grossP2b : toArr(match.grossP2b, sc.p2b),
     });
-    if (hole < 17) {
-      const nextPar = course.par[hole + 1];
-      setHole(h => h + 1);
-      setGrossScores(prev => { const next = [...prev]; next[hole + 1] = { p1a: nextPar, p1b: nextPar, p2a: nextPar, p2b: nextPar }; return next; });
+    const posInRotation = (hole - startHole + 18) % 18;
+    if (posInRotation < 17) {
+      const nextHole = (hole + 1) % 18;
+      const nextPar = course.par[nextHole];
+      setHole(nextHole);
+      setGrossScores(prev => { const next = [...prev]; next[nextHole] = { p1a: nextPar, p1b: nextPar, p2a: nextPar, p2b: nextPar }; return next; });
     }
   };
 
   const handleUndo = () => {
-    if (hole === 0) return;
-    const undoHole = hole - 1;
+    const posInRotation = (hole - startHole + 18) % 18;
+    if (posInRotation === 0) return;
+    const undoHole = (hole - 1 + 18) % 18;
     const ns = [...match.scores]; ns[undoHole] = null;
     const clearArr = (arr) => { const a = Array.isArray(arr) ? [...arr] : Array(18).fill(null); a[undoHole] = null; return a; };
     onSave({ ...match, scores: ns, grossP1a: clearArr(match.grossP1a), grossP1b: clearArr(match.grossP1b), grossP2a: clearArr(match.grossP2a), grossP2b: clearArr(match.grossP2b) });
-    setHole(h => h - 1);
+    setHole(undoHole);
     const prevPar = course.par[undoHole];
     setGrossScores(prev => { const next = [...prev]; next[undoHole] = { p1a: prevPar, p1b: prevPar, p2a: prevPar, p2b: prevPar }; return next; });
   };
 
-  const cur = computeMatchStatus(match.scores, teamAShort, teamBShort);
+  const cur = computeMatchStatus(match.scores, teamAShort, teamBShort, startHole);
   const isComplete = cur.state === "complete" || cur.state === "halved";
+  const posInRotation = (hole - startHole + 18) % 18; // count of holes completed before the current one, in this match's play order
+  const prevHole = (hole - 1 + 18) % 18;
+  const nextNeededHole = (startHole + cur.holesPlayed) % 18; // physical hole still needed to clear a "gap" state
   let runLead = 0;
-  for (let i = 0; i < hole; i++) { if (match.scores[i] === "A") runLead++; else if (match.scores[i] === "B") runLead--; }
+  for (let k = 0; k < posInRotation; k++) { const i = (startHole + k) % 18; if (match.scores[i] === "A") runLead++; else if (match.scores[i] === "B") runLead--; }
   const runAbs = Math.abs(runLead);
   const runLeader = runLead > 0 ? "A" : runLead < 0 ? "B" : null;
 
@@ -149,7 +156,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           <div style={{ background: runLeader === "A" ? teamAColor : runLeader === "B" ? teamBColor : "#1a2a44", minWidth: 68, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "6px 4px", borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}`, flexShrink: 0 }}>
             {cur.state === "pending" ? <div style={{ fontSize: 10, color: "#446", fontFamily: "monospace" }}>—</div>
             : cur.state === "complete" || cur.state === "halved" ? <><div style={{ fontSize: 8, color: "#FFD700", fontFamily: "monospace", fontWeight: 800, letterSpacing: 1 }}>FINAL</div><div style={{ fontSize: 12, fontWeight: 900, color: "#fff", fontFamily: "monospace" }}>{cur.sublabel || "HALVED"}</div></>
-            : <><div style={{ fontSize: 17, fontWeight: 900, color: "#fff", fontFamily: "monospace", lineHeight: 1 }}>{runLeader ? runAbs : "AS"}</div><div style={{ fontSize: 8, color: "#88aacc", fontFamily: "monospace", marginTop: 1 }}>{runLeader ? "UP" : "ALL SQ"}</div><div style={{ fontSize: 8, color: "#446", fontFamily: "monospace", marginTop: 2 }}>THRU {hole}</div></>}
+            : <><div style={{ fontSize: 17, fontWeight: 900, color: "#fff", fontFamily: "monospace", lineHeight: 1 }}>{runLeader ? runAbs : "AS"}</div><div style={{ fontSize: 8, color: "#88aacc", fontFamily: "monospace", marginTop: 1 }}>{runLeader ? "UP" : "ALL SQ"}</div><div style={{ fontSize: 8, color: "#446", fontFamily: "monospace", marginTop: 2 }}>THRU {posInRotation}</div></>}
           </div>
           <div style={{ flex: 1, background: runLeader === "B" ? teamBColor : "#111a2e", padding: "8px 10px", display: "flex", flexDirection: "column", alignItems: "flex-end", minWidth: 0 }}>
             <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "B" ? "#cce4ff" : teamBColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamBShort}</div>
@@ -193,9 +200,9 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           <div style={{ fontSize: 18 }}>⚠</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, fontWeight: 900, color: "#e67e22", fontFamily: "monospace", letterSpacing: 1 }}>MISSING SCORE</div>
-            <div style={{ fontSize: 10, color: "#e67e22bb", marginTop: 2 }}>Score from hole {cur.holesPlayed + 1} has not been recorded</div>
+            <div style={{ fontSize: 10, color: "#e67e22bb", marginTop: 2 }}>Score from hole {nextNeededHole + 1} has not been recorded</div>
           </div>
-          <button onClick={() => setHole(cur.holesPlayed)} style={{ flexShrink: 0, padding: "5px 10px", background: "#e67e2233", border: "1px solid #e67e22", borderRadius: 7, color: "#e67e22", fontSize: 10, cursor: "pointer", fontWeight: 800, fontFamily: "monospace" }}>GO →</button>
+          <button onClick={() => setHole(nextNeededHole)} style={{ flexShrink: 0, padding: "5px 10px", background: "#e67e2233", border: "1px solid #e67e22", borderRadius: 7, color: "#e67e22", fontSize: 10, cursor: "pointer", fontWeight: 800, fontFamily: "monospace" }}>GO →</button>
         </div>
       )}
 
@@ -232,11 +239,11 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           <div style={{ fontSize: 13, fontWeight: 800, color: hwColor }}>{hwLabel}</div>
         </div>
 
-        {cur.state === "gap" && hole !== cur.holesPlayed
-          ? <div style={{ width: "100%", padding: "15px", background: "#e67e2222", border: "1px solid #e67e2266", borderRadius: 14, color: "#e67e22", fontWeight: 900, fontSize: 13, textAlign: "center", fontFamily: "monospace", marginBottom: 8, letterSpacing: 1 }}>⚠ ENTER HOLE {cur.holesPlayed + 1} FIRST</div>
+        {cur.state === "gap" && hole !== nextNeededHole
+          ? <div style={{ width: "100%", padding: "15px", background: "#e67e2222", border: "1px solid #e67e2266", borderRadius: 14, color: "#e67e22", fontWeight: 900, fontSize: 13, textAlign: "center", fontFamily: "monospace", marginBottom: 8, letterSpacing: 1 }}>⚠ ENTER HOLE {nextNeededHole + 1} FIRST</div>
           : <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${hwColor},${hwColor}aa)`, border: "none", borderRadius: 14, color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", boxShadow: `0 4px 18px ${hwColor}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
         }
-        {hole > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "#446", fontSize: 11, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {hole}</button>}
+        {posInRotation > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "#446", fontSize: 11, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {prevHole + 1}</button>}
         {!isComplete && <button onClick={() => setShowEndEarly(true)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid #334`, borderRadius: 10, color: "#446", fontSize: 10, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 20 }}>End Match Early</button>}
       </div>
     </div>

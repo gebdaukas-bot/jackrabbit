@@ -5,15 +5,19 @@ export function netScore(gross, playerHcp, holeHcpIndex) {
                - (playerHcp > 18 && holeHcpIndex <= playerHcp - 18 ? 1 : 0);
 }
 
-export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "TEAM B") {
+export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "TEAM B", startHole = 0) {
   let lead = 0, holesPlayed = 0;
   let closingLead = null, closingHolesPlayed = null;
   let gapHole = null;
-  for (let i = 0; i < 18; i++) {
+  // Play order runs startHole, startHole+1, ... 17, 0, 1, ... startHole-1 (shotgun/split starts
+  // don't necessarily tee off on hole 1) — walk holes in that order, not raw array index order.
+  for (let k = 0; k < 18; k++) {
+    const i = (startHole + k) % 18;
     const s = scores[i];
     if (s === null || s === undefined) {
-      for (let j = i + 1; j < 18; j++) {
-        if (scores[j] !== null && scores[j] !== undefined) { gapHole = i; break; }
+      for (let j = k + 1; j < 18; j++) {
+        const ij = (startHole + j) % 18;
+        if (scores[ij] !== null && scores[ij] !== undefined) { gapHole = i; break; }
       }
       break;
     }
@@ -48,7 +52,7 @@ export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "
 export function computeAllPoints(days, teamAShort, teamBShort) {
   let aA=0, aB=0, pA=0, pB=0;
   for (const day of days) for (const m of day.matches) {
-    const s = computeMatchStatus(m.scores, teamAShort, teamBShort);
+    const s = computeMatchStatus(m.scores, teamAShort, teamBShort, m.startHole || 0);
     if (s.state==="complete")    { s.leader==="A"?(aA++,pA++):(aB++,pB++); }
     else if (s.state==="halved") { aA+=.5; aB+=.5; pA+=.5; pB+=.5; }
     else if (s.state==="live"||s.state==="gap") {
