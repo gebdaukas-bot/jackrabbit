@@ -54,7 +54,7 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
   const liveBadgeColor = aLeading ? contrastText(teamAColor) : bLeading ? contrastText(teamBColor) : "#fff";
 
   const liveBadge = (
-    <div style={{ background:aLeading?`${teamAColor}ee`:bLeading?`${teamBColor}ee`:"#1a2a44", borderRadius:6, padding:"3px 8px", display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, minWidth:54 }}>
+    <div style={{ background:aLeading?`${teamAColor}ee`:bLeading?`${teamBColor}ee`:"#1a2a44", borderRadius:6, padding:"3px 8px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0, minWidth:54 }}>
       <div style={{ fontSize:7, fontWeight:800, color:`${liveBadgeColor}aa`, fontFamily:"monospace", letterSpacing:1, lineHeight:1.3 }}>THRU {st.holesPlayed}</div>
       <div style={{ fontSize:15, fontWeight:900, color:liveBadgeColor, fontFamily:"monospace", lineHeight:1.1 }}>{allSquare?"AS":`${st.up}UP`}</div>
       <div style={{ width:5, height:5, borderRadius:"50%", background:"#4caf50", marginTop:2, animation:"pulse 1.5s infinite" }}/>
@@ -100,9 +100,10 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
     );
   }
 
-  // LIVE — names fill left/right, badge floats absolutely toward leading side
+  // LIVE — names fill left/right; score badge sits in its own fixed center column
+  // (previously floated on top of the leading side at 25%/75%, which covered the name text)
   return (
-    <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ position:"relative", display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, overflow:"hidden", opacity:canEdit?1:0.85 }}>
+    <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
       <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
         <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
@@ -114,6 +115,7 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
         </div>}
         {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:GOLD,fontFamily:"monospace",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
       </div>
+      {liveBadge}
       <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
           {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
@@ -124,9 +126,6 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
         </div>}
         {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:GOLD,fontFamily:"monospace",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
-      </div>
-      <div style={{ position:"absolute", top:"50%", left:aLeading?"25%":bLeading?"75%":"50%", transform:"translate(-50%,-50%)", zIndex:2, pointerEvents:"none" }}>
-        {liveBadge}
       </div>
     </div>
   );
