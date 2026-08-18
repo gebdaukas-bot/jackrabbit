@@ -143,10 +143,15 @@ function DayBlock({ day, cup, onOpen, canEdit }) {
       </div>
       {/* Team name header — only show if single round (multi-round has its own per-round) */}
       {!multiRound && (
-        <div style={{ display:"flex", background:"#080f20", borderBottom:`1px solid ${BORDER}` }}>
-          <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>
-          <div style={{ width:64, textAlign:"center", padding:"5px 0", fontSize:7, color:"#446", fontFamily:"monospace" }}>{rounds[0].format?.toUpperCase()}</div>
-          <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>
+        <div style={{ display:"flex", flexDirection:"column", background:"#080f20", borderBottom:`1px solid ${BORDER}` }}>
+          <div style={{ display:"flex" }}>
+            <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>
+            <div style={{ width:64, textAlign:"center", padding:"5px 0", fontSize:7, color:"#446", fontFamily:"monospace" }}>{rounds[0].format?.toUpperCase()}</div>
+            <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>
+          </div>
+          {rounds[0].course?.name && (
+            <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>{rounds[0].course.name}</div>
+          )}
         </div>
       )}
       {/* Rounds */}
