@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { netScore, computeMatchStatus, GOLD } from "../utils/scoring";
+import { contrastText } from "../utils/color";
 import ScoreInput from "./ScoreInput";
 import HcpModal from "./HcpModal";
 
@@ -151,19 +152,19 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
         </div>
         <div style={{ display: "flex", alignItems: "stretch", borderRadius: 8, overflow: "hidden", border: `1px solid ${BORDER}` }}>
           <div style={{ flex: 1, background: runLeader === "A" ? teamAColor : "#111a2e", padding: "8px 10px", minWidth: 0 }}>
-            <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "A" ? "#ffcccc" : teamAColor, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamAShort}</div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1a}</div>
-            {match.player1b && <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1b}</div>}
+            <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "A" ? contrastText(teamAColor) : teamAColor, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamAShort}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: runLeader === "A" ? contrastText(teamAColor) : "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1a}</div>
+            {match.player1b && <div style={{ fontSize: 12, fontWeight: 700, color: runLeader === "A" ? contrastText(teamAColor) : "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1b}</div>}
           </div>
           <div style={{ background: runLeader === "A" ? teamAColor : runLeader === "B" ? teamBColor : "#1a2a44", minWidth: 68, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "6px 4px", borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}`, flexShrink: 0 }}>
             {cur.state === "pending" ? <div style={{ fontSize: 10, color: "#446", fontFamily: "monospace" }}>—</div>
-            : cur.state === "complete" || cur.state === "halved" ? <><div style={{ fontSize: 8, color: "#FFD700", fontFamily: "monospace", fontWeight: 800, letterSpacing: 1 }}>FINAL</div><div style={{ fontSize: 12, fontWeight: 900, color: "#fff", fontFamily: "monospace" }}>{cur.sublabel || "HALVED"}</div></>
-            : <><div style={{ fontSize: 17, fontWeight: 900, color: "#fff", fontFamily: "monospace", lineHeight: 1 }}>{runLeader ? runAbs : "AS"}</div><div style={{ fontSize: 8, color: "#88aacc", fontFamily: "monospace", marginTop: 1 }}>{runLeader ? "UP" : "ALL SQ"}</div><div style={{ fontSize: 8, color: "#446", fontFamily: "monospace", marginTop: 2 }}>THRU {posInRotation}</div></>}
+            : cur.state === "complete" || cur.state === "halved" ? <><div style={{ fontSize: 8, color: "#FFD700", fontFamily: "monospace", fontWeight: 800, letterSpacing: 1 }}>FINAL</div><div style={{ fontSize: 12, fontWeight: 900, color: runLeader ? contrastText(runLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "monospace" }}>{cur.sublabel || "HALVED"}</div></>
+            : <><div style={{ fontSize: 17, fontWeight: 900, color: runLeader ? contrastText(runLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "monospace", lineHeight: 1 }}>{runLeader ? runAbs : "AS"}</div><div style={{ fontSize: 8, color: runLeader ? `${contrastText(runLeader === "A" ? teamAColor : teamBColor)}aa` : "#88aacc", fontFamily: "monospace", marginTop: 1 }}>{runLeader ? "UP" : "ALL SQ"}</div><div style={{ fontSize: 8, color: runLeader ? `${contrastText(runLeader === "A" ? teamAColor : teamBColor)}88` : "#446", fontFamily: "monospace", marginTop: 2 }}>THRU {posInRotation}</div></>}
           </div>
           <div style={{ flex: 1, background: runLeader === "B" ? teamBColor : "#111a2e", padding: "8px 10px", display: "flex", flexDirection: "column", alignItems: "flex-end", minWidth: 0 }}>
-            <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "B" ? "#cce4ff" : teamBColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamBShort}</div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2a}</div>
-            {match.player2b && <div style={{ fontSize: 12, fontWeight: 700, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2b}</div>}
+            <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "B" ? contrastText(teamBColor) : teamBColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamBShort}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: runLeader === "B" ? contrastText(teamBColor) : "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2a}</div>
+            {match.player2b && <div style={{ fontSize: 12, fontWeight: 700, color: runLeader === "B" ? contrastText(teamBColor) : "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2b}</div>}
           </div>
         </div>
       </div>

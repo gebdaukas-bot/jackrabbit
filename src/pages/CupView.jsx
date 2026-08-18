@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, onValue, set, update } from "../firebase";
 import { computeMatchStatus, computeAllPoints, GOLD } from "../utils/scoring";
+import { contrastText } from "../utils/color";
 import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
 import LiveBackground from "../components/LiveBackground";
@@ -46,23 +47,24 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
   const bLeading = live && st.leader==="B";
   const allSquare= live && !st.leader;
 
-  const aNameColor = (aWin||aLeading) ? "#ffffff" : "#7a8fa8";
-  const bNameColor = (bWin||bLeading) ? "#ffffff" : "#7a8fa8";
+  const aNameColor = aWin ? contrastText(teamAColor) : aLeading ? "#ffffff" : "#7a8fa8";
+  const bNameColor = bWin ? contrastText(teamBColor) : bLeading ? "#ffffff" : "#7a8fa8";
   const aBg = aWin ? teamAColor : aLeading ? `${teamAColor}22` : "#0d1929";
   const bBg = bWin ? teamBColor : bLeading ? `${teamBColor}22` : "#0d1929";
+  const liveBadgeColor = aLeading ? contrastText(teamAColor) : bLeading ? contrastText(teamBColor) : "#fff";
 
   const liveBadge = (
     <div style={{ background:aLeading?`${teamAColor}ee`:bLeading?`${teamBColor}ee`:"#1a2a44", borderRadius:6, padding:"3px 8px", display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0, minWidth:54 }}>
-      <div style={{ fontSize:7, fontWeight:800, color:"#ffffffaa", fontFamily:"monospace", letterSpacing:1, lineHeight:1.3 }}>THRU {st.holesPlayed}</div>
-      <div style={{ fontSize:15, fontWeight:900, color:"#fff", fontFamily:"monospace", lineHeight:1.1 }}>{allSquare?"AS":`${st.up}UP`}</div>
+      <div style={{ fontSize:7, fontWeight:800, color:`${liveBadgeColor}aa`, fontFamily:"monospace", letterSpacing:1, lineHeight:1.3 }}>THRU {st.holesPlayed}</div>
+      <div style={{ fontSize:15, fontWeight:900, color:liveBadgeColor, fontFamily:"monospace", lineHeight:1.1 }}>{allSquare?"AS":`${st.up}UP`}</div>
       <div style={{ width:5, height:5, borderRadius:"50%", background:"#4caf50", marginTop:2, animation:"pulse 1.5s infinite" }}/>
     </div>
   );
 
   if (!live) {
-    let badgeBg="#0d1929", badgeTop="", badgeBot="—";
-    if (aWin)       { badgeBg=teamAColor;  badgeTop="WIN";    badgeBot=st.sublabel; }
-    else if (bWin)  { badgeBg=teamBColor;  badgeTop="WIN";    badgeBot=st.sublabel; }
+    let badgeBg="#0d1929", badgeTop="", badgeBot="—", badgeTextColor="#fff";
+    if (aWin)       { badgeBg=teamAColor;  badgeTop="WIN";    badgeBot=st.sublabel; badgeTextColor=contrastText(teamAColor); }
+    else if (bWin)  { badgeBg=teamBColor;  badgeTop="WIN";    badgeBot=st.sublabel; badgeTextColor=contrastText(teamBColor); }
     else if (halved){ badgeBg="#334455";   badgeTop="HALVED"; badgeBot=pointValue===1?"½pt":`${pointValue/2}pt`; }
     else if (match.teeTime){ badgeTop="TEE"; badgeBot=match.teeTime; }
     return (
@@ -80,7 +82,7 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
         </div>
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"#ffffffbb", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
-          <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:"#fff", fontFamily:"monospace", lineHeight:1 }}>{badgeBot}</div>
+          <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"monospace", lineHeight:1 }}>{badgeBot}</div>
           {isScramble&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"monospace", marginTop:1, letterSpacing:0.5 }}>SCRAMBLE</div>}
         </div>
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
@@ -995,8 +997,8 @@ export default function CupView({ user }) {
         {/* Big scoreboard — cups only */}
         {meta.eventType!=="live_match"&&<div style={{display:"flex",alignItems:"stretch"}}>
           <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",minWidth:0}}>
-            <div style={{fontSize:10,fontWeight:900,color:"#ffcccc",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamAName}</div>
-            <div style={{fontSize:36,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualA)}</div>
+            <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamAColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamAName}</div>
+            <div style={{fontSize:36,fontWeight:900,color:contrastText(cup.teamAColor),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualA)}</div>
           </div>
           <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:76}}>
             <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
@@ -1005,8 +1007,8 @@ export default function CupView({ user }) {
             <div style={{fontSize:7,color:"#335",marginTop:3,fontFamily:"monospace",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget+0.5)}</div>
           </div>
           <div style={{flex:1,background:cup.teamBColor,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"flex-end",minWidth:0}}>
-            <div style={{fontSize:10,fontWeight:900,color:"#cce4ff",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{meta.teamBName}</div>
-            <div style={{fontSize:36,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualB)}</div>
+            <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamBColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{meta.teamBName}</div>
+            <div style={{fontSize:36,fontWeight:900,color:contrastText(cup.teamBColor),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualB)}</div>
           </div>
         </div>}
 
@@ -1017,7 +1019,7 @@ export default function CupView({ user }) {
           return (
             <div style={{display:"flex",alignItems:"stretch"}}>
               <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",minWidth:0}}>
-                <div style={{fontSize:10,fontWeight:900,color:"#ffcccc",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamAName}</div>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamAColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamAName}</div>
               </div>
               <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 10px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:80}}>
                 {!st||st.state==="pending"?<div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:1}}>NOT STARTED</div>:null}
@@ -1026,7 +1028,7 @@ export default function CupView({ user }) {
                 {st?.state==="halved"&&<div style={{fontSize:10,fontWeight:900,color:"#557",fontFamily:"monospace"}}>HALVED</div>}
               </div>
               <div style={{flex:1,background:cup.teamBColor,padding:"8px 10px",minWidth:0,textAlign:"right"}}>
-                <div style={{fontSize:10,fontWeight:900,color:"#cce4ff",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamBName}</div>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamBColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamBName}</div>
               </div>
             </div>
           );
