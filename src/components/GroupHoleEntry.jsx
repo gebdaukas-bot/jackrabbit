@@ -10,8 +10,9 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
   const initHole = () => {
     const hp = matches.map(m => {
       const startHole = m.startHole || 0;
-      const s = computeMatchStatus(m.scores, teamAShort, teamBShort, startHole);
-      return s.holesPlayed < 18 ? (startHole + s.holesPlayed) % 18 : (startHole + 17) % 18;
+      const totalHoles = m.totalHoles || 18;
+      const s = computeMatchStatus(m.scores, teamAShort, teamBShort, startHole, totalHoles);
+      return s.holesPlayed < totalHoles ? (startHole + s.holesPlayed) % 18 : (startHole + totalHoles - 1) % 18;
     });
     return Math.max(...hp);
   };
@@ -60,8 +61,9 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
       onSave(mi, { ...m, scores: ns, grossP1a: toArr(m.grossP1a, grossScores[mi][hole].p1a), grossP2a: toArr(m.grossP2a, grossScores[mi][hole].p2a) });
     });
     const startHole = matches[0].startHole || 0;
+    const totalHoles = matches[0].totalHoles || 18;
     const posInRotation = (hole - startHole + 18) % 18;
-    if (posInRotation < 17) {
+    if (posInRotation < totalHoles - 1) {
       const nextHole = (hole + 1) % 18;
       const nextPar = course.par[nextHole];
       setHole(nextHole);
@@ -94,7 +96,7 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
     });
   };
 
-  const statuses = matches.map(m => computeMatchStatus(m.scores, teamAShort, teamBShort, m.startHole || 0));
+  const statuses = matches.map(m => computeMatchStatus(m.scores, teamAShort, teamBShort, m.startHole || 0, m.totalHoles || 18));
   const isComplete = statuses.every(s => s.state === "complete" || s.state === "halved");
   const hasGap = statuses.some(s => s.state === "gap");
 
@@ -117,6 +119,8 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
   ].map(p => ({ ...p, strokes: str(p.hcp) })).filter(e => e.strokes > 0);
 
   const groupStartHole = matches[0].startHole || 0;
+  const groupTotalHoles = matches[0].totalHoles || 18;
+  const groupPlayHoles = Array.from({ length: groupTotalHoles }, (_, k) => (groupStartHole + k) % 18);
   const groupPosInRotation = (hole - groupStartHole + 18) % 18;
   let runLead0 = 0, runLead1 = 0;
   for (let k = 0; k < groupPosInRotation; k++) {
@@ -156,7 +160,7 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setShowEndEarly(false)} style={{ flex: 1, padding: "10px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: MUTED, fontSize: 12, cursor: "pointer" }}>Cancel</button>
               <button onClick={() => {
-                matches.forEach((m, mi) => { const ns = [...m.scores]; for (let i = 0; i < 18; i++) { if (ns[i] === null || ns[i] === undefined) ns[i] = "H"; } onSave(mi, { ...m, scores: ns }); });
+                matches.forEach((m, mi) => { const ns = [...m.scores]; for (const i of groupPlayHoles) { if (ns[i] === null || ns[i] === undefined) ns[i] = "H"; } onSave(mi, { ...m, scores: ns }); });
                 setShowEndEarly(false); onClose();
               }} style={{ flex: 1, padding: "10px", background: `linear-gradient(135deg,${teamBColor},${teamBColorDisp}66)`, border: `1px solid ${teamBColor}`, borderRadius: 10, color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer" }}>CONFIRM</button>
             </div>
@@ -174,7 +178,7 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
       </div>
 
       <div style={{ padding: "8px 10px 14px", display: "flex", gap: 2 }}>
-        {Array.from({ length: 18 }, (_, i) => {
+        {groupPlayHoles.map((i) => {
           const s = m0.scores[i];
           const bg = s === "A" ? teamAColor : s === "B" ? teamBColor : s === "H" ? "#334" : CARD2;
           const isAct = i === hole;

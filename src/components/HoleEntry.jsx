@@ -9,8 +9,10 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
 
   const startHole = match.startHole || 0; // 0-indexed hole this match tees off on (shotgun/split starts)
-  const status = computeMatchStatus(match.scores, teamAShort, teamBShort, startHole);
-  const [hole, setHole] = useState(status.holesPlayed < 18 ? (startHole + status.holesPlayed) % 18 : (startHole + 17) % 18);
+  const totalHoles = match.totalHoles || 18; // 9 for a partial (e.g. twilight nine) round
+  const playHoles = Array.from({ length: totalHoles }, (_, k) => (startHole + k) % 18); // physical hole indices, in play order
+  const status = computeMatchStatus(match.scores, teamAShort, teamBShort, startHole, totalHoles);
+  const [hole, setHole] = useState(status.holesPlayed < totalHoles ? (startHole + status.holesPlayed) % 18 : (startHole + totalHoles - 1) % 18);
   const [showHcp, setShowHcp] = useState(false);
   const [showEndEarly, setShowEndEarly] = useState(false);
   const [grossScores, setGrossScores] = useState(() =>
@@ -70,7 +72,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
       grossP2b: isSingles ? match.grossP2b : toArr(match.grossP2b, sc.p2b),
     });
     const posInRotation = (hole - startHole + 18) % 18;
-    if (posInRotation < 17) {
+    if (posInRotation < totalHoles - 1) {
       const nextHole = (hole + 1) % 18;
       const nextPar = course.par[nextHole];
       setHole(nextHole);
@@ -90,7 +92,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
     setGrossScores(prev => { const next = [...prev]; next[undoHole] = { p1a: prevPar, p1b: prevPar, p2a: prevPar, p2b: prevPar }; return next; });
   };
 
-  const cur = computeMatchStatus(match.scores, teamAShort, teamBShort, startHole);
+  const cur = computeMatchStatus(match.scores, teamAShort, teamBShort, startHole, totalHoles);
   const isComplete = cur.state === "complete" || cur.state === "halved";
   const posInRotation = (hole - startHole + 18) % 18; // count of holes completed before the current one, in this match's play order
   const prevHole = (hole - 1 + 18) % 18;
@@ -132,7 +134,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
               <button onClick={() => setShowEndEarly(false)} style={{ flex: 1, padding: "10px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: MUTED, fontSize: 12, cursor: "pointer" }}>Cancel</button>
               <button onClick={() => {
                 const ns = [...match.scores];
-                for (let i = 0; i < 18; i++) { if (ns[i] === null || ns[i] === undefined) ns[i] = "H"; }
+                for (const i of playHoles) { if (ns[i] === null || ns[i] === undefined) ns[i] = "H"; }
                 onSave({ ...match, scores: ns });
                 setShowEndEarly(false); onClose();
               }} style={{ flex: 1, padding: "10px", background: `linear-gradient(135deg,${teamBColor},${teamBColorDisp}66)`, border: `1px solid ${teamBColor}`, borderRadius: 10, color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer" }}>CONFIRM</button>
@@ -168,7 +170,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
 
       {/* Hole strip */}
       <div style={{ padding: "8px 10px 14px", display: "flex", gap: 2 }}>
-        {Array.from({ length: 18 }, (_, i) => {
+        {playHoles.map((i) => {
           const s = match.scores[i];
           const isDisputed = (match.disputes || []).includes(i);
           const bg = s === "A" ? teamAColor : s === "B" ? teamBColor : s === "H" ? "#334" : CARD2;

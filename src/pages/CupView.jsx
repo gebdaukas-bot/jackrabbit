@@ -30,12 +30,13 @@ function fmt(n) {
 }
 
 // ── TV Match Row (matches original CBS style) ─────────────────────────────────
-function MatchCard({ match, cup, onOpen, canEdit }) {
+function MatchCard({ match, cup, onOpen, canEdit, round }) {
   const { BORDER } = useTheme();
   const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
   const isSingles = !match.player1b;
   const isScramble = match.format === "Scramble";
-  const st = computeMatchStatus(match.scores, teamAShort, teamBShort, match.startHole || 0);
+  const pointValue = round?.pointValue ?? 1;
+  const st = computeMatchStatus(match.scores, teamAShort, teamBShort, match.startHole || 0, round?.totalHoles || 18);
 
   const aWin     = st.state==="complete" && st.leader==="A";
   const bWin     = st.state==="complete" && st.leader==="B";
@@ -62,7 +63,7 @@ function MatchCard({ match, cup, onOpen, canEdit }) {
     let badgeBg="#0d1929", badgeTop="", badgeBot="—";
     if (aWin)       { badgeBg=teamAColor;  badgeTop="WIN";    badgeBot=st.sublabel; }
     else if (bWin)  { badgeBg=teamBColor;  badgeTop="WIN";    badgeBot=st.sublabel; }
-    else if (halved){ badgeBg="#334455";   badgeTop="HALVED"; badgeBot="½pt"; }
+    else if (halved){ badgeBg="#334455";   badgeTop="HALVED"; badgeBot=pointValue===1?"½pt":`${pointValue/2}pt`; }
     else if (match.teeTime){ badgeTop="TEE"; badgeBot=match.teeTime; }
     return (
       <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
@@ -170,7 +171,7 @@ function DayBlock({ day, cup, onOpen, canEdit }) {
               </div>
             )}
             {roundMatches.map(m=>(
-              <MatchCard key={m.id} match={m} cup={cup} onOpen={onOpen} canEdit={canEdit(m.id)}/>
+              <MatchCard key={m.id} match={m} cup={cup} onOpen={onOpen} canEdit={canEdit(m.id)} round={round}/>
             ))}
           </div>
         );
@@ -232,10 +233,14 @@ function AdminCourses({ initDays, onSave, onBack }) {
   const [saving, setSaving] = useState(false);
   const [selDay, setSelDay] = useState(0);
   const [selRound, setSelRound] = useState(0);
-  const course = days[selDay]?.rounds[selRound]?.course || {};
+  const round = days[selDay]?.rounds[selRound] || {};
+  const course = round.course || {};
   const updateHole = (field, hi, val) => {
     const n = parseInt(val); if (isNaN(n)) return;
     setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,[field]:r.course[field].map((v,i)=>i===hi?n:v)}})}));
+  };
+  const updateRoundField = (field, val) => {
+    setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,[field]:val})}));
   };
   const handleSave = async () => { setSaving(true); await onSave(days); setSaving(false); onBack(); };
   return (
@@ -248,6 +253,25 @@ function AdminCourses({ initDays, onSave, onBack }) {
         <input value={course.name||""} onChange={e=>setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,name:e.target.value}})}))}
           style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
       </div>
+      <div style={{display:"flex",gap:10,marginBottom:12}}>
+        <div style={{flex:1}}>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>HOLES</div>
+          <div style={{display:"flex",gap:6}}>
+            {[18,9].map(n=>(
+              <button key={n} onClick={()=>updateRoundField("totalHoles",n===18?undefined:n)}
+                style={{flex:1,padding:"8px 0",background:(round.totalHoles||18)===n?GOLD:CARD2,border:`1px solid ${(round.totalHoles||18)===n?GOLD:BORDER}`,borderRadius:8,color:(round.totalHoles||18)===n?"#000":TEXT,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"monospace"}}>{n}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>POINT VALUE</div>
+          <input type="number" step={0.5} min={0.5} max={5}
+            value={round.pointValue??1}
+            onChange={e=>{const v=parseFloat(e.target.value); if(!isNaN(v)) updateRoundField("pointValue",v===1?undefined:v);}}
+            style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontWeight:700,fontFamily:"monospace"}}/>
+        </div>
+      </div>
+      {(round.totalHoles||18)===9&&<div style={{fontSize:10,color:MUTED,marginBottom:12,fontFamily:"monospace"}}>Set which 9 holes each match plays via its "start hole" field in the Matchups editor (hole 1 = front 9, hole 10 = back 9).</div>}
       <div style={{display:"flex",gap:10,marginBottom:12}}>
         {[["slope","SLOPE RATING",55,155,1],["rating","COURSE RATING",60,85,0.1]].map(([field,label,mn,mx,step])=>(
           <div key={field} style={{flex:1}}>
@@ -360,7 +384,11 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
     const par = course.par.reduce((a,b)=>a+b,0);
     const slope = course.slope || 113;
     const rating = course.rating || par;
-    const toCh = idx => (Number(idx)||0) * (slope/113) + (rating - par);
+    // Partial (e.g. 9-hole) rounds don't have their own published rating/slope on file, so
+    // approximate by prorating the full course handicap — the common "half your handicap for
+    // nine holes" convention.
+    const scale = (round.totalHoles || 18) / 18;
+    const toCh = idx => ((Number(idx)||0) * (slope/113) + (rating - par)) * scale;
     const isSingles = round.format === "Singles";
     const isScramble = round.format === "Scramble";
     setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>{
@@ -718,7 +746,12 @@ export default function CupView({ user }) {
       const d = editedDays[di];
       await set(ref(db,`cups/${cupId}/days/${di}`),{
         label:d.label,
-        rounds:d.rounds.map(r=>({format:r.format,course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72)}})),
+        rounds:d.rounds.map(r=>({
+          format:r.format,
+          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72)},
+          ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
+          ...(r.pointValue?{pointValue:r.pointValue}:{}),
+        })),
       });
     }
   };
@@ -729,7 +762,7 @@ export default function CupView({ user }) {
     for (const d of editedDays) {
       for (const m of d.matches) {
         await set(ref(db,`cups/${cupId}/matches/m${m.id}`),{
-          teeTime:m.teeTime||"", companionId:m.companionId||null,
+          teeTime:m.teeTime||"", companionId:m.companionId||null, startHole:m.startHole||0,
           player1a:m.player1a||"", hcp1a:m.hcp1a||0,
           player1b:m.player1b||null, hcp1b:m.hcp1b||0,
           player2a:m.player2a||"", hcp2a:m.hcp2a||0,
@@ -786,11 +819,12 @@ export default function CupView({ user }) {
     : {actualA:0,actualB:0,projA:0,projB:0};
 
   const totalMatches = days.reduce((s,d)=>s+d.matches.length,0);
-  const doneMatches  = days.reduce((s,d)=>s+d.matches.filter(m=>["complete","halved"].includes(computeMatchStatus(m.scores,undefined,undefined,m.startHole||0).state)).length,0);
-  const winTarget = totalMatches/2;
+  const totalPoints = days.reduce((s,d)=>s+d.matches.reduce((s2,m)=>s2+(d.rounds?.[m.roundIdx??0]?.pointValue??1),0),0);
+  const doneMatches  = days.reduce((s,d)=>s+d.matches.filter(m=>["complete","halved"].includes(computeMatchStatus(m.scores,undefined,undefined,m.startHole||0,d.rounds?.[m.roundIdx??0]?.totalHoles||18).state)).length,0);
+  const winTarget = totalPoints/2;
   const winner = actualA>winTarget?meta?.teamAName:actualB>winTarget?meta?.teamBName:null;
   const projWinner = !winner&&(projA>winTarget?meta?.teamAName:projB>winTarget?meta?.teamBName:null);
-  const liveCount = days.reduce((s,d)=>s+d.matches.filter(m=>computeMatchStatus(m.scores,undefined,undefined,m.startHole||0).state==="live").length,0);
+  const liveCount = days.reduce((s,d)=>s+d.matches.filter(m=>computeMatchStatus(m.scores,undefined,undefined,m.startHole||0,d.rounds?.[m.roundIdx??0]?.totalHoles||18).state==="live").length,0);
 
   useEffect(()=>{
     if (winner&&!prevWinnerRef.current&&!confettiFired.current){
@@ -804,7 +838,7 @@ export default function CupView({ user }) {
   useEffect(()=>{
     if (!meta) return;
     for (const day of days) for (const m of day.matches){
-      const s=computeMatchStatus(m.scores,meta.teamAName,meta.teamBName,m.startHole||0);
+      const s=computeMatchStatus(m.scores,meta.teamAName,meta.teamBName,m.startHole||0,day.rounds?.[m.roundIdx??0]?.totalHoles||18);
       const prev=prevMatchStates.current[m.id];
       if (prev!==undefined&&prev==="live"&&(s.state==="complete"||s.state==="halved")){
         const color=s.state==="halved"?"#334455":s.leader==="A"?meta.teamAColor:meta.teamBColor;
@@ -904,14 +938,18 @@ export default function CupView({ user }) {
   // Score entry screens
   if (activeGroup){
     const d=days[activeGroup.dayIdx];
-    const groupMatches=activeGroup.matchIds.map(id=>d?.matches.find(x=>x.id===id)).filter(Boolean);
+    const groupMatches=activeGroup.matchIds.map(id=>d?.matches.find(x=>x.id===id)).filter(Boolean)
+      .map(m=>({...m,totalHoles:d?.rounds?.[m.roundIdx??0]?.totalHoles||18}));
     if (groupMatches.length===2)
       return <GroupHoleEntry matches={groupMatches} course={getCourse(d,groupMatches[0])} cup={cup} onSave={(mi,upd)=>updateMatch(activeGroup.dayIdx,upd)} onClose={()=>setActiveGroup(null)}/>;
   }
   if (activeMatch){
     const d=days[activeMatch.dayIdx]; const m=d?.matches.find(x=>x.id===activeMatch.matchId);
-    if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion)return <GroupHoleEntry matches={[m,companion]} course={getCourse(d,m)} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;}
-    if (m) { const format=d?.rounds?.[m.roundIdx??0]?.format||""; return <HoleEntry match={{...m,format}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>; }
+    if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion){
+      const withHoles=[m,companion].map(x=>({...x,totalHoles:d?.rounds?.[x.roundIdx??0]?.totalHoles||18}));
+      return <GroupHoleEntry matches={withHoles} course={getCourse(d,m)} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+    }}
+    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <HoleEntry match={{...m,format:mRound?.format||"",totalHoles:mRound?.totalHoles||18}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>; }
   }
 
   const playerTeamColor=(()=>{ for(const d of days)for(const m of d.matches){if([m.player1a,m.player1b].includes(currentPlayer))return cup.teamAColor;if([m.player2a,m.player2b].includes(currentPlayer))return cup.teamBColor;} return MUTED; })();
@@ -975,7 +1013,7 @@ export default function CupView({ user }) {
         {/* Live match status bar */}
         {meta.eventType==="live_match"&&(()=>{
           const lm=days[0]?.matches[0];
-          const st=lm?computeMatchStatus(lm.scores,cup.teamAShort,cup.teamBShort,lm.startHole||0):null;
+          const st=lm?computeMatchStatus(lm.scores,cup.teamAShort,cup.teamBShort,lm.startHole||0,days[0]?.rounds?.[lm.roundIdx??0]?.totalHoles||18):null;
           return (
             <div style={{display:"flex",alignItems:"stretch"}}>
               <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",minWidth:0}}>
@@ -1043,7 +1081,8 @@ export default function CupView({ user }) {
                   <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,opacity:0.7}}>HOLE BY HOLE</div>
                   {[...boardDay.matches].sort((a,b)=>{const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
                     const isSingles=!m.player1b;
-                    const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0);
+                    const mRound=boardDay.rounds?.[m.roundIdx??0];
+                    const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,mRound?.totalHoles||18);
                     const course=getCourse(boardDay,m);
                     const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?cup.teamAColor:cup.teamBColor,halved:"#557",gap:"#e67e22"}[st.state];
                     // Walk holes in this match's actual play order (shotgun/split starts don't
@@ -1154,13 +1193,14 @@ export default function CupView({ user }) {
               const d=days[playerMatch.dayIdx];
               const m=d?.matches.find(x=>x.id===playerMatch.matchId);
               if (!m) return null;
-              const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0);
+              const round=d?.rounds?.[m.roundIdx??0];
+              const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,round?.totalHoles||18);
               const companion=m.companionId?d.matches.find(x=>x.id===m.companionId):null;
               return (
                 <div>
                   <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:16,marginBottom:12}}>
                     <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:2,marginBottom:8}}>{d.label?.toUpperCase()}</div>
-                    <MatchCard match={m} cup={cup} onOpen={()=>{}} canEdit={false}/>
+                    <MatchCard match={m} cup={cup} onOpen={()=>{}} canEdit={false} round={round}/>
                     {companion&&(
                       <div style={{background:CARD2,borderRadius:8,padding:"8px 10px",marginBottom:10,fontSize:11,color:MUTED}}>
                         Playing with: <span style={{color:cup.teamAColor,fontWeight:700}}>{companion.player1a}</span> vs <span style={{color:cup.teamBColorDisp,fontWeight:700}}>{companion.player2a}</span>
