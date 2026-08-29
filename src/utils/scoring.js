@@ -5,7 +5,7 @@ export function netScore(gross, playerHcp, holeHcpIndex) {
                - (playerHcp > 18 && holeHcpIndex <= playerHcp - 18 ? 1 : 0);
 }
 
-export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "TEAM B", startHole = 0, totalHoles = 18, pointValue = 1) {
+export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "TEAM B", startHole = 0, totalHoles = 18, pointValue = 1, allowExtraHoles = false, extraHoles = []) {
   let lead = 0, holesPlayed = 0;
   let closingLead = null, closingHolesPlayed = null;
   let gapHole = null;
@@ -24,7 +24,11 @@ export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "
     }
     holesPlayed++;
     if (s === "A") lead++; else if (s === "B") lead--;
-    if (closingLead === null && Math.abs(lead) > (totalHoles - holesPlayed)) {
+    // Only an early clinch if holes genuinely remain after this one — finishing
+    // dead level-or-not on the very last hole of regulation is a normal finish
+    // (reported as "X UP"), not a dormie-style close-out ("X & Y").
+    const remaining = totalHoles - holesPlayed;
+    if (closingLead === null && remaining > 0 && Math.abs(lead) > remaining) {
       closingLead = lead;
       closingHolesPlayed = holesPlayed;
     }
@@ -44,8 +48,23 @@ export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "
     return { shortLabel:`${cAbs}&${cRem}`, longLabel:`${cLName} WIN`, sublabel:`${cAbs}&${cRem}`, state:"complete", leader:cLeader, up:cAbs, holesPlayed, lead };
   }
   if (holesPlayed === totalHoles) {
-    if (!leader) return { shortLabel:"AS", longLabel:"HALVED", sublabel:halvedLabel, state:"halved", leader:null, up:0, holesPlayed, lead:0 };
-    return               { shortLabel:"WIN", longLabel:`${lName} WIN`, sublabel:ptLabel, state:"complete", leader, up:0, holesPlayed, lead };
+    if (!leader) {
+      // Regulation ends all square — if this match allows sudden death, keep going
+      // through extraHoles (each entry "A"/"B"/"H") until someone wins a hole outright.
+      if (allowExtraHoles) {
+        let ePlayed = 0;
+        for (const es of extraHoles) {
+          ePlayed++;
+          if (es === "A" || es === "B") {
+            const eName = es === "A" ? teamAShort : teamBShort;
+            return { shortLabel:"1UP", longLabel:`${eName} WIN`, sublabel:`1 UP (${totalHoles + ePlayed} holes)`, state:"complete", leader:es, up:1, holesPlayed:totalHoles + ePlayed, lead:es === "A" ? 1 : -1 };
+          }
+        }
+        return { shortLabel:"AS", longLabel:"PLAYOFF", sublabel:`Extra hole ${ePlayed + 1}`, state:"extra", leader:null, up:0, holesPlayed:totalHoles + ePlayed, lead:0 };
+      }
+      return { shortLabel:"AS", longLabel:"HALVED", sublabel:halvedLabel, state:"halved", leader:null, up:0, holesPlayed, lead:0 };
+    }
+    return { shortLabel:`${abs}UP`, longLabel:`${lName} WIN`, sublabel:`${abs} UP`, state:"complete", leader, up:0, holesPlayed, lead };
   }
   if (!leader) return    { shortLabel:"AS", longLabel:"ALL SQUARE", sublabel:`Thru ${holesPlayed}`, state:"live", leader:null, up:0, holesPlayed, lead:0 };
   return                 { shortLabel:`${abs}UP`, longLabel:lName, sublabel:`${abs} UP • Thru ${holesPlayed}`, state:"live", leader, up:abs, holesPlayed, lead };

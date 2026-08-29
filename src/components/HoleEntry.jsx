@@ -16,6 +16,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   const [hole, setHole] = useState(status.holesPlayed < totalHoles ? (startHole + status.holesPlayed) % 18 : (startHole + totalHoles - 1) % 18);
   const [showHcp, setShowHcp] = useState(false);
   const [showEndEarly, setShowEndEarly] = useState(false);
+  const [extraGross, setExtraGross] = useState({ a: course.par[0], b: course.par[0] });
   const [grossScores, setGrossScores] = useState(() =>
     Array.from({ length: 18 }, (_, i) => {
       const parVal = course.par[i];
@@ -93,7 +94,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
     setGrossScores(prev => { const next = [...prev]; next[undoHole] = { p1a: prevPar, p1b: prevPar, p2a: prevPar, p2b: prevPar }; return next; });
   };
 
-  const cur = computeMatchStatus(match.scores, teamAShort, teamBShort, startHole, totalHoles);
+  const cur = computeMatchStatus(match.scores, teamAShort, teamBShort, startHole, totalHoles, 1, match.allowExtraHoles || false, match.extra || []);
   const isComplete = cur.state === "complete" || cur.state === "halved";
   const posInRotation = (hole - startHole + 18) % 18; // count of holes completed before the current one, in this match's play order
   const prevHole = (hole - 1 + 18) % 18;
@@ -208,6 +209,47 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           <button onClick={() => setHole(nextNeededHole)} style={{ flexShrink: 0, padding: "5px 10px", background: "#e67e2233", border: "1px solid #e67e22", borderRadius: 7, color: "#e67e22", fontSize: 10, cursor: "pointer", fontWeight: 800, fontFamily: "monospace" }}>GO →</button>
         </div>
       )}
+      {cur.state === "extra" && (() => {
+        const extraNum = (match.extra?.length || 0) + 1;
+        const pPar = course.par[0], pHcp = course.hcp[0];
+        const netA = netScore(extraGross.a, hcpA, pHcp);
+        const netB = netScore(extraGross.b, hcpB, pHcp);
+        const pw = netA < netB ? "A" : netB < netA ? "B" : "H";
+        const pwColor = pw === "A" ? teamAColor : pw === "B" ? teamBColor : GOLD;
+        const confirmExtra = () => {
+          onSave({
+            ...match,
+            extra: [...(match.extra || []), pw],
+            extraGrossA: [...(match.extraGrossA || []), extraGross.a],
+            extraGrossB: [...(match.extraGrossB || []), extraGross.b],
+          });
+          setExtraGross({ a: pPar, b: pPar });
+        };
+        const undoExtra = () => onSave({
+          ...match,
+          extra: (match.extra || []).slice(0, -1),
+          extraGrossA: (match.extraGrossA || []).slice(0, -1),
+          extraGrossB: (match.extraGrossB || []).slice(0, -1),
+        });
+        return (
+          <div style={{ margin: "10px 12px 0", background: `${GOLD}18`, border: `1px solid ${GOLD}55`, borderRadius: 12, padding: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 1, marginBottom: 4 }}>PLAYOFF — HOLE {extraNum}</div>
+            <div style={{ fontSize: 10, color: MUTED, marginBottom: 10 }}>All square through {totalHoles} — sudden death, replaying Hole 1 (par {pPar})</div>
+            <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 10 }}>
+              <ScoreInput label={match.player1a} hcp={hcpA} value={extraGross.a} onChange={v => setExtraGross(s => ({ ...s, a: v }))} color={teamAColor} par={pPar} />
+              <ScoreInput label={match.player2a} hcp={hcpB} value={extraGross.b} onChange={v => setExtraGross(s => ({ ...s, b: v }))} color={teamBColor} par={pPar} />
+            </div>
+            <button onClick={confirmExtra} style={{ width: "100%", padding: "13px", background: `linear-gradient(135deg,${pwColor},${pwColor}aa)`, border: "none", borderRadius: 12, color: "#fff", fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "monospace" }}>
+              CONFIRM PLAYOFF HOLE {extraNum} →
+            </button>
+            {match.extra?.length > 0 && (
+              <button onClick={undoExtra} style={{ width: "100%", marginTop: 8, padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "#446", fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>
+                ↩ UNDO PLAYOFF HOLE {extraNum - 1}
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       <div style={{ flex: 1, padding: "12px 12px 0" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 12, padding: "10px", background: CARD, borderRadius: 12, border: `1px solid ${BORDER}` }}>

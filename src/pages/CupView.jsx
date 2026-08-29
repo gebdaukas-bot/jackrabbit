@@ -37,7 +37,7 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
   const isSingles = !match.player1b;
   const isScramble = match.format === "Scramble";
   const pointValue = round?.pointValue ?? 1;
-  const st = computeMatchStatus(match.scores, teamAShort, teamBShort, match.startHole || 0, round?.totalHoles || 18);
+  const st = computeMatchStatus(match.scores, teamAShort, teamBShort, match.startHole || 0, round?.totalHoles || 18, pointValue, round?.allowExtraHoles || false, match.extra || []);
 
   const aWin     = st.state==="complete" && st.leader==="A";
   const bWin     = st.state==="complete" && st.leader==="B";
@@ -317,6 +317,25 @@ function AdminRounds({ initDays, onSave, onBack }) {
   const [days, setDays] = useState(initDays.map(d=>({...d,rounds:d.rounds.map(r=>({...r}))})));
   const [saving, setSaving] = useState(false);
   const handleSave = async () => { setSaving(true); await onSave(days); setSaving(false); onBack(); };
+
+  // Removing a round also drops its matches, and shifts the roundIdx of any
+  // later rounds in the same day down by one so they stay contiguous — the
+  // actual match-id renumbering (ids encode dayIdx/roundIdx) happens in
+  // saveAdminRounds when this gets saved.
+  const removeRound = (di, ri) => {
+    if (!window.confirm("Remove this round? Its matches and any scores already entered will be deleted permanently once you save.")) return;
+    setDays(ds=>ds.map((d,i)=>{
+      if (i!==di) return d;
+      return {
+        ...d,
+        rounds: d.rounds.filter((_,j)=>j!==ri),
+        matches: d.matches
+          .filter(m=>(m.roundIdx??0)!==ri)
+          .map(m=>(m.roundIdx??0)>ri ? {...m, roundIdx:(m.roundIdx??0)-1} : m),
+      };
+    }));
+  };
+
   return (
     <div>
       <AdminHeader title="Edit Rounds" onBack={onBack} onSave={handleSave} saving={saving}/>
@@ -325,7 +344,12 @@ function AdminRounds({ initDays, onSave, onBack }) {
           <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
           {day.rounds.map((r,ri)=>(
             <div key={ri} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:12,marginBottom:8}}>
-              {day.rounds.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:8}}>ROUND {ri+1}</div>}
+              {day.rounds.length>1&&
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>ROUND {ri+1}</div>
+                  <button onClick={()=>removeRound(di,ri)} title="Remove this round (deletes its matches and scores)"
+                    style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
+                </div>}
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 {["2v2 Best Ball","Singles","Scramble"].map(f=>(
                   <button key={f} onClick={()=>setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,rounds:d.rounds.map((x,j)=>j!==ri?x:{...x,format:f})}))}
@@ -728,6 +752,11 @@ export default function CupView({ user }) {
             grossP1b:fb.grossP1b?Array.from({length:18},(_,i)=>fb.grossP1b[i]??null):null,
             grossP2a:fb.grossP2a?Array.from({length:18},(_,i)=>fb.grossP2a[i]??null):null,
             grossP2b:fb.grossP2b?Array.from({length:18},(_,i)=>fb.grossP2b[i]??null):null,
+            // Sudden-death playoff holes, played beyond regulation when a match is set up
+            // to allow extra holes and ends level — parallel arrays, one entry per extra hole.
+            extra:fb.extra?Object.values(fb.extra):[],
+            extraGrossA:fb.extraGrossA?Object.values(fb.extraGrossA):[],
+            extraGrossB:fb.extraGrossB?Object.values(fb.extraGrossB):[],
           };
         }),
       })));
@@ -755,6 +784,79 @@ export default function CupView({ user }) {
         })),
       });
     }
+  };
+
+  // Like saveAdminDays, but also reconciles cups/{cupId}/matches and .../scores:
+  // deletes matches dropped by a round removal, and renumbers the ids of any
+  // matches whose roundIdx shifted (match ids encode dayIdx+roundIdx), fixing
+  // up companionId references that pointed at anything moved or deleted.
+  const saveAdminRounds = async (editedDays) => {
+    for (let di=0; di<editedDays.length; di++) {
+      const d = editedDays[di];
+      await set(ref(db,`cups/${cupId}/days/${di}`),{
+        label:d.label,
+        rounds:d.rounds.map(r=>({
+          format:r.format,
+          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72)},
+          ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
+          ...(r.pointValue?{pointValue:r.pointValue}:{}),
+        })),
+      });
+    }
+
+    const existingIds = new Set(days.flatMap(d=>d.matches.map(m=>`m${m.id}`)));
+    const keptIds = new Set(editedDays.flatMap(d=>d.matches).map(m=>`m${m.id}`));
+
+    const idMap = {}; // oldId -> newId, for matches whose roundIdx shifted
+    for (let di=0; di<editedDays.length; di++) {
+      for (const m of editedDays[di].matches) {
+        const newId = (di+1)*1000 + ((m.roundIdx??0)+1)*100 + (m.id%100);
+        if (newId !== m.id) idMap[m.id] = newId;
+      }
+    }
+    const remapCompanion = (cid) => {
+      if (cid == null) return null;
+      if (idMap[cid] !== undefined) return idMap[cid];
+      return keptIds.has(`m${cid}`) ? cid : null;
+    };
+
+    const updates = {};
+    for (const id of existingIds) {
+      if (!keptIds.has(id)) {
+        updates[`cups/${cupId}/matches/${id}`] = null;
+        updates[`cups/${cupId}/scores/${id}`] = null;
+      }
+    }
+    for (let di=0; di<editedDays.length; di++) {
+      for (const m of editedDays[di].matches) {
+        const newId = (di+1)*1000 + ((m.roundIdx??0)+1)*100 + (m.id%100);
+        const companionId = remapCompanion(m.companionId);
+        if (newId !== m.id) {
+          updates[`cups/${cupId}/matches/m${m.id}`] = null;
+          updates[`cups/${cupId}/matches/m${newId}`] = {
+            teeTime:m.teeTime||"", companionId, startHole:m.startHole||0,
+            player1a:m.player1a||"", hcp1a:m.hcp1a||0,
+            player1b:m.player1b||null, hcp1b:m.hcp1b||0,
+            player2a:m.player2a||"", hcp2a:m.hcp2a||0,
+            player2b:m.player2b||null, hcp2b:m.hcp2b||0,
+          };
+          if (m.scores?.some(s=>s!=null)) {
+            updates[`cups/${cupId}/scores/m${m.id}`] = null;
+            updates[`cups/${cupId}/scores/m${newId}`] = {
+              scores:m.scores, hcp1a:m.hcp1a||0, hcp1b:m.hcp1b||0, hcp2a:m.hcp2a||0, hcp2b:m.hcp2b||0,
+              ...(m.grossP1a?{grossP1a:m.grossP1a}:{}),
+              ...(m.grossP1b?{grossP1b:m.grossP1b}:{}),
+              ...(m.grossP2a?{grossP2a:m.grossP2a}:{}),
+              ...(m.grossP2b?{grossP2b:m.grossP2b}:{}),
+              ...(m.disputes?.length?{disputes:m.disputes}:{}),
+            };
+          }
+        } else if (companionId !== (m.companionId??null)) {
+          updates[`cups/${cupId}/matches/m${m.id}/companionId`] = companionId;
+        }
+      }
+    }
+    if (Object.keys(updates).length) await update(ref(db), updates);
   };
 
   const saveAdminMatchups = async (editedDays) => {
@@ -790,6 +892,9 @@ export default function CupView({ user }) {
     if (upd.grossP2a) payload.grossP2a=upd.grossP2a;
     if (upd.grossP2b) payload.grossP2b=upd.grossP2b;
     if (upd.disputes!==undefined) payload.disputes=upd.disputes||null;
+    if (upd.extra?.length) payload.extra=upd.extra;
+    if (upd.extraGrossA?.length) payload.extraGrossA=upd.extraGrossA;
+    if (upd.extraGrossB?.length) payload.extraGrossB=upd.extraGrossB;
     try {
       await set(ref(db,path),payload);
       dirtyMatchIds.current.delete(upd.id);
@@ -950,7 +1055,7 @@ export default function CupView({ user }) {
       const withHoles=[m,companion].map(x=>({...x,totalHoles:d?.rounds?.[x.roundIdx??0]?.totalHoles||18}));
       return <GroupHoleEntry matches={withHoles} course={getCourse(d,m)} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
     }}
-    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <HoleEntry match={{...m,format:mRound?.format||"",totalHoles:mRound?.totalHoles||18}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>; }
+    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <HoleEntry match={{...m,format:mRound?.format||"",totalHoles:mRound?.totalHoles||18,allowExtraHoles:mRound?.allowExtraHoles||false}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>; }
   }
 
   const playerTeamColor=(()=>{ for(const d of days)for(const m of d.matches){if([m.player1a,m.player1b].includes(currentPlayer))return cup.teamAColor;if([m.player2a,m.player2b].includes(currentPlayer))return cup.teamBColor;} return MUTED; })();
@@ -1014,7 +1119,8 @@ export default function CupView({ user }) {
         {/* Live match status bar */}
         {meta.eventType==="live_match"&&(()=>{
           const lm=days[0]?.matches[0];
-          const st=lm?computeMatchStatus(lm.scores,cup.teamAShort,cup.teamBShort,lm.startHole||0,days[0]?.rounds?.[lm.roundIdx??0]?.totalHoles||18):null;
+          const lmRound=days[0]?.rounds?.[lm?.roundIdx??0];
+          const st=lm?computeMatchStatus(lm.scores,cup.teamAShort,cup.teamBShort,lm.startHole||0,lmRound?.totalHoles||18,lmRound?.pointValue||1,lmRound?.allowExtraHoles||false,lm.extra||[]):null;
           return (
             <div style={{display:"flex",alignItems:"stretch"}}>
               <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",minWidth:0}}>
@@ -1025,6 +1131,7 @@ export default function CupView({ user }) {
                 {st?.state==="live"&&<><div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>THRU {st.holesPlayed}</div><div style={{fontSize:18,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{!st.leader?"AS":`${st.up}UP`}</div><div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:3,animation:"pulse 1.5s infinite"}}/></>}
                 {st?.state==="complete"&&<><div style={{fontSize:7,color:GOLD,fontFamily:"monospace",fontWeight:700}}>WIN</div><div style={{fontSize:14,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{st.sublabel}</div></>}
                 {st?.state==="halved"&&<div style={{fontSize:10,fontWeight:900,color:"#557",fontFamily:"monospace"}}>HALVED</div>}
+                {st?.state==="extra"&&<><div style={{fontSize:7,color:GOLD,fontFamily:"monospace",fontWeight:700}}>PLAYOFF</div><div style={{fontSize:12,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{st.sublabel}</div></>}
               </div>
               <div style={{flex:1,background:cup.teamBColor,padding:"8px 10px",minWidth:0,textAlign:"right"}}>
                 <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamBColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamBName}</div>
@@ -1037,7 +1144,7 @@ export default function CupView({ user }) {
       {/* Tabs */}
       <div style={{display:"flex",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
         {[
-          ...(meta.eventType!=="live_match"?[["scoreboard","📊 BOARD"]]:[]),
+          ["scoreboard","📊 BOARD"],
           ["matches","⛳ MY MATCH"],
           ...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),
           ...(meta.eventType!=="live_match"?[["leaderboard","🏌️ SCORES"]]:[]),
@@ -1051,14 +1158,14 @@ export default function CupView({ user }) {
         {/* SCOREBOARD TAB */}
         {tab==="scoreboard"&&(
           <div>
-            <div style={{display:"flex",gap:6,marginBottom:12}}>
+            {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:12}}>
               {days.map((d,i)=>(
                 <button key={i} onClick={()=>setBoardDayOverride(i)}
                   style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${cup.teamBColor}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
                   {d.label?.toUpperCase()||`DAY ${i+1}`}
                 </button>
               ))}
-            </div>
+            </div>}
             {boardDay&&(
               <DayBlock day={boardDay} cup={cup}
                 onOpen={mid=>{if(canEdit(boardDayIdx,mid))openForScoring(boardDayIdx,mid);}}
@@ -1083,9 +1190,11 @@ export default function CupView({ user }) {
                   {[...boardDay.matches].sort((a,b)=>{const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
                     const isSingles=!m.player1b;
                     const mRound=boardDay.rounds?.[m.roundIdx??0];
-                    const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,mRound?.totalHoles||18);
+                    const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,mRound?.totalHoles||18,mRound?.pointValue||1,mRound?.allowExtraHoles||false,m.extra||[]);
                     const course=getCourse(boardDay,m);
-                    const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?cup.teamAColor:cup.teamBColor,halved:"#557",gap:"#e67e22"}[st.state];
+                    const extraCount=m.extra?.length||0;
+                    const totalCols=18+extraCount;
+                    const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?cup.teamAColor:cup.teamBColor,halved:"#557",extra:GOLD,gap:"#e67e22"}[st.state];
                     // Walk holes in this match's actual play order (shotgun/split starts don't
                     // necessarily begin on hole 1), then place each running lead back on its
                     // physical hole for the table below.
@@ -1105,7 +1214,28 @@ export default function CupView({ user }) {
                     const grossP2b=Array.isArray(m.grossP2b)?m.grossP2b:Array(18).fill(null);
                     const rowLabels=isSingles?[m.player1a,"SCORE",m.player2a]:[m.player1a,m.player1b,"SCORE",m.player2a,m.player2b];
                     const rowColors=isSingles?[cup.teamAColor,null,cup.teamBColorDisp]:[cup.teamAColor,cup.teamAColor,null,cup.teamBColorDisp,cup.teamBColorDisp];
+                    const arrowCell=(num,isA)=>{
+                      if(num===0) return <div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>;
+                      const col=isA?cup.teamAColor:cup.teamBColorDisp;
+                      return (
+                        <div style={{position:"relative",width:26,height:26,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto"}}>
+                          <div style={{width:0,height:0,borderLeft:"13px solid transparent",borderRight:"13px solid transparent",...(isA?{borderBottom:`26px solid ${col}`}:{borderTop:`26px solid ${col}`}),position:"absolute",top:0,left:0}}/>
+                          <span style={{position:"relative",zIndex:1,fontSize:10,fontWeight:900,color:"#fff",marginTop:isA?6:-6}}>{num}</span>
+                        </div>
+                      );
+                    };
                     const rowData=(hi)=>{
+                      // Playoff (sudden-death) holes live past index 17, one entry per extra
+                      // hole played — they always replay the course's 1st hole, and (being
+                      // sudden death) at most the very last one is ever decisive.
+                      if(hi>=18){
+                        const en=hi-18;
+                        const es=m.extra?.[en];
+                        const par=course.par?.[0]||4;
+                        const scoreCell={val:es==="A"||es==="B"?arrowCell(1,es==="A"):<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>,isScore:true};
+                        if(isSingles) return [scoreStyle(m.extraGrossA?.[en]??null,par),scoreCell,scoreStyle(m.extraGrossB?.[en]??null,par)];
+                        return [scoreStyle(m.extraGrossA?.[en]??null,par),scoreStyle(null,par),scoreCell,scoreStyle(m.extraGrossB?.[en]??null,par),scoreStyle(null,par)];
+                      }
                       const par=(course.par||[])[hi]||4;
                       const s=m.scores[hi]; const rl=runLeads[hi];
                       let scoreCell;
@@ -1113,14 +1243,7 @@ export default function CupView({ user }) {
                       else if(s==="H"){scoreCell={val:<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>,isScore:true};}
                       else{
                         const num=rl===null?0:Math.abs(rl);
-                        const isA=s==="A"; const col=isA?cup.teamAColor:cup.teamBColorDisp;
-                        if(num===0){scoreCell={val:<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>,isScore:true};}
-                        else{scoreCell={val:(
-                          <div style={{position:"relative",width:26,height:26,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto"}}>
-                            <div style={{width:0,height:0,borderLeft:"13px solid transparent",borderRight:"13px solid transparent",...(isA?{borderBottom:`26px solid ${col}`}:{borderTop:`26px solid ${col}`}),position:"absolute",top:0,left:0}}/>
-                            <span style={{position:"relative",zIndex:1,fontSize:10,fontWeight:900,color:"#fff",marginTop:isA?6:-6}}>{num}</span>
-                          </div>
-                        ),isScore:true};}
+                        scoreCell={val:arrowCell(num,s==="A"),isScore:true};
                       }
                       if(isSingles) return [scoreStyle(grossP1a[hi],par),scoreCell,scoreStyle(grossP2a[hi],par)];
                       return [scoreStyle(grossP1a[hi],par),scoreStyle(grossP1b[hi],par),scoreCell,scoreStyle(grossP2a[hi],par),scoreStyle(grossP2b[hi],par)];
@@ -1138,16 +1261,16 @@ export default function CupView({ user }) {
                             <thead>
                               <tr style={{background:"#080f20",borderBottom:`1px solid ${BORDER}`}}>
                                 <td style={{padding:"5px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",minWidth:70,position:"sticky",left:0,background:"#080f20",zIndex:1}}></td>
-                                {Array.from({length:18},(_,i)=>(
-                                  <td key={i} style={{textAlign:"center",padding:"5px 4px",fontSize:8,color:"#668",fontFamily:"monospace",minWidth:34,borderLeft:i===9?`1px solid ${BORDER}`:undefined,fontWeight:i===9||i===0?"800":"400"}}>
-                                    {i+1}{(m.disputes||[]).includes(i)?<span style={{color:"#e55",fontSize:7,marginLeft:1}}>🚩</span>:null}
+                                {Array.from({length:totalCols},(_,i)=>(
+                                  <td key={i} style={{textAlign:"center",padding:"5px 4px",fontSize:8,color:i>=18?GOLD:"#668",fontFamily:"monospace",minWidth:34,borderLeft:i===9||i===18?`1px solid ${BORDER}`:undefined,fontWeight:i===9||i===0?"800":"400"}}>
+                                    {i<18?i+1:`PO${i-17}`}{i<18&&(m.disputes||[]).includes(i)?<span style={{color:"#e55",fontSize:7,marginLeft:1}}>🚩</span>:null}
                                   </td>
                                 ))}
                               </tr>
                               <tr style={{background:"#080f20",borderBottom:`2px solid ${BORDER}`}}>
                                 <td style={{padding:"4px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",position:"sticky",left:0,background:"#080f20",zIndex:1}}>PAR</td>
-                                {(course.par||Array(18).fill(4)).map((p,i)=>(
-                                  <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"monospace",fontWeight:700,borderLeft:i===9?`1px solid ${BORDER}`:undefined}}>{p}</td>
+                                {Array.from({length:totalCols},(_,i)=>(
+                                  <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"monospace",fontWeight:700,borderLeft:i===9||i===18?`1px solid ${BORDER}`:undefined}}>{i<18?(course.par?.[i]||4):(course.par?.[0]||4)}</td>
                                 ))}
                               </tr>
                             </thead>
@@ -1158,10 +1281,10 @@ export default function CupView({ user }) {
                                 return (
                                   <tr key={ri} style={{borderBottom:`1px solid ${BORDER}22`,background:isScoreRow?"#060f22":ri%2===0?CARD:CARD2}}>
                                     <td style={{padding:"6px 10px",fontSize:isScoreRow?8:11,fontWeight:700,color:isScoreRow?"#446":nameColor,whiteSpace:"nowrap",position:"sticky",left:0,background:isScoreRow?"#060f22":ri%2===0?CARD:CARD2,zIndex:1,fontFamily:isScoreRow?"monospace":"inherit",letterSpacing:isScoreRow?1:0}}>{label}</td>
-                                    {Array.from({length:18},(_,hi)=>{
+                                    {Array.from({length:totalCols},(_,hi)=>{
                                       const cell=rowData(hi)[ri];
                                       return (
-                                        <td key={hi} style={{textAlign:"center",padding:"4px 2px",borderLeft:hi===9?`1px solid ${BORDER}`:undefined}}>
+                                        <td key={hi} style={{textAlign:"center",padding:"4px 2px",borderLeft:hi===9||hi===18?`1px solid ${BORDER}`:undefined}}>
                                           {isScoreRow?(
                                             <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:30}}>{cell.val}</div>
                                           ):(
@@ -1195,7 +1318,7 @@ export default function CupView({ user }) {
               const m=d?.matches.find(x=>x.id===playerMatch.matchId);
               if (!m) return null;
               const round=d?.rounds?.[m.roundIdx??0];
-              const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,round?.totalHoles||18);
+              const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,round?.totalHoles||18,round?.pointValue||1,round?.allowExtraHoles||false,m.extra||[]);
               const companion=m.companionId?d.matches.find(x=>x.id===m.companionId):null;
               return (
                 <div>
@@ -1232,6 +1355,19 @@ export default function CupView({ user }) {
                             ↗ Share Link
                           </button>
                         )}
+                        {(()=>{
+                          const watchUrl=`https://dormie-golf.vercel.app/watch/${cupId}`;
+                          return (
+                            <div style={{marginTop:14,paddingTop:14,borderTop:`1px solid ${BORDER}`}}>
+                              <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>VIEW-ONLY LINK · no sign-in needed</div>
+                              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                                <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{watchUrl}</div>
+                                <button onClick={()=>navigator.clipboard?.writeText(watchUrl)}
+                                  style={{padding:"9px 12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:GOLD,fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>Copy</button>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })()}
@@ -1399,7 +1535,7 @@ export default function CupView({ user }) {
               <AdminCourses initDays={days} onSave={saveAdminDays} onBack={()=>setAdminSection(null)}/>
             )}
             {adminSection==="rounds"&&(
-              <AdminRounds initDays={days} onSave={saveAdminDays} onBack={()=>setAdminSection(null)}/>
+              <AdminRounds initDays={days} onSave={saveAdminRounds} onBack={()=>setAdminSection(null)}/>
             )}
             {adminSection==="matchups"&&(
               <AdminMatchups initDays={days} cupPlayers={cupPlayers} teamAColor={cup.teamAColor} teamBColor={cup.teamBColor}

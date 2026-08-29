@@ -31,6 +31,7 @@ export default function CreateMatch({ user }) {
 
   const [step, setStep] = useState(1);
   const [format, setFormat] = useState("1v1");
+  const [allowExtraHoles, setAllowExtraHoles] = useState(false);
 
   const [names, setNames] = useState({ a1:"", a2:"", b1:"", b2:"" });
   const [hcps,  setHcps]  = useState({ a1:0,  a2:0,  b1:0,  b2:0  });
@@ -215,7 +216,7 @@ export default function CreateMatch({ user }) {
         ...(tees.length > 0 ? { tees } : {}),
         ...(selectedTee ? { selectedTee } : {}),
       };
-      const day = { label: "Match", rounds: [{ format: matchFormat, course: courseObj }] };
+      const day = { label: "Match", rounds: [{ format: matchFormat, course: courseObj, ...(format === "1v1" && allowExtraHoles ? { allowExtraHoles: true } : {}) }] };
       const match = {
         teeTime: "", format: matchFormat,
         player1a: names.a1.trim(), hcp1a: resolveHcp(hcps.a1 || 0),
@@ -287,6 +288,15 @@ export default function CreateMatch({ user }) {
                 ))}
               </div>
             </div>
+            {format === "1v1" && (
+              <label style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, cursor:"pointer" }}>
+                <input type="checkbox" checked={allowExtraHoles} onChange={e => setAllowExtraHoles(e.target.checked)} style={{ width:18, height:18, accentColor:GOLD }}/>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:700, color:TEXT }}>Play extra holes if tied</div>
+                  <div style={{ fontSize:11, color:MUTED, marginTop:2 }}>If all square through 18, go to sudden death instead of halving the match</div>
+                </div>
+              </label>
+            )}
             <div>
               <div style={{ fontSize:11, color:"#C8102E", fontFamily:"monospace", letterSpacing:1, marginBottom:10 }}>SIDE A</div>
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
