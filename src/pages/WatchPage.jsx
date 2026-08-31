@@ -32,8 +32,12 @@ export default function WatchPage() {
         ...(m || {}), scores,
         hcp1a: fb.hcp1a ?? m?.hcp1a, hcp1b: fb.hcp1b ?? m?.hcp1b, hcp2a: fb.hcp2a ?? m?.hcp2a, hcp2b: fb.hcp2b ?? m?.hcp2b,
         grossP1a: fb.grossP1a ? Array.from({ length: 18 }, (_, i) => fb.grossP1a[i] ?? null) : null,
+        grossP1b: fb.grossP1b ? Array.from({ length: 18 }, (_, i) => fb.grossP1b[i] ?? null) : null,
         grossP2a: fb.grossP2a ? Array.from({ length: 18 }, (_, i) => fb.grossP2a[i] ?? null) : null,
+        grossP2b: fb.grossP2b ? Array.from({ length: 18 }, (_, i) => fb.grossP2b[i] ?? null) : null,
         extra: fb.extra ? Object.values(fb.extra) : [],
+        extraGrossA: fb.extraGrossA ? Object.values(fb.extraGrossA) : [],
+        extraGrossB: fb.extraGrossB ? Object.values(fb.extraGrossB) : [],
       }));
     });
     return () => { unsubMeta(); unsubDays(); unsubMatches(); unsubScores(); };
@@ -108,45 +112,98 @@ export default function WatchPage() {
 
         {/* Hole by hole */}
         <div style={{ fontSize: 9, color: GOLD, fontFamily: "monospace", letterSpacing: 2, opacity: 0.7, marginBottom: 6 }}>HOLE BY HOLE</div>
-        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", background: CARD, borderRadius: 10, border: `1px solid ${BORDER}` }}>
-          <table style={{ borderCollapse: "collapse", fontSize: 11 }}>
-            <thead>
-              <tr style={{ background: "#080f20", borderBottom: `1px solid ${BORDER}` }}>
-                <td style={{ padding: "5px 10px" }}></td>
-                {Array.from({ length: 18 + extraCount }, (_, i) => (
-                  <td key={i} style={{ textAlign: "center", padding: "5px 4px", fontSize: 8, color: i >= 18 ? GOLD : "#668", fontFamily: "monospace", minWidth: 30, borderLeft: i === 9 || i === 18 ? `1px solid ${BORDER}` : undefined }}>
-                    {i < 18 ? i + 1 : `PO${i - 17}`}
-                  </td>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ padding: "8px 10px", fontSize: 9, color: "#446", fontFamily: "monospace" }}>RESULT</td>
-                {Array.from({ length: 18 + extraCount }, (_, hi) => {
-                  let num = 0, isA = false, dash = true;
-                  if (hi >= 18) {
-                    const es = match.extra?.[hi - 18];
-                    if (es === "A" || es === "B") { num = 1; isA = es === "A"; dash = false; }
-                  } else {
-                    const s = (match.scores || [])[hi];
-                    if (s === "A" || s === "B") { const rl = runLeads[hi]; num = rl === null ? 0 : Math.abs(rl); isA = s === "A"; dash = num === 0; }
-                  }
-                  return (
-                    <td key={hi} style={{ textAlign: "center", padding: "4px 2px", borderLeft: hi === 9 || hi === 18 ? `1px solid ${BORDER}` : undefined }}>
-                      {dash ? <div style={{ fontSize: 11, fontWeight: 900, color: "#557" }}>—</div> : (
-                        <div style={{ position: "relative", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
-                          <div style={{ width: 0, height: 0, borderLeft: "12px solid transparent", borderRight: "12px solid transparent", ...(isA ? { borderBottom: `24px solid ${isA ? meta.teamAColor : meta.teamBColor}` } : { borderTop: `24px solid ${meta.teamBColor}` }), position: "absolute", top: 0, left: 0 }}/>
-                          <span style={{ position: "relative", zIndex: 1, fontSize: 9, fontWeight: 900, color: "#fff", marginTop: isA ? 5 : -5 }}>{num}</span>
-                        </div>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {(() => {
+          const totalCols = 18 + extraCount;
+          const scoreStyle = (gross, par) => {
+            if (gross === null || gross === undefined) return { val: "·", color: "#334", bg: "transparent", border: "none", radius: 2 };
+            const d = gross - par;
+            if (d <= -2) return { val: gross, color: "#FFD700", bg: "transparent", border: "1.5px double #FFD700", radius: 2 };
+            if (d === -1) return { val: gross, color: "#4caf50", bg: "transparent", border: "1.5px solid #4caf50", radius: "50%" };
+            if (d === 0) return { val: gross, color: "#ccd", bg: "transparent", border: "none", radius: 2 };
+            if (d === 1) return { val: gross, color: "#e88", bg: "transparent", border: "1.5px solid #e88", radius: 2 };
+            if (d === 2) return { val: gross, color: "#e55", bg: "transparent", border: "1.5px solid #e55", radius: 2 };
+            return { val: gross, color: "#fff", bg: "#c0392b", border: "none", radius: 2 };
+          };
+          const arrowCell = (num, isA) => {
+            if (num === 0) return <div style={{ fontSize: 11, fontWeight: 900, color: "#557" }}>—</div>;
+            const col = isA ? meta.teamAColor : meta.teamBColor;
+            return (
+              <div style={{ position: "relative", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
+                <div style={{ width: 0, height: 0, borderLeft: "12px solid transparent", borderRight: "12px solid transparent", ...(isA ? { borderBottom: `24px solid ${col}` } : { borderTop: `24px solid ${col}` }), position: "absolute", top: 0, left: 0 }}/>
+                <span style={{ position: "relative", zIndex: 1, fontSize: 9, fontWeight: 900, color: "#fff", marginTop: isA ? 5 : -5 }}>{num}</span>
+              </div>
+            );
+          };
+          const grossP1a = match.grossP1a || Array(18).fill(null);
+          const grossP1b = match.grossP1b || Array(18).fill(null);
+          const grossP2a = match.grossP2a || Array(18).fill(null);
+          const grossP2b = match.grossP2b || Array(18).fill(null);
+          const rowLabels = isSingles ? [match.player1a, "SCORE", match.player2a] : [match.player1a, match.player1b, "SCORE", match.player2a, match.player2b];
+          const rowColors = isSingles ? [meta.teamAColor, null, meta.teamBColor] : [meta.teamAColor, meta.teamAColor, null, meta.teamBColor, meta.teamBColor];
+          const rowData = (hi) => {
+            if (hi >= 18) {
+              const en = hi - 18;
+              const es = match.extra?.[en];
+              const par = course.par?.[0] || 4;
+              const scoreCell = es === "A" || es === "B" ? arrowCell(1, es === "A") : <div style={{ fontSize: 11, fontWeight: 900, color: "#557" }}>—</div>;
+              if (isSingles) return [scoreStyle(match.extraGrossA?.[en] ?? null, par), scoreCell, scoreStyle(match.extraGrossB?.[en] ?? null, par)];
+              return [scoreStyle(match.extraGrossA?.[en] ?? null, par), scoreStyle(null, par), scoreCell, scoreStyle(match.extraGrossB?.[en] ?? null, par), scoreStyle(null, par)];
+            }
+            const par = (course.par || [])[hi] || 4;
+            const s = (match.scores || [])[hi];
+            let scoreCell;
+            if (s === null || s === undefined) scoreCell = <div style={{ fontSize: 9, color: "#334" }}>·</div>;
+            else if (s === "H") scoreCell = <div style={{ fontSize: 11, fontWeight: 900, color: "#557" }}>—</div>;
+            else { const rl = runLeads[hi]; scoreCell = arrowCell(rl === null ? 0 : Math.abs(rl), s === "A"); }
+            if (isSingles) return [scoreStyle(grossP1a[hi], par), scoreCell, scoreStyle(grossP2a[hi], par)];
+            return [scoreStyle(grossP1a[hi], par), scoreStyle(grossP1b[hi], par), scoreCell, scoreStyle(grossP2a[hi], par), scoreStyle(grossP2b[hi], par)];
+          };
+          return (
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", background: CARD, borderRadius: 10, border: `1px solid ${BORDER}` }}>
+              <table style={{ borderCollapse: "collapse", fontSize: 11 }}>
+                <thead>
+                  <tr style={{ background: "#080f20", borderBottom: `1px solid ${BORDER}` }}>
+                    <td style={{ padding: "5px 10px", position: "sticky", left: 0, background: "#080f20" }}></td>
+                    {Array.from({ length: totalCols }, (_, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "5px 4px", fontSize: 8, color: i >= 18 ? GOLD : "#668", fontFamily: "monospace", minWidth: 30, borderLeft: i === 9 || i === 18 ? `1px solid ${BORDER}` : undefined }}>
+                        {i < 18 ? i + 1 : `PO${i - 17}`}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr style={{ background: "#080f20", borderBottom: `2px solid ${BORDER}` }}>
+                    <td style={{ padding: "4px 10px", fontSize: 8, color: "#446", fontFamily: "monospace", position: "sticky", left: 0, background: "#080f20" }}>PAR</td>
+                    {Array.from({ length: totalCols }, (_, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "#557", fontFamily: "monospace", fontWeight: 700, borderLeft: i === 9 || i === 18 ? `1px solid ${BORDER}` : undefined }}>{i < 18 ? (course.par?.[i] || 4) : (course.par?.[0] || 4)}</td>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rowLabels.map((label, ri) => {
+                    const isScoreRow = label === "SCORE";
+                    const nameColor = rowColors[ri];
+                    return (
+                      <tr key={ri} style={{ borderBottom: `1px solid ${BORDER}22`, background: isScoreRow ? "#060f22" : ri % 2 === 0 ? CARD : CARD2 }}>
+                        <td style={{ padding: "6px 10px", fontSize: isScoreRow ? 8 : 11, fontWeight: 700, color: isScoreRow ? "#446" : nameColor, whiteSpace: "nowrap", position: "sticky", left: 0, background: isScoreRow ? "#060f22" : ri % 2 === 0 ? CARD : CARD2, fontFamily: isScoreRow ? "monospace" : "inherit", letterSpacing: isScoreRow ? 1 : 0 }}>{label}</td>
+                        {Array.from({ length: totalCols }, (_, hi) => {
+                          const cell = rowData(hi)[ri];
+                          return (
+                            <td key={hi} style={{ textAlign: "center", padding: "4px 2px", borderLeft: hi === 9 || hi === 18 ? `1px solid ${BORDER}` : undefined }}>
+                              {isScoreRow ? (
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 30 }}>{cell}</div>
+                              ) : (
+                                <div style={{ width: 24, height: 24, background: cell.bg, border: cell.border, borderRadius: cell.radius, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: cell.color, margin: "0 auto" }}>{cell.val}</div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
         <div style={{ textAlign: "center", fontSize: 10, color: "#446", marginTop: 16, fontFamily: "monospace" }}>Updates live · view only</div>
       </div>
     </div>
