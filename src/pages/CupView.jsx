@@ -17,7 +17,7 @@ function findPlayerMatch(days, playerName, preferDayIdx = null) {
     ? [preferDayIdx, ...days.map((_,i)=>i).filter(i=>i!==preferDayIdx)]
     : days.map((_,i)=>i);
   for (const di of order) {
-    for (const m of days[di].matches) {
+    for (const m of days[di]?.matches || []) {
       if ([m.player1a,m.player1b,m.player2a,m.player2b].includes(playerName))
         return { dayIdx:di, matchId:m.id };
     }
@@ -986,11 +986,13 @@ export default function CupView({ user }) {
     else if (dayOffset < 0) autoDayIdx = 0;
     else autoDayIdx = days.length - 1;
   } else {
+    // Fri/Sat/Sun heuristic for a 3-day cup — irrelevant (and out of range) for a
+    // standalone 1-day match, so only trust it when it actually lands inside `days`.
     const dowToDay = {5:0,6:1,0:2};
     const dow = new Date().getDay();
-    autoDayIdx = dowToDay[dow]!==undefined ? dowToDay[dow] : -1;
+    autoDayIdx = (dowToDay[dow]!==undefined && dowToDay[dow]<days.length) ? dowToDay[dow] : -1;
   }
-  if (autoDayIdx===-1){let best=0;for(let i=0;i<days.length;i++)if(days[i].matches.some(m=>m.scores.some(s=>s!==null)))best=i;autoDayIdx=best;}
+  if (autoDayIdx===-1){let best=0;for(let i=0;i<days.length;i++)if(days[i]?.matches?.some(m=>m.scores.some(s=>s!==null)))best=i;autoDayIdx=best;}
   const boardDayIdx = boardDayOverride!==null?boardDayOverride:autoDayIdx;
   const boardDay = days[boardDayIdx];
   const playerMatch = currentPlayer?findPlayerMatch(days,currentPlayer,autoDayIdx):null;
