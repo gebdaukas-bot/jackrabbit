@@ -41,6 +41,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   });
 
   const holeHcp = course.hcp[hole], holePar = course.par[hole];
+  const holeYardage = course.yardage?.[hole] || null;
   // Scramble: one score per team; hcp1a/hcp2a store the manually-set team handicaps
   const isScramble = match.format === "Scramble";
   const oneScorePerSide = isSingles || isScramble;
@@ -258,6 +259,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "#446", fontFamily: "monospace", letterSpacing: 2 }}>PAR</div><div style={{ fontSize: 28, fontWeight: 900, color: "#ccd", fontFamily: "monospace", lineHeight: 1 }}>{holePar}</div></div>
           <div style={{ width: 1, background: BORDER }} />
           <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "#446", fontFamily: "monospace", letterSpacing: 2 }}>HCP IDX</div><div style={{ fontSize: 28, fontWeight: 900, color: "#ccd", fontFamily: "monospace", lineHeight: 1 }}>{holeHcp}</div></div>
+          {holeYardage && <><div style={{ width: 1, background: BORDER }} /><div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "#446", fontFamily: "monospace", letterSpacing: 2 }}>YDS</div><div style={{ fontSize: 28, fontWeight: 900, color: "#ccd", fontFamily: "monospace", lineHeight: 1 }}>{holeYardage}</div></div></>}
           {strokeEntries.length > 0 && <><div style={{ width: 1, background: BORDER }} /><div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}><div style={{ fontSize: 8, color: GOLD, fontFamily: "monospace", letterSpacing: 1 }}>STROKE</div><div style={{ fontSize: 9, color: GOLD, marginTop: 1 }}>{strokeEntries.map(e => `${e.name}${e.strokes > 1 ? ` ×${e.strokes}` : ""}`).join(", ")}</div></div></>}
         </div>
 

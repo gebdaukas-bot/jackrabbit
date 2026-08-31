@@ -40,7 +40,8 @@ async function fetchFromGolfCourseAPI(courseName) {
     name,
     par: primary.holes.map(h => h.par),
     hcp: primary.holes.map(h => h.handicap),
-    tees: eighteens.map(t => ({ name: t.tee_name, slope: t.slope_rating, rating: t.course_rating })),
+    yardage: primary.holes.map(h => h.yardage),
+    tees: eighteens.map(t => ({ name: t.tee_name, slope: t.slope_rating, rating: t.course_rating, yardage: t.total_yards })),
   };
 }
 
@@ -61,11 +62,12 @@ Return ONLY a valid JSON object — no explanation, no markdown:
   "name": "Full Official Course Name",
   "par": [4,4,3,4,5,4,3,4,4,4,3,4,5,3,4,4,5,4],
   "hcp": [1,3,17,9,5,13,15,7,11,2,18,8,4,16,12,6,14,10],
+  "yardage": [420,175,510,390,140,455,585,410,205,435,160,530,400,395,150,470,410,595],
   "tees": [
-    { "name": "Black", "rating": 74.2, "slope": 148 },
-    { "name": "Blue",  "rating": 72.1, "slope": 138 },
-    { "name": "White", "rating": 70.3, "slope": 128 },
-    { "name": "Red",   "rating": 68.5, "slope": 118 }
+    { "name": "Black", "rating": 74.2, "slope": 148, "yardage": 7012 },
+    { "name": "Blue",  "rating": 72.1, "slope": 138, "yardage": 6580 },
+    { "name": "White", "rating": 70.3, "slope": 128, "yardage": 6120 },
+    { "name": "Red",   "rating": 68.5, "slope": 118, "yardage": 5480 }
   ]
 }
 
@@ -74,8 +76,9 @@ If you do not have reliable data for this specific course, return exactly: { "fo
 Rules:
 - "par" must be exactly 18 integers (holes 1–18 in order)
 - "hcp" must be exactly 18 integers, each value 1–18 used exactly once
-- "tees" must list every available set of tees from hardest to easiest with accurate USGA slope and course rating
-- Only return data you are genuinely confident about — if uncertain about par/hcp or slope/rating, return { "found": false }`,
+- "yardage" must be exactly 18 integers, the per-hole yardage from the tees array's primary (first-listed) tee
+- "tees" must list every available set of tees from hardest to easiest with accurate USGA slope, course rating, and total yardage
+- Only return data you are genuinely confident about — if uncertain about par/hcp, yardage, or slope/rating, return { "found": false }`,
       },
     ],
   });
@@ -93,6 +96,8 @@ Rules:
   ) {
     return null;
   }
+  // Yardage is a nice-to-have — don't fail the whole lookup over it.
+  if (!Array.isArray(data.yardage) || data.yardage.length !== 18) data.yardage = null;
   return data;
 }
 

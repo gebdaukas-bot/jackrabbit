@@ -32,13 +32,15 @@ Return ONLY a valid JSON object with this exact structure — no explanation, no
 {
   "name": "Course Name",
   "par": [4,4,3,4,5,4,3,4,4,4,3,4,5,3,4,4,5,4],
-  "hcp": [1,3,17,9,5,13,15,7,11,2,18,8,4,16,12,6,14,10]
+  "hcp": [1,3,17,9,5,13,15,7,11,2,18,8,4,16,12,6,14,10],
+  "yardage": [420,175,510,390,140,455,585,410,205,435,160,530,400,395,150,470,410,595]
 }
 
 Rules:
 - "par" must be an array of exactly 18 integers (holes 1–18 in order)
 - "hcp" must be an array of exactly 18 integers representing stroke/handicap index (each value 1–18, used once)
-- If a value is unclear, use a reasonable default (par 4 for unknown holes; for hcp use the sequence 1–18 as a fallback)
+- "yardage" must be an array of exactly 18 integers, the per-hole yardage from whichever single tee column is clearest on the card (don't mix tees). Omit the "yardage" field entirely if no yardage is legible on the card — do not guess.
+- If a par or hcp value is unclear, use a reasonable default (par 4 for unknown holes; for hcp use the sequence 1–18 as a fallback)
 - Return only the JSON object, nothing else`,
             },
           ],
@@ -57,6 +59,7 @@ Rules:
     ) {
       return res.status(422).json({ error: "Unexpected response format from model" });
     }
+    if (!Array.isArray(data.yardage) || data.yardage.length !== 18) data.yardage = null;
 
     res.status(200).json(data);
   } catch (err) {

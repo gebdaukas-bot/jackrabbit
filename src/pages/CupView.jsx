@@ -230,13 +230,17 @@ function AdminPlayers({ initPlayers, teamAColor, teamBColor, onSave, onBack }) {
 
 function AdminCourses({ initDays, onSave, onBack }) {
   const { CARD2, BORDER, TEXT, MUTED } = useTheme();
-  const [days, setDays] = useState(initDays.map(d=>({...d,rounds:d.rounds.map(r=>({...r,course:{...(r.course||{}),par:[...(r.course?.par||[])],hcp:[...(r.course?.hcp||[])]}}))})));
+  const [days, setDays] = useState(initDays.map(d=>({...d,rounds:d.rounds.map(r=>({...r,course:{...(r.course||{}),par:[...(r.course?.par||[])],hcp:[...(r.course?.hcp||[])],yardage:Array.from({length:18},(_,i)=>r.course?.yardage?.[i]||null)}}))})));
   const [saving, setSaving] = useState(false);
   const [selDay, setSelDay] = useState(0);
   const [selRound, setSelRound] = useState(0);
   const round = days[selDay]?.rounds[selRound] || {};
   const course = round.course || {};
   const updateHole = (field, hi, val) => {
+    if (field==="yardage" && val.trim()==="") {
+      setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,yardage:r.course.yardage.map((v,i)=>i===hi?null:v)}})}));
+      return;
+    }
     const n = parseInt(val); if (isNaN(n)) return;
     setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,[field]:r.course[field].map((v,i)=>i===hi?n:v)}})}));
   };
@@ -291,17 +295,19 @@ function AdminCourses({ initDays, onSave, onBack }) {
           <div style={{fontSize:15,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{course.par?.reduce((a,b)=>a+b,0)||"—"}</div>
         </div>
       </div>
-      {["par","hcp"].map(field=>(
+      {["par","hcp","yardage"].map(field=>(
         <div key={field} style={{marginBottom:12}}>
-          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>{field==="par"?"PAR PER HOLE":"HANDICAP INDEX"}</div>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>{field==="par"?"PAR PER HOLE":field==="hcp"?"HANDICAP INDEX":"YARDAGE"}</div>
           <div style={{overflowX:"auto"}}>
             <div style={{display:"flex",gap:3,minWidth:"max-content"}}>
               {Array.from({length:18},(_,i)=>(
                 <div key={i} style={{textAlign:"center"}}>
                   <div style={{fontSize:8,color:MUTED,marginBottom:2,fontFamily:"monospace"}}>{i+1}</div>
-                  <input type="number" min={field==="par"?3:1} max={field==="par"?5:18} value={course[field]?.[i]||(field==="par"?4:i+1)}
+                  <input type="number" min={field==="par"?3:field==="hcp"?1:1} max={field==="par"?5:field==="hcp"?18:700}
+                    value={field==="yardage"?(course.yardage?.[i]??""):(course[field]?.[i]||(field==="par"?4:i+1))}
+                    placeholder={field==="yardage"?"—":undefined}
                     onChange={e=>updateHole(field,i,e.target.value)}
-                    style={{width:30,height:30,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:11,textAlign:"center",outline:"none",padding:0}}/>
+                    style={{width:field==="yardage"?38:30,height:30,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:11,textAlign:"center",outline:"none",padding:0}}/>
                 </div>
               ))}
             </div>
@@ -778,7 +784,10 @@ export default function CupView({ user }) {
         label:d.label,
         rounds:d.rounds.map(r=>({
           format:r.format,
-          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72)},
+          // Firebase Realtime Database collapses `null` entries out of arrays (reindexing
+          // everything after them), so any unset yardage holes get written as 0 instead —
+          // read paths treat 0 the same as "no data" for this field.
+          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
           ...(r.pointValue?{pointValue:r.pointValue}:{}),
         })),
@@ -797,7 +806,10 @@ export default function CupView({ user }) {
         label:d.label,
         rounds:d.rounds.map(r=>({
           format:r.format,
-          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72)},
+          // Firebase Realtime Database collapses `null` entries out of arrays (reindexing
+          // everything after them), so any unset yardage holes get written as 0 instead —
+          // read paths treat 0 the same as "no data" for this field.
+          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
           ...(r.pointValue?{pointValue:r.pointValue}:{}),
         })),

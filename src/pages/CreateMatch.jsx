@@ -40,6 +40,7 @@ export default function CreateMatch({ user }) {
   const [courseName, setCourseName] = useState("");
   const [par, setPar] = useState([...DEFAULT_PAR]);
   const [hcp, setHcp] = useState([...DEFAULT_HCP]);
+  const [yardage, setYardage] = useState(Array(18).fill(null));
   const [showHoles, setShowHoles] = useState(false);
   const [prevCourses, setPrevCourses] = useState([]);
 
@@ -95,7 +96,7 @@ export default function CreateMatch({ user }) {
             for (const round of (day.rounds || [{ course: day.course }])) {
               const c = round.course;
               if (c?.name && c.par?.length === 18 && c.hcp?.length === 18 && !seen[c.name])
-                seen[c.name] = { name: c.name, par: c.par, hcp: c.hcp, tees: c.tees || [] };
+                seen[c.name] = { name: c.name, par: c.par, hcp: c.hcp, yardage: c.yardage?.map(y=>y||null) || null, tees: c.tees || [] };
             }
           }
         }));
@@ -129,6 +130,7 @@ export default function CreateMatch({ user }) {
         setCourseName(data.name);
         setPar([...data.par]);
         setHcp([...data.hcp]);
+        setYardage(data.yardage ? [...data.yardage] : Array(18).fill(null));
         setTees(data.tees || []);
         setLookupFound(true);
       }
@@ -156,7 +158,11 @@ export default function CreateMatch({ user }) {
       });
       const data = await res.json();
       if (!res.ok) { setScanError(data.error || "Failed to parse scorecard"); }
-      else { setCourseName(data.name); setPar([...data.par]); setHcp([...data.hcp]); setScanned(true); }
+      else {
+        setCourseName(data.name); setPar([...data.par]); setHcp([...data.hcp]);
+        setYardage(data.yardage ? [...data.yardage] : Array(18).fill(null));
+        setScanned(true);
+      }
     } catch { setScanError("Something went wrong — try again"); }
     finally { setScanning(false); }
   };
@@ -170,8 +176,10 @@ export default function CreateMatch({ user }) {
   };
 
   const updateHole = (field, i, val) => {
+    if (field === "yardage" && val.trim() === "") { setYardage(a => a.map((v, j) => j === i ? null : v)); return; }
     const n = parseInt(val); if (isNaN(n)) return;
     if (field === "par") setPar(a => a.map((v, j) => j === i ? n : v));
+    else if (field === "yardage") setYardage(a => a.map((v, j) => j === i ? n : v));
     else setHcp(a => a.map((v, j) => j === i ? n : v));
   };
 
@@ -213,6 +221,9 @@ export default function CreateMatch({ user }) {
 
       const courseObj = {
         name: courseName.trim(), par, hcp,
+        // Firebase collapses `null` array entries (reindexing what follows), so unset
+        // holes are written as 0 instead — read paths treat 0 the same as "no data".
+        ...(yardage.some(y => y) ? { yardage: yardage.map(y => y || 0) } : {}),
         ...(tees.length > 0 ? { tees } : {}),
         ...(selectedTee ? { selectedTee } : {}),
       };
@@ -364,6 +375,7 @@ export default function CreateMatch({ user }) {
                   const c = prevCourses.find(x => x.name === e.target.value);
                   if (!c) return;
                   setCourseName(c.name); setPar([...c.par]); setHcp([...c.hcp]);
+                  setYardage(c.yardage ? [...c.yardage] : Array(18).fill(null));
                   setTees(c.tees || []); setSelectedTeeIdx(null);
                   resetCourseData();
                 }}
@@ -424,7 +436,7 @@ export default function CreateMatch({ user }) {
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:13, fontWeight:700, color:sel?GOLD:TEXT }}>{tee.name}</div>
                         <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", marginTop:2 }}>
-                          Rating {tee.rating} · Slope {tee.slope}
+                          Rating {tee.rating} · Slope {tee.slope}{tee.yardage ? ` · ${tee.yardage} yds` : ""}
                         </div>
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", gap:2, alignItems:"flex-end" }}>
@@ -468,24 +480,25 @@ export default function CreateMatch({ user }) {
             {/* Hole grid — expandable */}
             <button onClick={() => setShowHoles(s => !s)}
               style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:10, padding:"10px 14px", color:MUTED, fontSize:12, cursor:"pointer", textAlign:"left", display:"flex", justifyContent:"space-between" }}>
-              <span>Edit par & handicap index per hole</span>
+              <span>Edit par, handicap index & yardage per hole</span>
               <span>{showHoles ? "▲" : "▼"}</span>
             </button>
 
-            {showHoles && ["par","hcp"].map(field => (
+            {showHoles && ["par","hcp","yardage"].map(field => (
               <div key={field} style={{ marginBottom:8 }}>
                 <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>
-                  {field === "par" ? "PAR PER HOLE" : "HANDICAP INDEX"}
+                  {field === "par" ? "PAR PER HOLE" : field === "hcp" ? "HANDICAP INDEX" : "YARDAGE"}
                 </div>
                 <div style={{ overflowX:"auto", WebkitOverflowScrolling:"touch" }}>
                   <div style={{ display:"flex", gap:3, minWidth:"max-content" }}>
                     {Array.from({ length:18 }, (_, i) => (
                       <div key={i} style={{ textAlign:"center" }}>
                         <div style={{ fontSize:8, color:MUTED, marginBottom:2, fontFamily:"monospace" }}>{i+1}</div>
-                        <input type="number" min={field==="par"?3:1} max={field==="par"?5:18}
-                          value={(field==="par"?par:hcp)[i]}
+                        <input type="number" min={field==="par"?3:field==="hcp"?1:1} max={field==="par"?5:field==="hcp"?18:700}
+                          value={field==="par"?par[i]:field==="hcp"?hcp[i]:(yardage[i] ?? "")}
+                          placeholder={field==="yardage"?"—":undefined}
                           onChange={e => updateHole(field, i, e.target.value)}
-                          style={{ width:30, height:30, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:4, color:TEXT, fontSize:11, textAlign:"center", outline:"none", padding:0 }}/>
+                          style={{ width:field==="yardage"?38:30, height:30, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:4, color:TEXT, fontSize:11, textAlign:"center", outline:"none", padding:0 }}/>
                       </div>
                     ))}
                   </div>
