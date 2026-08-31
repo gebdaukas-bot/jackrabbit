@@ -6,6 +6,7 @@ import { computeMatchStatus, computeAllPoints, GOLD } from "../utils/scoring";
 import { contrastText } from "../utils/color";
 import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
+import HoleByHoleTable from "../components/HoleByHoleTable";
 import LiveBackground from "../components/LiveBackground";
 import confetti from "canvas-confetti";
 import { QRCodeSVG } from "qrcode.react";
@@ -1187,138 +1188,26 @@ export default function CupView({ user }) {
             )}
 
             {/* Hole-by-hole breakdown */}
-            {boardDay&&boardDay.matches.length>0&&(()=>{
-              const scoreStyle=(gross,par)=>{
-                if(gross===null) return {val:"·",color:"#334",bg:"transparent",border:"none",radius:2};
-                const d=gross-par;
-                if(d<=-2) return {val:gross,color:"#FFD700",bg:"transparent",border:"1.5px double #FFD700",radius:2};
-                if(d===-1) return {val:gross,color:"#4caf50",bg:"transparent",border:"1.5px solid #4caf50",radius:"50%"};
-                if(d===0)  return {val:gross,color:"#ccd",bg:"transparent",border:"none",radius:2};
-                if(d===1)  return {val:gross,color:"#e88",bg:"transparent",border:"1.5px solid #e88",radius:2};
-                if(d===2)  return {val:gross,color:"#e55",bg:"transparent",border:"1.5px solid #e55",radius:2};
-                return           {val:gross,color:"#fff",bg:"#c0392b",border:"none",radius:2};
-              };
-              return (
-                <div>
-                  <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,opacity:0.7}}>HOLE BY HOLE</div>
-                  {[...boardDay.matches].sort((a,b)=>{const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
-                    const isSingles=!m.player1b;
-                    const mRound=boardDay.rounds?.[m.roundIdx??0];
-                    const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,mRound?.totalHoles||18,mRound?.pointValue||1,mRound?.allowExtraHoles||false,m.extra||[]);
-                    const course=getCourse(boardDay,m);
-                    const extraCount=m.extra?.length||0;
-                    const totalCols=18+extraCount;
-                    const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?cup.teamAColor:cup.teamBColor,halved:"#557",extra:GOLD,gap:"#e67e22"}[st.state];
-                    // Walk holes in this match's actual play order (shotgun/split starts don't
-                    // necessarily begin on hole 1), then place each running lead back on its
-                    // physical hole for the table below.
-                    let lead=0;
-                    const trendStartHole=m.startHole||0;
-                    const runLeads=Array(18).fill(null);
-                    for(let k=0;k<18;k++){
-                      const i=(trendStartHole+k)%18;
-                      const s=m.scores[i];
-                      if(s===null||s===undefined)continue;
-                      if(s==="A")lead++;else if(s==="B")lead--;
-                      runLeads[i]=lead;
-                    }
-                    const grossP1a=Array.isArray(m.grossP1a)?m.grossP1a:Array(18).fill(null);
-                    const grossP1b=Array.isArray(m.grossP1b)?m.grossP1b:Array(18).fill(null);
-                    const grossP2a=Array.isArray(m.grossP2a)?m.grossP2a:Array(18).fill(null);
-                    const grossP2b=Array.isArray(m.grossP2b)?m.grossP2b:Array(18).fill(null);
-                    const rowLabels=isSingles?[m.player1a,"SCORE",m.player2a]:[m.player1a,m.player1b,"SCORE",m.player2a,m.player2b];
-                    const rowColors=isSingles?[cup.teamAColor,null,cup.teamBColorDisp]:[cup.teamAColor,cup.teamAColor,null,cup.teamBColorDisp,cup.teamBColorDisp];
-                    const arrowCell=(num,isA)=>{
-                      if(num===0) return <div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>;
-                      const col=isA?cup.teamAColor:cup.teamBColorDisp;
-                      return (
-                        <div style={{position:"relative",width:26,height:26,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto"}}>
-                          <div style={{width:0,height:0,borderLeft:"13px solid transparent",borderRight:"13px solid transparent",...(isA?{borderBottom:`26px solid ${col}`}:{borderTop:`26px solid ${col}`}),position:"absolute",top:0,left:0}}/>
-                          <span style={{position:"relative",zIndex:1,fontSize:10,fontWeight:900,color:"#fff",marginTop:isA?6:-6}}>{num}</span>
-                        </div>
-                      );
-                    };
-                    const rowData=(hi)=>{
-                      // Playoff (sudden-death) holes live past index 17, one entry per extra
-                      // hole played — they always replay the course's 1st hole, and (being
-                      // sudden death) at most the very last one is ever decisive.
-                      if(hi>=18){
-                        const en=hi-18;
-                        const es=m.extra?.[en];
-                        const par=course.par?.[0]||4;
-                        const scoreCell={val:es==="A"||es==="B"?arrowCell(1,es==="A"):<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>,isScore:true};
-                        if(isSingles) return [scoreStyle(m.extraGrossA?.[en]??null,par),scoreCell,scoreStyle(m.extraGrossB?.[en]??null,par)];
-                        return [scoreStyle(m.extraGrossA?.[en]??null,par),scoreStyle(null,par),scoreCell,scoreStyle(m.extraGrossB?.[en]??null,par),scoreStyle(null,par)];
-                      }
-                      const par=(course.par||[])[hi]||4;
-                      const s=m.scores[hi]; const rl=runLeads[hi];
-                      let scoreCell;
-                      if(s===null||s===undefined){scoreCell={val:<div style={{fontSize:9,color:"#334"}}>·</div>,isScore:true};}
-                      else if(s==="H"){scoreCell={val:<div style={{fontSize:11,fontWeight:900,color:"#557"}}>—</div>,isScore:true};}
-                      else{
-                        const num=rl===null?0:Math.abs(rl);
-                        scoreCell={val:arrowCell(num,s==="A"),isScore:true};
-                      }
-                      if(isSingles) return [scoreStyle(grossP1a[hi],par),scoreCell,scoreStyle(grossP2a[hi],par)];
-                      return [scoreStyle(grossP1a[hi],par),scoreStyle(grossP1b[hi],par),scoreCell,scoreStyle(grossP2a[hi],par),scoreStyle(grossP2b[hi],par)];
-                    };
-                    return (
-                      <div key={m.id} style={{marginBottom:14,background:CARD,borderRadius:10,border:`1px solid ${stColor}44`,overflow:"hidden"}}>
-                        <div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"6px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`,gap:8}}>
-                          <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",textAlign:"center"}}>{st.longLabel}{st.sublabel?` · ${st.sublabel}`:""}</div>
-                          <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",textAlign:"center"}}>
-                            {m.teeTime?`${m.teeTime} · `:""}{`Match ${mi+1}`}
-                          </div>
-                        </div>
-                        <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
-                          <table style={{borderCollapse:"collapse",fontSize:11}}>
-                            <thead>
-                              <tr style={{background:"#080f20",borderBottom:`1px solid ${BORDER}`}}>
-                                <td style={{padding:"5px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",minWidth:70,position:"sticky",left:0,background:"#080f20",zIndex:1}}></td>
-                                {Array.from({length:totalCols},(_,i)=>(
-                                  <td key={i} style={{textAlign:"center",padding:"5px 4px",fontSize:8,color:i>=18?GOLD:"#668",fontFamily:"monospace",minWidth:34,borderLeft:i===9||i===18?`1px solid ${BORDER}`:undefined,fontWeight:i===9||i===0?"800":"400"}}>
-                                    {i<18?i+1:`PO${i-17}`}{i<18&&(m.disputes||[]).includes(i)?<span style={{color:"#e55",fontSize:7,marginLeft:1}}>🚩</span>:null}
-                                  </td>
-                                ))}
-                              </tr>
-                              <tr style={{background:"#080f20",borderBottom:`2px solid ${BORDER}`}}>
-                                <td style={{padding:"4px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",position:"sticky",left:0,background:"#080f20",zIndex:1}}>PAR</td>
-                                {Array.from({length:totalCols},(_,i)=>(
-                                  <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"monospace",fontWeight:700,borderLeft:i===9||i===18?`1px solid ${BORDER}`:undefined}}>{i<18?(course.par?.[i]||4):(course.par?.[0]||4)}</td>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {rowLabels.map((label,ri)=>{
-                                const isScoreRow=label==="SCORE";
-                                const nameColor=rowColors[ri];
-                                return (
-                                  <tr key={ri} style={{borderBottom:`1px solid ${BORDER}22`,background:isScoreRow?"#060f22":ri%2===0?CARD:CARD2}}>
-                                    <td style={{padding:"6px 10px",fontSize:isScoreRow?8:11,fontWeight:700,color:isScoreRow?"#446":nameColor,whiteSpace:"nowrap",position:"sticky",left:0,background:isScoreRow?"#060f22":ri%2===0?CARD:CARD2,zIndex:1,fontFamily:isScoreRow?"monospace":"inherit",letterSpacing:isScoreRow?1:0}}>{label}</td>
-                                    {Array.from({length:totalCols},(_,hi)=>{
-                                      const cell=rowData(hi)[ri];
-                                      return (
-                                        <td key={hi} style={{textAlign:"center",padding:"4px 2px",borderLeft:hi===9||hi===18?`1px solid ${BORDER}`:undefined}}>
-                                          {isScoreRow?(
-                                            <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:30}}>{cell.val}</div>
-                                          ):(
-                                            <div style={{width:24,height:24,background:cell.bg,border:cell.border,borderRadius:cell.radius,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:cell.color,margin:"0 auto"}}>{cell.val}</div>
-                                          )}
-                                        </td>
-                                      );
-                                    })}
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
+            {boardDay&&boardDay.matches.length>0&&(
+              <div>
+                <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,opacity:0.7}}>HOLE BY HOLE</div>
+                {[...boardDay.matches].sort((a,b)=>{const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
+                  const mRound=boardDay.rounds?.[m.roundIdx??0];
+                  const course=getCourse(boardDay,m);
+                  const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,mRound?.totalHoles||18,mRound?.pointValue||1,mRound?.allowExtraHoles||false,m.extra||[]);
+                  const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?cup.teamAColor:cup.teamBColor,halved:"#557",extra:GOLD,gap:"#e67e22"}[st.state];
+                  return (
+                    <div key={m.id} style={{marginBottom:14}}>
+                      <HoleByHoleTable match={m} course={course} totalHoles={mRound?.totalHoles||18}
+                        teamAColor={cup.teamAColor} teamBColor={cup.teamBColorDisp}
+                        longLabel={st.longLabel} sublabel={st.sublabel}
+                        meta={`${m.teeTime?`${m.teeTime} · `:""}Match ${mi+1}`}
+                        statusColor={stColor}/>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
