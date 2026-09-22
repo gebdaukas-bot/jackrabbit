@@ -258,6 +258,47 @@ function AdminCourses({ initDays, onSave, onBack }) {
   const [selRound, setSelRound] = useState(0);
   const round = days[selDay]?.rounds[selRound] || {};
   const course = round.course || {};
+
+  // Look up a course by the name already typed above — same GolfCourseAPI
+  // (falling back to Claude) lookup used when first creating the cup, so an
+  // existing course can be corrected/filled in from here too.
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookupDone, setLookupDone] = useState(false);
+  const [lookupFound, setLookupFound] = useState(false);
+  const [lookupError, setLookupError] = useState("");
+
+  const updateCourse = patch => setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,...patch}})}));
+
+  const handleLookup = async () => {
+    const name = (course.name||"").trim();
+    if (!name || lookingUp) return;
+    setLookingUp(true); setLookupError(""); setLookupDone(false);
+    try {
+      const res = await fetch("/api/lookup-course", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseName: name }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setLookupError(data.error || "Lookup failed"); setLookupFound(false); }
+      else if (!data.found) { setLookupFound(false); }
+      else {
+        // AdminCourses stores one slope/rating per course (no tee selection like
+        // the creation wizards), so default to the first tee returned — the
+        // slope/rating fields below stay editable if a different tee was played.
+        const primaryTee = data.tees?.[0];
+        updateCourse({
+          name: data.name, par: [...data.par], hcp: [...data.hcp],
+          yardage: data.yardage ? [...data.yardage] : Array(18).fill(null),
+          ...(primaryTee ? { slope:primaryTee.slope, rating:primaryTee.rating } : {}),
+        });
+        setLookupFound(true);
+      }
+      setLookupDone(true);
+    } catch { setLookupError("Something went wrong — try again"); setLookupDone(true); }
+    finally { setLookingUp(false); }
+  };
+
   const updateHole = (field, hi, val) => {
     if (field==="yardage" && val.trim()==="") {
       setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,yardage:r.course.yardage.map((v,i)=>i===hi?null:v)}})}));
@@ -275,11 +316,21 @@ function AdminCourses({ initDays, onSave, onBack }) {
       <AdminHeader title="Edit Courses" onBack={onBack} onSave={handleSave} saving={saving}/>
       {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>{days.map((d,di)=><button key={di} onClick={()=>{setSelDay(di);setSelRound(0);}} style={{padding:"4px 10px",background:selDay===di?GOLD:"none",border:`1px solid ${selDay===di?GOLD:BORDER}`,borderRadius:6,color:selDay===di?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>{d.label}</button>)}</div>}
       {days[selDay]?.rounds.length>1&&<div style={{display:"flex",gap:6,marginBottom:10}}>{days[selDay].rounds.map((_,ri)=><button key={ri} onClick={()=>setSelRound(ri)} style={{padding:"4px 10px",background:selRound===ri?GOLD:"none",border:`1px solid ${selRound===ri?GOLD:BORDER}`,borderRadius:6,color:selRound===ri?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>Round {ri+1}</button>)}</div>}
-      <div style={{marginBottom:12}}>
+      <div style={{marginBottom:8}}>
         <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>COURSE NAME</div>
-        <input value={course.name||""} onChange={e=>setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,name:e.target.value}})}))}
-          style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
+        <div style={{display:"flex",gap:8}}>
+          <input value={course.name||""}
+            onChange={e=>{ updateCourse({name:e.target.value}); setLookupDone(false); setLookupError(""); }}
+            style={{flex:1,padding:"8px 10px",background:CARD2,border:`1px solid ${lookupDone&&lookupFound?"#4caf50":BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
+          <button onClick={handleLookup} disabled={lookingUp || !(course.name||"").trim()}
+            style={{padding:"8px 14px",background:GOLD,border:"none",borderRadius:8,color:"#000",fontWeight:900,fontSize:11,cursor:lookingUp||!(course.name||"").trim()?"default":"pointer",fontFamily:"monospace",flexShrink:0,opacity:lookingUp||!(course.name||"").trim()?0.5:1}}>
+            {lookingUp ? "…" : "🔍 Look Up"}
+          </button>
+        </div>
       </div>
+      {lookupDone&&lookupFound&&<div style={{fontSize:11,color:"#4caf50",marginBottom:10}}>✓ Found — par, handicap, yardage &amp; slope/rating filled in below.</div>}
+      {lookupDone&&!lookupFound&&!lookupError&&<div style={{fontSize:11,color:"#e67e22",marginBottom:10}}>Course not found — edit the fields below manually.</div>}
+      {lookupError&&<div style={{fontSize:11,color:"#e74c3c",marginBottom:10}}>{lookupError}</div>}
       <div style={{display:"flex",gap:10,marginBottom:12}}>
         <div style={{flex:1}}>
           <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>HOLES</div>
