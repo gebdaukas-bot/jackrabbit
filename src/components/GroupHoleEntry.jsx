@@ -4,15 +4,21 @@ import { netScore, computeMatchStatus, GOLD } from "../utils/scoring";
 import { contrastText } from "../utils/color";
 import ScoreInput from "./ScoreInput";
 
-export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }) {
+export default function GroupHoleEntry({ matches, course, cups, onSave, onClose }) {
   const { BG, CARD, CARD2, BORDER, MUTED } = useTheme();
-  const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
+  // One color/name bundle per match in the group — companion matches in a cup
+  // with more than two teams can be different pairings, so each half of the
+  // screen is painted in its own match's two team colors.
+  const sideOf = mi => cups[mi] || cups[0];
+  // Chrome shared by the whole group (the End Early confirm button) uses the
+  // first match's pairing.
+  const { teamBColor, teamBColorDisp } = sideOf(0);
 
   const initHole = () => {
     const hp = matches.map(m => {
       const startHole = m.startHole || 0;
       const totalHoles = m.totalHoles || 18;
-      const s = computeMatchStatus(m.scores, teamAShort, teamBShort, startHole, totalHoles);
+      const s = computeMatchStatus(m.scores, "A", "B", startHole, totalHoles);
       return s.holesPlayed < totalHoles ? (startHole + s.holesPlayed) % 18 : (startHole + totalHoles - 1) % 18;
     });
     return Math.max(...hp);
@@ -97,7 +103,7 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
     });
   };
 
-  const statuses = matches.map(m => computeMatchStatus(m.scores, teamAShort, teamBShort, m.startHole || 0, m.totalHoles || 18));
+  const statuses = matches.map((m, mi) => computeMatchStatus(m.scores, sideOf(mi).teamAShort, sideOf(mi).teamBShort, m.startHole || 0, m.totalHoles || 18));
   const isComplete = statuses.every(s => s.state === "complete" || s.state === "halved");
   const hasGap = statuses.some(s => s.state === "gap");
 
@@ -105,8 +111,9 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
   const sc0 = grossScores[0][hole], sc1 = grossScores[1][hole];
 
   const hw0 = holeWinner(0), hw1 = holeWinner(1);
-  const hw0Color = hw0 === "A" ? teamAColor : hw0 === "B" ? teamBColor : GOLD;
-  const hw1Color = hw1 === "A" ? teamAColor : hw1 === "B" ? teamBColor : GOLD;
+  const hwColorOf = (mi, hw) => hw === "A" ? sideOf(mi).teamAColor : hw === "B" ? sideOf(mi).teamBColor : GOLD;
+  const hw0Color = hwColorOf(0, hw0);
+  const hw1Color = hwColorOf(1, hw1);
 
   const net0_1a = netScore(sc0.p1a, m0.hcp1a || 0, holeHcp);
   const net0_2a = netScore(sc0.p2a, m0.hcp2a || 0, holeHcp);
@@ -130,7 +137,8 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
     if (m1.scores[i] === "A") runLead1++; else if (m1.scores[i] === "B") runLead1--;
   }
 
-  const MatchBar = ({ m, lead, s }) => {
+  const MatchBar = ({ m, lead, s, mi }) => {
+    const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = sideOf(mi);
     const rAbs = Math.abs(lead), rLeader = lead > 0 ? "A" : lead < 0 ? "B" : null;
     return (
       <div style={{ display: "flex", alignItems: "stretch", borderRadius: 8, overflow: "hidden", border: `1px solid ${BORDER}`, marginBottom: 6 }}>
@@ -174,14 +182,14 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
           <button onClick={onClose} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 7, color: "#668", padding: "5px 10px", cursor: "pointer", fontSize: 11 }}>← Back</button>
           <div style={{ fontSize: 9, color: GOLD, fontFamily: "monospace", letterSpacing: 1 }}>GROUP · {m0.teeTime}</div>
         </div>
-        <MatchBar m={m0} lead={runLead0} s={statuses[0]} />
-        <MatchBar m={m1} lead={runLead1} s={statuses[1]} />
+        <MatchBar m={m0} lead={runLead0} s={statuses[0]} mi={0} />
+        <MatchBar m={m1} lead={runLead1} s={statuses[1]} mi={1} />
       </div>
 
       <div style={{ padding: "8px 10px 14px", display: "flex", gap: 2 }}>
         {groupPlayHoles.map((i) => {
           const s = m0.scores[i];
-          const bg = s === "A" ? teamAColor : s === "B" ? teamBColor : s === "H" ? "#334" : CARD2;
+          const bg = s === "A" ? sideOf(0).teamAColor : s === "B" ? sideOf(0).teamBColor : s === "H" ? "#334" : CARD2;
           const isAct = i === hole;
           return <div key={i} onClick={() => setHole(i)} style={{ flex: 1, height: isAct ? 26 : 20, background: bg, borderRadius: 3, cursor: "pointer", border: isAct ? `2px solid ${GOLD}` : "2px solid transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isAct ? 8 : 7, color: isAct ? "#fff" : "#ffffff99", fontFamily: "monospace", fontWeight: 700 }}>{i + 1}</div>;
         })}
@@ -215,12 +223,14 @@ export default function GroupHoleEntry({ matches, course, cup, onSave, onClose }
             { m: m1, sc: sc1, mi: 1, hwColor: hw1Color, hw: hw1, netA: net1_1a, netB: net1_2a },
           ].map(({ m, sc, mi, hwColor, hw, netA, netB }) => (
             <div key={mi} style={{ flex: 1, borderRadius: 14, overflow: "hidden", border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column" }}>
-              <div style={{ background: `${teamAColor}22`, padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
-                <ScoreInput label={m.player1a} hcp={m.hcp1a || 0} value={sc.p1a} onChange={v => setSc(mi, s => ({ ...s, p1a: v }))} color={teamAColor} labelColor={str(m.hcp1a || 0) > 0 ? GOLD : null} strokes={str(m.hcp1a || 0) || 1} par={holePar} />
+              <div style={{ background: `${sideOf(mi).teamAColor}22`, padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
+                <div style={{ fontSize: 7, fontWeight: 800, color: sideOf(mi).teamAColor, letterSpacing: 1, fontFamily: "monospace", marginBottom: 4 }}>{sideOf(mi).teamAShort}</div>
+                <ScoreInput label={m.player1a} hcp={m.hcp1a || 0} value={sc.p1a} onChange={v => setSc(mi, s => ({ ...s, p1a: v }))} color={sideOf(mi).teamAColor} labelColor={str(m.hcp1a || 0) > 0 ? GOLD : null} strokes={str(m.hcp1a || 0) || 1} par={holePar} />
               </div>
               <div style={{ background: CARD2, padding: "5px 0", textAlign: "center", fontSize: 12, fontWeight: 900, color: MUTED, fontFamily: "monospace", letterSpacing: 2, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>VS</div>
-              <div style={{ background: `${teamBColor}33`, padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
-                <ScoreInput label={m.player2a} hcp={m.hcp2a || 0} value={sc.p2a} onChange={v => setSc(mi, s => ({ ...s, p2a: v }))} color={teamBColorDisp} labelColor={str(m.hcp2a || 0) > 0 ? GOLD : null} strokes={str(m.hcp2a || 0) || 1} par={holePar} />
+              <div style={{ background: `${sideOf(mi).teamBColor}33`, padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
+                <div style={{ fontSize: 7, fontWeight: 800, color: sideOf(mi).teamBColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 4 }}>{sideOf(mi).teamBShort}</div>
+                <ScoreInput label={m.player2a} hcp={m.hcp2a || 0} value={sc.p2a} onChange={v => setSc(mi, s => ({ ...s, p2a: v }))} color={sideOf(mi).teamBColorDisp} labelColor={str(m.hcp2a || 0) > 0 ? GOLD : null} strokes={str(m.hcp2a || 0) || 1} par={holePar} />
               </div>
               <div style={{ background: hwColor, padding: "8px 4px", textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", fontFamily: "monospace", letterSpacing: 1 }}>

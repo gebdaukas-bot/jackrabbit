@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { db, ref, onValue } from "../firebase";
 import { computeMatchStatus, GOLD } from "../utils/scoring";
 import { contrastText } from "../utils/color";
+import { getTeams, cupSidesFor } from "../utils/teams";
 import { useTheme } from "../context/ThemeContext";
 import LiveBackground from "../components/LiveBackground";
 import HoleByHoleTable from "../components/HoleByHoleTable";
@@ -67,7 +68,10 @@ export default function WatchPage() {
 
   const round = day.rounds?.[0] || {};
   const course = round.course || {};
-  const st = computeMatchStatus(match.scores || Array(18).fill(null), meta.teamAName, meta.teamBName, match.startHole || 0, round.totalHoles || 18, round.pointValue || 1, round.allowExtraHoles || false, match.extra || []);
+  // Resolve the two sides through the team model, so a match between any two of
+  // the cup's teams shows their own names and colors.
+  const sides = cupSidesFor(getTeams(meta), match);
+  const st = computeMatchStatus(match.scores || Array(18).fill(null), sides.teamAName, sides.teamBName, match.startHole || 0, round.totalHoles || 18, round.pointValue || 1, round.allowExtraHoles || false, match.extra || []);
   return (
     <div style={{ minHeight: "100vh", color: TEXT }}>
       <LiveBackground/>
@@ -78,8 +82,8 @@ export default function WatchPage() {
         </div>
 
         <div style={{ display: "flex", alignItems: "stretch", borderRadius: 10, overflow: "hidden", border: `1px solid ${BORDER}`, marginBottom: 16 }}>
-          <div style={{ flex: 1, background: meta.teamAColor, padding: "12px 14px", minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: `${contrastText(meta.teamAColor)}cc`, letterSpacing: 1, fontFamily: "monospace" }}>{meta.teamAName}</div>
+          <div style={{ flex: 1, background: sides.teamAColor, padding: "12px 14px", minWidth: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: `${contrastText(sides.teamAColor)}cc`, letterSpacing: 1, fontFamily: "monospace" }}>{sides.teamAName}</div>
           </div>
           <div style={{ background: "#060d1e", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "10px 14px", flexShrink: 0, minWidth: 100 }}>
             {st.state === "pending" && <div style={{ fontSize: 9, color: "#446", fontFamily: "monospace" }}>NOT STARTED</div>}
@@ -89,8 +93,8 @@ export default function WatchPage() {
             {st.state === "complete" && <><div style={{ fontSize: 8, color: GOLD, fontFamily: "monospace", fontWeight: 700 }}>FINAL</div><div style={{ fontSize: 16, fontWeight: 900, fontFamily: "monospace" }}>{st.sublabel}</div></>}
             {st.state === "gap" && <div style={{ fontSize: 9, color: "#e67e22", fontFamily: "monospace" }}>⚠ MISSING</div>}
           </div>
-          <div style={{ flex: 1, background: meta.teamBColor, padding: "12px 14px", minWidth: 0, textAlign: "right" }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: `${contrastText(meta.teamBColor)}cc`, letterSpacing: 1, fontFamily: "monospace" }}>{meta.teamBName}</div>
+          <div style={{ flex: 1, background: sides.teamBColor, padding: "12px 14px", minWidth: 0, textAlign: "right" }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: `${contrastText(sides.teamBColor)}cc`, letterSpacing: 1, fontFamily: "monospace" }}>{sides.teamBName}</div>
           </div>
         </div>
 
@@ -102,7 +106,7 @@ export default function WatchPage() {
         {/* Hole by hole */}
         <div style={{ fontSize: 9, color: GOLD, fontFamily: "monospace", letterSpacing: 2, opacity: 0.7, marginBottom: 6 }}>HOLE BY HOLE</div>
         <HoleByHoleTable match={match} course={course} totalHoles={round.totalHoles || 18}
-          teamAColor={meta.teamAColor} teamBColor={meta.teamBColor}/>
+          teamAColor={sides.teamAColor} teamBColor={sides.teamBColorDisp}/>
         <div style={{ textAlign: "center", fontSize: 10, color: "#446", marginTop: 16, fontFamily: "monospace" }}>Updates live · view only</div>
       </div>
     </div>

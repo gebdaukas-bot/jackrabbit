@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, onValue, set, update } from "../firebase";
-import { computeMatchStatus, computeAllPoints, GOLD } from "../utils/scoring";
+import { computeMatchStatus, standings, GOLD } from "../utils/scoring";
+import { getTeams, cupSidesFor, matchTeams, teamsToMeta, autoShort, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import { contrastText } from "../utils/color";
 import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
@@ -32,9 +33,12 @@ function fmt(n) {
 }
 
 // ── TV Match Row (matches original CBS style) ─────────────────────────────────
-function MatchCard({ match, cup, onOpen, canEdit, round }) {
+function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels }) {
   const { BORDER } = useTheme();
-  const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
+  // Which two of the cup's teams contest *this* match — with more than two teams
+  // in the cup that varies match to match, so the card paints itself in its own
+  // pairing's colors rather than a cup-wide team A/team B.
+  const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cupSidesFor(teams, match);
   const isSingles = !match.player1b;
   const isScramble = match.format === "Scramble";
   const pointValue = round?.pointValue ?? 1;
@@ -54,6 +58,10 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
   const bBg = bWin ? teamBColor : bLeading ? `${teamBColor}22` : "#0d1929";
   const liveBadgeColor = aLeading ? contrastText(teamAColor) : bLeading ? contrastText(teamBColor) : "#fff";
 
+  const sideLabel = (short, color, align) => showTeamLabels ? (
+    <div style={{fontSize:7,fontWeight:800,color,letterSpacing:1,fontFamily:"monospace",marginBottom:2,textAlign:align,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{short}</div>
+  ) : null;
+
   const liveBadge = (
     <div style={{ background:aLeading?`${teamAColor}ee`:bLeading?`${teamBColor}ee`:"#1a2a44", borderRadius:6, padding:"3px 8px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0, minWidth:54 }}>
       <div style={{ fontSize:7, fontWeight:800, color:`${liveBadgeColor}aa`, fontFamily:"monospace", letterSpacing:1, lineHeight:1.3 }}>THRU {st.holesPlayed}</div>
@@ -71,6 +79,7 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
     return (
       <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
         <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
+          {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColor, "left")}
           <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
             {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
@@ -87,6 +96,7 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
           {isScramble&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"monospace", marginTop:1, letterSpacing:0.5 }}>SCRAMBLE</div>}
         </div>
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
+          {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
           <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
             {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
             <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
@@ -106,6 +116,7 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
   return (
     <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
       <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
+        {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColor, "left")}
         <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
           {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
@@ -118,6 +129,7 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
       </div>
       {liveBadge}
       <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
+        {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
         <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
           {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
@@ -132,9 +144,13 @@ function MatchCard({ match, cup, onOpen, canEdit, round }) {
   );
 }
 
-function DayBlock({ day, cup, onOpen, canEdit }) {
+function DayBlock({ day, teams, onOpen, canEdit }) {
   const { BORDER } = useTheme();
-  const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
+  // A cup-wide "team A vs team B" banner only makes sense when there are exactly
+  // two teams. Past that, pairings vary per match, so each card names its own two
+  // teams and the banner carries just the format and course.
+  const twoTeam = teams.length === 2;
+  const [{ short: teamAShort, color: teamAColor }, { short: teamBShort, colorDisp: teamBColorDisp }] = teams;
   const rounds = day.rounds || [{ format: day.format, course: day.course }];
   const multiRound = rounds.length > 1;
 
@@ -148,9 +164,9 @@ function DayBlock({ day, cup, onOpen, canEdit }) {
       {!multiRound && (
         <div style={{ display:"flex", flexDirection:"column", background:"#080f20", borderBottom:`1px solid ${BORDER}` }}>
           <div style={{ display:"flex" }}>
-            <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>
-            <div style={{ width:64, textAlign:"center", padding:"5px 0", fontSize:7, color:"#446", fontFamily:"monospace" }}>{rounds[0].format?.toUpperCase()}</div>
-            <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>
+            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>}
+            <div style={{ flex:twoTeam?undefined:1, width:twoTeam?64:undefined, textAlign:"center", padding:"5px 0", fontSize:7, color:"#446", fontFamily:"monospace" }}>{rounds[0].format?.toUpperCase()}</div>
+            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>}
           </div>
           {rounds[0].course?.name && (
             <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>{rounds[0].course.name}</div>
@@ -165,15 +181,15 @@ function DayBlock({ day, cup, onOpen, canEdit }) {
           <div key={ri}>
             {multiRound && (
               <div style={{ display:"flex", background:"#0a1428", borderBottom:`1px solid ${BORDER}`, borderTop:ri>0?`1px solid ${BORDER}`:"none" }}>
-                <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>
-                <div style={{ padding:"5px 10px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>
+                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>}
+                <div style={{ flex:twoTeam?undefined:1, textAlign:twoTeam?undefined:"center", padding:"5px 10px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>
                   {round.format?.toUpperCase()}{round.course?.name?` · ${round.course.name}`:""}
                 </div>
-                <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>
+                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>}
               </div>
             )}
             {roundMatches.map(m=>(
-              <MatchCard key={m.id} match={m} cup={cup} onOpen={onOpen} canEdit={canEdit(m.id)} round={round}/>
+              <MatchCard key={m.id} match={m} teams={teams} onOpen={onOpen} canEdit={canEdit(m.id)} round={round} showTeamLabels={!twoTeam}/>
             ))}
           </div>
         );
@@ -195,9 +211,13 @@ function AdminHeader({ title, onBack, onSave, saving }) {
   );
 }
 
-function AdminPlayers({ initPlayers, teamAColor, teamBColor, onSave, onBack }) {
+function AdminPlayers({ initPlayers, teams, onSave, onBack }) {
   const { CARD2, BORDER, TEXT, MUTED } = useTheme();
   const [players, setPlayers] = useState(initPlayers.map(p=>({...p})));
+  // Tapping a player's team chip moves them to the next team in the cup, so this
+  // works the same whether the cup has two teams or four.
+  const teamOf = id => teams.find(t=>t.id===id) || teams[0];
+  const nextTeam = id => teams[(teams.findIndex(t=>t.id===id)+1+teams.length)%teams.length]?.id || teams[0].id;
   const [saving, setSaving] = useState(false);
   const fmtH = v => { const n = Number(v) || 0; return n < 0 ? `+${Math.abs(n).toFixed(1)}` : n.toFixed(1); };
   const adj = (i, d) => setPlayers(ps=>ps.map((p,j)=>j===i?{...p,hcp:Math.round(Math.min(36,Math.max(-10,p.hcp+d))*10)/10}:p));
@@ -209,9 +229,10 @@ function AdminPlayers({ initPlayers, teamAColor, teamBColor, onSave, onBack }) {
         <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 0",borderBottom:`1px solid ${BORDER}`}}>
           <input value={p.name} onChange={e=>setPlayers(ps=>ps.map((x,j)=>j===i?{...x,name:e.target.value}:x))}
             style={{flex:1,padding:"6px 8px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:12,outline:"none",minWidth:0}}/>
-          <button onClick={()=>setPlayers(ps=>ps.map((x,j)=>j===i?{...x,team:x.team==="A"?"B":"A"}:x))}
-            style={{padding:"5px 9px",background:"none",border:`1px solid ${p.team==="A"?teamAColor:teamBColor}`,borderRadius:6,color:p.team==="A"?teamAColor:teamBColor,fontSize:10,fontWeight:800,cursor:"pointer",flexShrink:0,fontFamily:"monospace"}}>
-            {p.team}
+          <button onClick={()=>setPlayers(ps=>ps.map((x,j)=>j===i?{...x,team:nextTeam(x.team)}:x))}
+            title="Tap to move to the next team"
+            style={{padding:"5px 9px",background:"none",border:`1px solid ${teamOf(p.team).colorDisp}`,borderRadius:6,color:teamOf(p.team).colorDisp,fontSize:10,fontWeight:800,cursor:"pointer",flexShrink:0,fontFamily:"monospace",maxWidth:78,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            {teamOf(p.team).short}
           </button>
           <div style={{display:"flex",flexShrink:0}}>
             <button onClick={()=>adj(i,-0.1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"4px 0 0 4px",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>−</button>
@@ -221,7 +242,7 @@ function AdminPlayers({ initPlayers, teamAColor, teamBColor, onSave, onBack }) {
           <button onClick={()=>setPlayers(ps=>ps.filter((_,j)=>j!==i))} style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:16,padding:"0 2px",flexShrink:0}}>×</button>
         </div>
       ))}
-      <button onClick={()=>setPlayers(ps=>[...ps,{name:"",team:"A",hcp:0}])}
+      <button onClick={()=>setPlayers(ps=>[...ps,{name:"",team:teams[0].id,hcp:0}])}
         style={{width:"100%",marginTop:12,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"monospace"}}>
         + ADD PLAYER
       </button>
@@ -373,12 +394,23 @@ function AdminRounds({ initDays, onSave, onBack }) {
   );
 }
 
-function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, onBack }) {
+function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
   const { CARD2, BORDER, TEXT, MUTED } = useTheme();
   const [days, setDays] = useState(initDays.map(d=>({...d,matches:d.matches.map(m=>({...m}))})));
   const [saving, setSaving] = useState(false);
-  const teamA = cupPlayers.filter(p=>p.team==="A");
-  const teamB = cupPlayers.filter(p=>p.team==="B");
+  // With more than two teams the pairing is per match, so the editor exposes a
+  // team picker on each side and filters the player lists to that team.
+  const pickTeams = teams.length > 2;
+  const sidesOf = m => matchTeams(teams, m);
+  const rosterOf = t => cupPlayers.filter(p=>p.team===t.id);
+
+  // Changing which team plays a side invalidates whoever was picked for it.
+  const setSideTeam = (di, matchId, side, teamId) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.map(m=>{
+    if (m.id!==matchId) return m;
+    const n = side==="A" ? "1" : "2";
+    return {...m, [side==="A"?"teamA":"teamB"]:teamId,
+            [`player${n}a`]:"", [`hcp${n}a`]:0, [`player${n}b`]:m[`player${n}b`]===null?null:"", [`hcp${n}b`]:0};
+  })}));
 
   const setField = (di, matchId, field, val) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.map(m=>{
     if (m.id!==matchId) return m;
@@ -404,7 +436,7 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
     const base = (di+1)*1000+(ri+1)*100;
     const maxId = riMs.length>0 ? Math.max(...riMs.map(m=>m.id)) : base;
     const newId = Math.max(maxId+1, base+riMs.length+1);
-    setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:[...d.matches,{id:newId,roundIdx:ri,player1a:"",player1b:null,player2a:"",player2b:null,hcp1a:0,hcp1b:0,hcp2a:0,hcp2b:0,teeTime:"",scores:Array(18).fill(null),disputes:[]}]}));
+    setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:[...d.matches,{id:newId,roundIdx:ri,teamA:teams[0].id,teamB:teams[1].id,player1a:"",player1b:null,player2a:"",player2b:null,hcp1a:0,hcp1b:0,hcp2a:0,hcp2b:0,teeTime:"",scores:Array(18).fill(null),disputes:[]}]}));
   };
 
   const removeMatch = (di, matchId) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.filter(m=>m.id!==matchId)}));
@@ -455,9 +487,9 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
     onBack();
   };
 
-  const PSel = ({di,matchId,field,team,isScramble})=>{
+  const PSel = ({di,matchId,field,side,isScramble})=>{
     const m=days[di].matches.find(x=>x.id===matchId);
-    const opts=team==="A"?teamA:teamB;
+    const opts=rosterOf(side==="A"?sidesOf(m).a:sidesOf(m).b);
     return (
       <select value={m?.[field]||""} onChange={e=>{
         const val=e.target.value;
@@ -545,21 +577,37 @@ function AdminMatchups({ initDays, cupPlayers, teamAColor, teamBColor, onSave, o
                       </div>
                       <button onClick={()=>removeMatch(di,m.id)} style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14}}>×</button>
                     </div>
+                    {pickTeams&&(
+                      <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+                        {["A","B"].map(side=>{
+                          const t=side==="A"?sidesOf(m).a:sidesOf(m).b;
+                          return (
+                            <div key={side} style={{flex:1,display:"flex",alignItems:"center",gap:4,minWidth:0}}>
+                              {side==="B"&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",flexShrink:0}}>vs</span>}
+                              <select value={t.id} onChange={e=>setSideTeam(di,m.id,side,e.target.value)}
+                                style={{flex:1,padding:"4px 6px",background:CARD2,border:`1px solid ${t.colorDisp}`,borderRadius:6,color:t.colorDisp,fontSize:10,fontWeight:800,cursor:"pointer",minWidth:0,fontFamily:"monospace"}}>
+                                {teams.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5}}>
-                      <span style={{fontSize:8,color:teamAColor,fontWeight:800,fontFamily:"monospace",width:10,flexShrink:0}}>A</span>
-                      <PSel di={di} matchId={m.id} field="player1a" team="A" isScramble={isScramble}/>
-                      {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={teamAColor}/>}
-                      {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" team="A" isScramble={isScramble}/>}
-                      {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1b" color={teamAColor}/>}
-                      {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={teamAColor}/>}
+                      <span style={{fontSize:8,color:sidesOf(m).a.colorDisp,fontWeight:800,fontFamily:"monospace",width:pickTeams?24:10,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pickTeams?sidesOf(m).a.short:"A"}</span>
+                      <PSel di={di} matchId={m.id} field="player1a" side="A" isScramble={isScramble}/>
+                      {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={sidesOf(m).a.colorDisp}/>}
+                      {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" side="A" isScramble={isScramble}/>}
+                      {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1b" color={sidesOf(m).a.colorDisp}/>}
+                      {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={sidesOf(m).a.colorDisp}/>}
                     </div>
                     <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                      <span style={{fontSize:8,color:teamBColor,fontWeight:800,fontFamily:"monospace",width:10,flexShrink:0}}>B</span>
-                      <PSel di={di} matchId={m.id} field="player2a" team="B" isScramble={isScramble}/>
-                      {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={teamBColor}/>}
-                      {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" team="B" isScramble={isScramble}/>}
-                      {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2b" color={teamBColor}/>}
-                      {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={teamBColor}/>}
+                      <span style={{fontSize:8,color:sidesOf(m).b.colorDisp,fontWeight:800,fontFamily:"monospace",width:pickTeams?24:10,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pickTeams?sidesOf(m).b.short:"B"}</span>
+                      <PSel di={di} matchId={m.id} field="player2a" side="B" isScramble={isScramble}/>
+                      {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={sidesOf(m).b.colorDisp}/>}
+                      {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" side="B" isScramble={isScramble}/>}
+                      {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2b" color={sidesOf(m).b.colorDisp}/>}
+                      {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={sidesOf(m).b.colorDisp}/>}
                     </div>
                     {isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>Team HCP (lowest = 0)</div>}
                     {!isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>HCP · lowest = 0</div>}
@@ -848,6 +896,7 @@ export default function CupView({ user }) {
           updates[`cups/${cupId}/matches/m${m.id}`] = null;
           updates[`cups/${cupId}/matches/m${newId}`] = {
             teeTime:m.teeTime||"", companionId, startHole:m.startHole||0,
+            ...matchTeamFields(m),
             player1a:m.player1a||"", hcp1a:m.hcp1a||0,
             player1b:m.player1b||null, hcp1b:m.hcp1b||0,
             player2a:m.player2a||"", hcp2a:m.hcp2a||0,
@@ -872,6 +921,16 @@ export default function CupView({ user }) {
     if (Object.keys(updates).length) await update(ref(db), updates);
   };
 
+  // Which two teams a match is between. A two-team cup leaves these unset so its
+  // matches keep resolving to the only pairing there is; past two teams the ids
+  // are written explicitly.
+  const matchTeamFields = m => {
+    const t = getTeams(meta);
+    if (t.length <= 2) return { teamA:m.teamA||null, teamB:m.teamB||null };
+    const { a, b } = matchTeams(t, m);
+    return { teamA:a.id, teamB:b.id };
+  };
+
   const saveAdminMatchups = async (editedDays) => {
     const existingIds = new Set(days.flatMap(d=>d.matches.map(m=>`m${m.id}`)));
     const newIds = new Set(editedDays.flatMap(d=>d.matches.map(m=>`m${m.id}`)));
@@ -879,6 +938,7 @@ export default function CupView({ user }) {
       for (const m of d.matches) {
         await set(ref(db,`cups/${cupId}/matches/m${m.id}`),{
           teeTime:m.teeTime||"", companionId:m.companionId||null, startHole:m.startHole||0,
+          ...matchTeamFields(m),
           player1a:m.player1a||"", hcp1a:m.hcp1a||0,
           player1b:m.player1b||null, hcp1b:m.hcp1b||0,
           player2a:m.player2a||"", hcp2a:m.hcp2a||0,
@@ -893,6 +953,48 @@ export default function CupView({ user }) {
 
   const saveAdminAdmins = async (adminPlayers) => {
     await set(ref(db,`cups/${cupId}/meta/adminPlayers`), adminPlayers.length > 0 ? adminPlayers : null);
+  };
+
+  // Team edits rewrite the whole teams array, plus the legacy teamAName/teamBName
+  // mirror for the first two, so saved cup lists and any older client still show
+  // something sensible.
+  const writeTeams = next => update(ref(db,`cups/${cupId}/meta`), teamsToMeta(next));
+
+  const saveTeam = (idx, patch) =>
+    writeTeams(getTeams(meta).map((t,i)=>{
+      if (i!==idx) return t;
+      const next = {...t, ...patch};
+      // If the nickname was just the initials of the old name, keep it in step
+      // with the new one instead of leaving a stale abbreviation behind.
+      if (patch.name && !patch.short && t.short === autoShort(t.name, t.id))
+        next.short = autoShort(patch.name, t.id);
+      return next;
+    }));
+
+  const addTeam = () => {
+    const cur = getTeams(meta);
+    if (cur.length >= MAX_TEAMS) return;
+    const id = TEAM_IDS.find(x=>!cur.some(t=>t.id===x));
+    if (!id) return;
+    const i = cur.length;
+    // No explicit short — it derives from the name, and keeps deriving if the
+    // organiser renames the team.
+    return writeTeams([...cur,{id,name:DEFAULT_TEAM_NAMES[i],color:DEFAULT_TEAM_COLORS[i]}]);
+  };
+
+  // Removing a team would orphan anyone assigned to it, so make the admin move
+  // them off it first rather than silently reassigning players or matches.
+  const removeTeam = t => {
+    const cur = getTeams(meta);
+    if (cur.length <= 2) return;
+    const nPlayers = cupPlayers.filter(p=>p.team===t.id).length;
+    const nMatches = days.reduce((n,d)=>n+d.matches.filter(m=>m.teamA===t.id||m.teamB===t.id).length,0);
+    if (nPlayers || nMatches) {
+      window.alert(`${t.name} still has ${nPlayers} player${nPlayers===1?"":"s"} and ${nMatches} match${nMatches===1?"":"es"}. Move those to another team first, then remove it.`);
+      return;
+    }
+    if (!window.confirm(`Remove ${t.name} from this cup?`)) return;
+    return writeTeams(cur.filter(x=>x.id!==t.id));
   };
 
   const updateMatch = async (dayIdx,upd)=>{
@@ -933,23 +1035,28 @@ export default function CupView({ user }) {
     return ()=>window.removeEventListener("online",flush);
   },[offlineQueue,cupId]);
 
-  const {actualA,actualB,projA,projB} = days.length>0&&meta
-    ? computeAllPoints(days,meta.teamAName,meta.teamBName)
-    : {actualA:0,actualB:0,projA:0,projB:0};
+  // The cup's teams (2–4). Legacy cups have no meta.teams and fall back to the
+  // old teamAName/teamBName pair — see utils/teams.js.
+  const teams = getTeams(meta);
+  const twoTeam = teams.length === 2;
+  const cupSidesOf = m => cupSidesFor(teams, m);
+
+  const { rows:teamRows, totalPoints, winner:winnerTeam, projWinner:projWinnerTeam, winTarget } =
+    standings(days, teams);
+  // teamRows is sorted by points; the head-to-head board wants each team by id.
+  const ptsOf = id => teamRows.find(r=>r.team.id===id) || { actual:0, proj:0 };
+  const teamColorOf = id => teams.find(t=>t.id===id)?.colorDisp || MUTED;
 
   const totalMatches = days.reduce((s,d)=>s+d.matches.length,0);
-  const totalPoints = days.reduce((s,d)=>s+d.matches.reduce((s2,m)=>s2+(d.rounds?.[m.roundIdx??0]?.pointValue??1),0),0);
   const doneMatches  = days.reduce((s,d)=>s+d.matches.filter(m=>["complete","halved"].includes(computeMatchStatus(m.scores,undefined,undefined,m.startHole||0,d.rounds?.[m.roundIdx??0]?.totalHoles||18).state)).length,0);
-  const winTarget = totalPoints/2;
-  const winner = actualA>winTarget?meta?.teamAName:actualB>winTarget?meta?.teamBName:null;
-  const projWinner = !winner&&(projA>winTarget?meta?.teamAName:projB>winTarget?meta?.teamBName:null);
+  const winner = winnerTeam?.name || null;
+  const projWinner = projWinnerTeam?.name || null;
   const liveCount = days.reduce((s,d)=>s+d.matches.filter(m=>computeMatchStatus(m.scores,undefined,undefined,m.startHole||0,d.rounds?.[m.roundIdx??0]?.totalHoles||18).state==="live").length,0);
 
   useEffect(()=>{
     if (winner&&!prevWinnerRef.current&&!confettiFired.current){
       confettiFired.current=true;
-      const col=winner===meta?.teamAName?["#C8102E","#ff8888","#C4A44A","#fff"]:["#003087","#4A90D9","#C4A44A","#fff"];
-      confetti({particleCount:200,spread:120,origin:{y:0.35},colors:col});
+      confetti({particleCount:200,spread:120,origin:{y:0.35},colors:[winnerTeam?.color||GOLD,winnerTeam?.colorDisp||GOLD,"#C4A44A","#fff"]});
     }
     prevWinnerRef.current=winner;
   },[winner]);
@@ -957,10 +1064,11 @@ export default function CupView({ user }) {
   useEffect(()=>{
     if (!meta) return;
     for (const day of days) for (const m of day.matches){
-      const s=computeMatchStatus(m.scores,meta.teamAName,meta.teamBName,m.startHole||0,day.rounds?.[m.roundIdx??0]?.totalHoles||18);
+      const sides=cupSidesFor(getTeams(meta),m);
+      const s=computeMatchStatus(m.scores,sides.teamAName,sides.teamBName,m.startHole||0,day.rounds?.[m.roundIdx??0]?.totalHoles||18);
       const prev=prevMatchStates.current[m.id];
       if (prev!==undefined&&prev==="live"&&(s.state==="complete"||s.state==="halved")){
-        const color=s.state==="halved"?"#334455":s.leader==="A"?meta.teamAColor:meta.teamBColor;
+        const color=s.state==="halved"?"#334455":s.leader==="A"?sides.teamAColor:sides.teamBColor;
         setMatchCelebration({label:s.longLabel,sublabel:s.sublabel||(s.state==="halved"?"½ pt each":"1 point"),color});
         if (celebTimer.current) clearTimeout(celebTimer.current);
         celebTimer.current=setTimeout(()=>setMatchCelebration(null),1500);
@@ -977,14 +1085,10 @@ export default function CupView({ user }) {
     return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><LiveBackground/><div style={{color:MUTED,fontFamily:"monospace"}}>Loading cup...</div></div>;
   }
 
-  const cup = {
-    teamAName:meta.teamAName,
-    teamAShort:meta.teamAShort||meta.teamAName?.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,6)||"A",
-    teamAColor:meta.teamAColor||"#C8102E",
-    teamBName:meta.teamBName,
-    teamBShort:meta.teamBShort||meta.teamBName?.split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,6)||"B",
-    teamBColor:meta.teamBColor||"#003087", teamBColorDisp:meta.teamBColor||"#4A90D9",
-  };
+  // Cup-wide chrome (gradients, tab accents) still needs a two-color bundle;
+  // it uses the first two teams. Anything tied to a specific match uses
+  // cupSidesOf(match) instead, so each match shows its own pairing's colors.
+  const cup = cupSidesOf(null);
 
   const isAdmin = user?.uid===meta.createdBy || (meta.adminPlayers||[]).includes(currentPlayer);
   const allPlayers = days.flatMap(d=>d.matches.flatMap(m=>[m.player1a,m.player1b,m.player2a,m.player2b].filter(Boolean)));
@@ -1028,10 +1132,13 @@ export default function CupView({ user }) {
               ? <img src={meta.logoUrl} alt="logo" style={{height:60,objectFit:"contain",marginBottom:8}}/>
               : <div style={{fontSize:40,marginBottom:8}}>⛳</div>}
             <div style={{fontSize:22,fontWeight:900,color:GOLD,fontFamily:"monospace",letterSpacing:2}}>{meta.name}</div>
-            <div style={{fontSize:12,color:MUTED,marginTop:6}}>
-              <span style={{color:cup.teamAColor,fontWeight:700}}>{meta.teamAName}</span>
-              <span style={{color:MUTED}}> vs </span>
-              <span style={{color:cup.teamBColorDisp,fontWeight:700}}>{meta.teamBName}</span>
+            <div style={{fontSize:12,color:MUTED,marginTop:6,display:"flex",flexWrap:"wrap",justifyContent:"center",alignItems:"center",gap:4}}>
+              {teams.map((t,i)=>(
+                <span key={t.id}>
+                  {i>0&&<span style={{color:MUTED}}>{twoTeam?" vs ":" · "}</span>}
+                  <span style={{color:t.colorDisp,fontWeight:700}}>{t.name}</span>
+                </span>
+              ))}
             </div>
           </div>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:18,padding:24}}>
@@ -1062,18 +1169,27 @@ export default function CupView({ user }) {
     const groupMatches=activeGroup.matchIds.map(id=>d?.matches.find(x=>x.id===id)).filter(Boolean)
       .map(m=>({...m,totalHoles:d?.rounds?.[m.roundIdx??0]?.totalHoles||18}));
     if (groupMatches.length===2)
-      return <GroupHoleEntry matches={groupMatches} course={getCourse(d,groupMatches[0])} cup={cup} onSave={(mi,upd)=>updateMatch(activeGroup.dayIdx,upd)} onClose={()=>setActiveGroup(null)}/>;
+      return <GroupHoleEntry matches={groupMatches} course={getCourse(d,groupMatches[0])} cups={groupMatches.map(cupSidesOf)} onSave={(mi,upd)=>updateMatch(activeGroup.dayIdx,upd)} onClose={()=>setActiveGroup(null)}/>;
   }
   if (activeMatch){
     const d=days[activeMatch.dayIdx]; const m=d?.matches.find(x=>x.id===activeMatch.matchId);
     if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion){
       const withHoles=[m,companion].map(x=>({...x,totalHoles:d?.rounds?.[x.roundIdx??0]?.totalHoles||18}));
-      return <GroupHoleEntry matches={withHoles} course={getCourse(d,m)} cup={cup} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+      return <GroupHoleEntry matches={withHoles} course={getCourse(d,m)} cups={withHoles.map(cupSidesOf)} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
     }}
-    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <HoleEntry match={{...m,format:mRound?.format||"",totalHoles:mRound?.totalHoles||18,allowExtraHoles:mRound?.allowExtraHoles||false}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cup} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>; }
+    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <HoleEntry match={{...m,format:mRound?.format||"",totalHoles:mRound?.totalHoles||18,allowExtraHoles:mRound?.allowExtraHoles||false}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cupSidesOf(m)} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>; }
   }
 
-  const playerTeamColor=(()=>{ for(const d of days)for(const m of d.matches){if([m.player1a,m.player1b].includes(currentPlayer))return cup.teamAColor;if([m.player2a,m.player2b].includes(currentPlayer))return cup.teamBColor;} return MUTED; })();
+  const playerTeamColor=(()=>{
+    const p=cupPlayers.find(x=>x.name===currentPlayer);
+    if (p) return teams.find(t=>t.id===p.team)?.colorDisp || MUTED;
+    for(const d of days)for(const m of d.matches){
+      const sides=cupSidesOf(m);
+      if([m.player1a,m.player1b].includes(currentPlayer))return sides.teamAColor;
+      if([m.player2a,m.player2b].includes(currentPlayer))return sides.teamBColor;
+    }
+    return MUTED;
+  })();
 
   return (
     <div style={{minHeight:"100vh",color:TEXT,paddingBottom:60,fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
@@ -1114,22 +1230,59 @@ export default function CupView({ user }) {
         {winner&&<div style={{background:`${GOLD}22`,borderTop:`1px solid ${GOLD}44`,borderBottom:`1px solid ${GOLD}44`,padding:"7px",textAlign:"center"}}><div style={{fontSize:14,fontWeight:900,color:GOLD,letterSpacing:2}}>🏆 {winner} {meta.eventType==="live_match"?"WINS THE MATCH!":"WINS THE CUP!"}</div></div>}
 
         {/* Big scoreboard — cups only */}
-        {meta.eventType!=="live_match"&&<div style={{display:"flex",alignItems:"stretch"}}>
-          <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",minWidth:0}}>
-            <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamAColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamAName}</div>
-            <div style={{fontSize:36,fontWeight:900,color:contrastText(cup.teamAColor),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualA)}</div>
+        {meta.eventType!=="live_match"&&twoTeam&&(()=>{
+          const [a,b]=teams, pa=ptsOf(a.id), pb=ptsOf(b.id);
+          return (
+            <div style={{display:"flex",alignItems:"stretch"}}>
+              <div style={{flex:1,background:a.color,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",minWidth:0}}>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(a.color)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{a.name}</div>
+                <div style={{fontSize:36,fontWeight:900,color:contrastText(a.color),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(pa.actual)}</div>
+              </div>
+              <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:76}}>
+                <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
+                <div style={{fontSize:10,fontWeight:700,fontFamily:"monospace",color:pa.proj>pb.proj?a.color:pb.proj>pa.proj?b.colorDisp:"#557",whiteSpace:"nowrap"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
+                {projWinner&&<div style={{fontSize:7,color:GOLD,fontFamily:"monospace",marginTop:2,whiteSpace:"nowrap"}}>→ {projWinner}</div>}
+                <div style={{fontSize:7,color:"#335",marginTop:3,fontFamily:"monospace",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget)}</div>
+              </div>
+              <div style={{flex:1,background:b.color,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"flex-end",minWidth:0}}>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(b.color)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{b.name}</div>
+                <div style={{fontSize:36,fontWeight:900,color:contrastText(b.color),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(pb.actual)}</div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Standings board — three or four teams don't fit the head-to-head
+            layout, so they stack as a leaderboard ordered by points. */}
+        {meta.eventType!=="live_match"&&!twoTeam&&(
+          <div>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#060d1e",padding:"4px 10px",borderBottom:`1px solid ${BORDER}`}}>
+              <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:2}}>STANDINGS</div>
+              <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:1}}>
+                PTS · PROJ{projWinner?` · → ${projWinner}`:""}
+              </div>
+            </div>
+            {teamRows.map((r,i)=>{
+              const lead=teamRows[0].actual;
+              const isLead=r.actual===lead&&lead>0;
+              // Teams level on points share a rank (1,1,3,4), so a tie at the top
+              // doesn't read as one team leading the other.
+              const rank=teamRows.findIndex(x=>x.actual===r.actual)+1;
+              const txt=contrastText(r.team.color);
+              return (
+                <div key={r.team.id} style={{display:"flex",alignItems:"center",background:r.team.color,padding:"7px 10px",gap:8,borderBottom:i<teamRows.length-1?"1px solid #0006":"none"}}>
+                  <div style={{fontSize:9,fontWeight:900,color:`${txt}88`,fontFamily:"monospace",width:14,flexShrink:0}}>{rank}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:11,fontWeight:900,color:txt,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.team.name}</div>
+                  </div>
+                  <div style={{fontSize:9,color:`${txt}99`,fontFamily:"monospace",whiteSpace:"nowrap",flexShrink:0}}>proj {fmt(r.proj)}</div>
+                  <div style={{fontSize:24,fontWeight:900,color:txt,fontFamily:"monospace",lineHeight:1,minWidth:40,textAlign:"right",flexShrink:0}}>{fmt(r.actual)}</div>
+                  {isLead&&<div style={{fontSize:10,flexShrink:0}}>👑</div>}
+                </div>
+              );
+            })}
           </div>
-          <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:76}}>
-            <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
-            <div style={{fontSize:10,fontWeight:700,fontFamily:"monospace",color:projA>projB?cup.teamAColor:projB>projA?cup.teamBColorDisp:"#557",whiteSpace:"nowrap"}}>{fmt(projA)}–{fmt(projB)}</div>
-            {projWinner&&<div style={{fontSize:7,color:GOLD,fontFamily:"monospace",marginTop:2,whiteSpace:"nowrap"}}>→ {projWinner}</div>}
-            <div style={{fontSize:7,color:"#335",marginTop:3,fontFamily:"monospace",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget+0.5)}</div>
-          </div>
-          <div style={{flex:1,background:cup.teamBColor,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"flex-end",minWidth:0}}>
-            <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamBColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{meta.teamBName}</div>
-            <div style={{fontSize:36,fontWeight:900,color:contrastText(cup.teamBColor),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualB)}</div>
-          </div>
-        </div>}
+        )}
 
         {/* Live match status bar */}
         {meta.eventType==="live_match"&&(()=>{
@@ -1139,7 +1292,7 @@ export default function CupView({ user }) {
           return (
             <div style={{display:"flex",alignItems:"stretch"}}>
               <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",minWidth:0}}>
-                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamAColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamAName}</div>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamAColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{cup.teamAName}</div>
               </div>
               <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 10px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:80}}>
                 {!st||st.state==="pending"?<div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:1}}>NOT STARTED</div>:null}
@@ -1149,7 +1302,7 @@ export default function CupView({ user }) {
                 {st?.state==="extra"&&<><div style={{fontSize:7,color:GOLD,fontFamily:"monospace",fontWeight:700}}>PLAYOFF</div><div style={{fontSize:12,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{st.sublabel}</div></>}
               </div>
               <div style={{flex:1,background:cup.teamBColor,padding:"8px 10px",minWidth:0,textAlign:"right"}}>
-                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamBColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{meta.teamBName}</div>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamBColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{cup.teamBName}</div>
               </div>
             </div>
           );
@@ -1176,13 +1329,13 @@ export default function CupView({ user }) {
             {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:12}}>
               {days.map((d,i)=>(
                 <button key={i} onClick={()=>setBoardDayOverride(i)}
-                  style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${cup.teamBColor}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
+                  style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
                   {d.label?.toUpperCase()||`DAY ${i+1}`}
                 </button>
               ))}
             </div>}
             {boardDay&&(
-              <DayBlock day={boardDay} cup={cup}
+              <DayBlock day={boardDay} teams={teams}
                 onOpen={mid=>{if(canEdit(boardDayIdx,mid))openForScoring(boardDayIdx,mid);}}
                 canEdit={mid=>canEdit(boardDayIdx,mid)}/>
             )}
@@ -1194,12 +1347,13 @@ export default function CupView({ user }) {
                 {[...boardDay.matches].sort((a,b)=>{const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
                   const mRound=boardDay.rounds?.[m.roundIdx??0];
                   const course=getCourse(boardDay,m);
-                  const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,mRound?.totalHoles||18,mRound?.pointValue||1,mRound?.allowExtraHoles||false,m.extra||[]);
-                  const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?cup.teamAColor:cup.teamBColor,halved:"#557",extra:GOLD,gap:"#e67e22"}[st.state];
+                  const sides=cupSidesOf(m);
+                  const st=computeMatchStatus(m.scores,sides.teamAShort,sides.teamBShort,m.startHole||0,mRound?.totalHoles||18,mRound?.pointValue||1,mRound?.allowExtraHoles||false,m.extra||[]);
+                  const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?sides.teamAColor:sides.teamBColor,halved:"#557",extra:GOLD,gap:"#e67e22"}[st.state];
                   return (
                     <div key={m.id} style={{marginBottom:14}}>
                       <HoleByHoleTable match={m} course={course} totalHoles={mRound?.totalHoles||18}
-                        teamAColor={cup.teamAColor} teamBColor={cup.teamBColorDisp}
+                        teamAColor={sides.teamAColor} teamBColor={sides.teamBColorDisp}
                         longLabel={st.longLabel} sublabel={st.sublabel}
                         meta={`${m.teeTime?`${m.teeTime} · `:""}Match ${mi+1}`}
                         statusColor={stColor}/>
@@ -1221,22 +1375,24 @@ export default function CupView({ user }) {
               const m=d?.matches.find(x=>x.id===playerMatch.matchId);
               if (!m) return null;
               const round=d?.rounds?.[m.roundIdx??0];
-              const st=computeMatchStatus(m.scores,cup.teamAShort,cup.teamBShort,m.startHole||0,round?.totalHoles||18,round?.pointValue||1,round?.allowExtraHoles||false,m.extra||[]);
+              const sides=cupSidesOf(m);
+              const st=computeMatchStatus(m.scores,sides.teamAShort,sides.teamBShort,m.startHole||0,round?.totalHoles||18,round?.pointValue||1,round?.allowExtraHoles||false,m.extra||[]);
               const companion=m.companionId?d.matches.find(x=>x.id===m.companionId):null;
+              const cSides=companion?cupSidesOf(companion):null;
               return (
                 <div>
                   <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:16,marginBottom:12}}>
                     <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:2,marginBottom:8}}>{d.label?.toUpperCase()}</div>
-                    <MatchCard match={m} cup={cup} onOpen={()=>{}} canEdit={false} round={round}/>
+                    <MatchCard match={m} teams={teams} onOpen={()=>{}} canEdit={false} round={round} showTeamLabels={!twoTeam}/>
                     {companion&&(
                       <div style={{background:CARD2,borderRadius:8,padding:"8px 10px",marginBottom:10,fontSize:11,color:MUTED}}>
-                        Playing with: <span style={{color:cup.teamAColor,fontWeight:700}}>{companion.player1a}</span> vs <span style={{color:cup.teamBColorDisp,fontWeight:700}}>{companion.player2a}</span>
+                        Playing with: <span style={{color:cSides.teamAColor,fontWeight:700}}>{companion.player1a}</span> vs <span style={{color:cSides.teamBColorDisp,fontWeight:700}}>{companion.player2a}</span>
                       </div>
                     )}
                     <button onClick={()=>{
                       if(companion)setActiveGroup({dayIdx:playerMatch.dayIdx,matchIds:[m.id,companion.id]});
                       else setActiveMatch(playerMatch);
-                    }} style={{width:"100%",padding:"13px",background:`linear-gradient(135deg,${cup.teamAColor},${cup.teamBColor})`,border:"none",borderRadius:12,color:"#fff",fontWeight:900,fontSize:14,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",marginTop:8}}>
+                    }} style={{width:"100%",padding:"13px",background:`linear-gradient(135deg,${sides.teamAColor},${sides.teamBColor})`,border:"none",borderRadius:12,color:"#fff",fontWeight:900,fontSize:14,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",marginTop:8}}>
                       {st.state==="pending"?"START SCORING":"ENTER SCORES →"}
                     </button>
                   </div>
@@ -1338,55 +1494,56 @@ export default function CupView({ user }) {
 
               {/* Cup Settings */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>CUP SETTINGS</div>
-                {[
-                  {nameKey:"teamAName",shortKey:"teamAShort",color:cup.teamAColor,currentName:meta.teamAName||"",currentShort:meta.teamAShort||""},
-                  {nameKey:"teamBName",shortKey:"teamBShort",color:cup.teamBColor,currentName:meta.teamBName||"",currentShort:meta.teamBShort||""},
-                ].map(({nameKey,shortKey,color,currentName,currentShort})=>(
-                  <div key={nameKey} style={{marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${BORDER}`}}>
-                    <div style={{width:12,height:12,borderRadius:"50%",background:color,display:"inline-block",marginBottom:8}}/>
-                    <div style={{display:"flex",gap:8}}>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>TEAMS</div>
+                {teams.map((t,ti)=>(
+                  <div key={t.id} style={{marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${BORDER}`}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                      <div style={{width:12,height:12,borderRadius:"50%",background:t.color,flexShrink:0}}/>
+                      <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,flex:1}}>TEAM {ti+1}</div>
+                      {teams.length>2&&(
+                        <button onClick={()=>removeTeam(t)} title="Remove this team"
+                          style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:15,lineHeight:1,padding:0}}>×</button>
+                      )}
+                    </div>
+                    <div style={{display:"flex",gap:8,marginBottom:10}}>
                       <div style={{flex:2}}>
                         <div style={{fontSize:10,color:MUTED,marginBottom:4,fontWeight:700}}>FULL NAME</div>
-                        <input defaultValue={currentName}
-                          onBlur={async e=>await update(ref(db,`cups/${cupId}/meta`),{[nameKey]:e.target.value.trim()||currentName})}
+                        <input defaultValue={t.name}
+                          onBlur={e=>saveTeam(ti,{name:e.target.value.trim()||t.name})}
                           style={{width:"100%",padding:"7px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
                       </div>
                       <div style={{flex:1}}>
                         <div style={{fontSize:10,color:MUTED,marginBottom:4,fontWeight:700}}>NICKNAME</div>
-                        <input defaultValue={currentShort} maxLength={8} placeholder="auto"
-                          onBlur={async e=>await update(ref(db,`cups/${cupId}/meta`),{[shortKey]:e.target.value.trim()||null})}
+                        <input defaultValue={t.short} maxLength={8} placeholder="auto"
+                          onBlur={e=>saveTeam(ti,{short:e.target.value.trim()||autoShort(t.name,t.id)})}
                           style={{width:"100%",padding:"7px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"monospace",fontWeight:700}}/>
                       </div>
                     </div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+                      {["#C8102E","#E53935","#1565C0","#003087","#1B5E20","#2E7D32","#E65100","#F57F17","#4A148C","#880E4F","#006064","#212121"].map(color=>(
+                        <button key={color} onClick={()=>saveTeam(ti,{color})}
+                          style={{width:28,height:28,background:color,border:t.color===color?`3px solid ${GOLD}`:"3px solid transparent",borderRadius:8,cursor:"pointer",flexShrink:0}}/>
+                      ))}
+                      <label style={{display:"flex",alignItems:"center",gap:4,cursor:"pointer",fontSize:10,color:MUTED}}>
+                        <input type="color" value={t.color} onChange={e=>saveTeam(ti,{color:e.target.value})}
+                          style={{width:28,height:28,border:"none",background:"none",cursor:"pointer",padding:0,borderRadius:8}}/>
+                        custom
+                      </label>
+                    </div>
                   </div>
                 ))}
+                {teams.length<MAX_TEAMS&&(
+                  <button onClick={addTeam}
+                    style={{width:"100%",marginBottom:16,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"monospace"}}>
+                    + ADD TEAM
+                  </button>
+                )}
                 <div style={{marginBottom:16}}>
                   <div style={{fontSize:10,color:MUTED,marginBottom:6,fontWeight:700}}>FIRST ROUND DATE</div>
                   <div style={{fontSize:11,color:MUTED,marginBottom:8,lineHeight:1.4}}>Day 1 of the cup. The app uses this to show the right day's scoreboard automatically.</div>
                   <input type="date" value={meta.startDate||""} onChange={async e=>await update(ref(db,`cups/${cupId}/meta`),{startDate:e.target.value||null})}
                     style={{padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",width:"100%",boxSizing:"border-box"}}/>
                 </div>
-                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>TEAM COLORS</div>
-                {[
-                  {label:meta.teamAName,colorKey:"teamAColor",current:meta.teamAColor||"#C8102E"},
-                  {label:meta.teamBName,colorKey:"teamBColor",current:meta.teamBColor||"#003087"},
-                ].map(({label,colorKey,current})=>(
-                  <div key={colorKey} style={{marginBottom:12}}>
-                    <div style={{fontSize:10,color:MUTED,marginBottom:6,fontWeight:700}}>{label}</div>
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
-                      {["#C8102E","#E53935","#1565C0","#003087","#1B5E20","#2E7D32","#E65100","#F57F17","#4A148C","#880E4F","#006064","#212121"].map(color=>(
-                        <button key={color} onClick={async()=>await update(ref(db,`cups/${cupId}/meta`),{[colorKey]:color})}
-                          style={{width:32,height:32,background:color,border:current===color?`3px solid ${GOLD}`:"3px solid transparent",borderRadius:8,cursor:"pointer",flexShrink:0}}/>
-                      ))}
-                      <label style={{display:"flex",alignItems:"center",gap:4,cursor:"pointer",fontSize:10,color:MUTED}}>
-                        <input type="color" value={current} onChange={async e=>await update(ref(db,`cups/${cupId}/meta`),{[colorKey]:e.target.value})}
-                          style={{width:32,height:32,border:"none",background:"none",cursor:"pointer",padding:0,borderRadius:8}}/>
-                        custom
-                      </label>
-                    </div>
-                  </div>
-                ))}
               </div>
 
               {/* Admin sections grid */}
@@ -1431,7 +1588,7 @@ export default function CupView({ user }) {
             </>)}
 
             {adminSection==="players"&&(
-              <AdminPlayers initPlayers={cupPlayers} teamAColor={cup.teamAColor} teamBColor={cup.teamBColor}
+              <AdminPlayers initPlayers={cupPlayers} teams={teams}
                 onSave={saveAdminPlayers} onBack={()=>setAdminSection(null)}/>
             )}
             {adminSection==="courses"&&(
@@ -1441,7 +1598,7 @@ export default function CupView({ user }) {
               <AdminRounds initDays={days} onSave={saveAdminRounds} onBack={()=>setAdminSection(null)}/>
             )}
             {adminSection==="matchups"&&(
-              <AdminMatchups initDays={days} cupPlayers={cupPlayers} teamAColor={cup.teamAColor} teamBColor={cup.teamBColor}
+              <AdminMatchups initDays={days} cupPlayers={cupPlayers} teams={teams}
                 onSave={saveAdminMatchups} onBack={()=>setAdminSection(null)}/>
             )}
             {adminSection==="admins"&&(
@@ -1505,7 +1662,7 @@ export default function CupView({ user }) {
             <div style={{paddingBottom:30}}>
               <div style={{display:"flex",gap:6,marginBottom:12}}>
                 {days.map((d,i)=>(
-                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${cup.teamBColor}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
+                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
                     {d.label?.toUpperCase()||`DAY ${i+1}`}
                   </button>
                 ))}
@@ -1548,7 +1705,7 @@ export default function CupView({ user }) {
                           return (
                             <tr key={row.name} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
                               <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
-                              <td style={{padding:"8px 8px",minWidth:80}}><div style={{fontSize:12,fontWeight:700,color:row.team==="A"?cup.teamAColor:cup.teamBColorDisp,whiteSpace:"nowrap"}}>{row.name}</div></td>
+                              <td style={{padding:"8px 8px",minWidth:80}}><div style={{fontSize:12,fontWeight:700,color:teamColorOf(row.team),whiteSpace:"nowrap"}}>{row.name}</div></td>
                               {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i]} par={row.course.par?.[i]||4}/></td>)}
                               <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?parColor(row.gross.slice(0,9).filter(g=>g!==null).reduce((a,g)=>a+g,0)-row.course.par.slice(0,9).reduce((a,b,i)=>row.gross[i]!==null?a+b:a,0),outPlayed):MUTED,fontFamily:"monospace"}}>{outPlayed>0?outTotal:"—"}</td>
                               {Array.from({length:9},(_,i)=><td key={i+9} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i+9]} par={row.course.par?.[i+9]||4}/></td>)}
@@ -1565,7 +1722,7 @@ export default function CupView({ user }) {
                     <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>NOT STARTED</div>
                     {notStarted.map(r=>(
                       <div key={r.name} style={{display:"flex",justifyContent:"space-between",padding:"8px 10px",background:CARD,borderRadius:6,marginBottom:4}}>
-                        <span style={{fontSize:12,fontWeight:700,color:r.team==="A"?cup.teamAColor:cup.teamBColorDisp}}>{r.name}</span>
+                        <span style={{fontSize:12,fontWeight:700,color:teamColorOf(r.team)}}>{r.name}</span>
                         <span style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>{r.teeTime||"—"}</span>
                       </div>
                     ))}

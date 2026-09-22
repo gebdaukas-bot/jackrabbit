@@ -70,17 +70,79 @@ export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "
   return                 { shortLabel:`${abs}UP`, longLabel:lName, sublabel:`${abs} UP • Thru ${holesPlayed}`, state:"live", leader, up:abs, holesPlayed, lead };
 }
 
-export function computeAllPoints(days, teamAShort, teamBShort) {
-  let aA=0, aB=0, pA=0, pB=0;
+// Cup standings across any number of teams.
+//
+// Each match is A-vs-B between two of the cup's teams (see utils/teams.js), so a
+// side's result is credited to whichever team holds that side in that match.
+// Returns point totals keyed by team id: `actual` counts only finished matches,
+// `proj` also credits the current leader of every match still in progress.
+export function computeAllPoints(days, teams) {
+  const ids = teams.map(t => t.id);
+  const actual = Object.fromEntries(ids.map(id => [id, 0]));
+  const proj   = Object.fromEntries(ids.map(id => [id, 0]));
+  // Points still on the table for each team — what it could add if it won every
+  // one of its matches that hasn't finished yet.
+  const remaining = Object.fromEntries(ids.map(id => [id, 0]));
+  let totalPoints = 0;
+
   for (const day of days) for (const m of day.matches) {
     const round = day.rounds?.[m.roundIdx ?? 0] || {};
     const pv = round.pointValue ?? 1;
-    const s = computeMatchStatus(m.scores, teamAShort, teamBShort, m.startHole || 0, round.totalHoles || 18);
-    if (s.state==="complete")    { s.leader==="A"?(aA+=pv,pA+=pv):(aB+=pv,pB+=pv); }
-    else if (s.state==="halved") { aA+=pv/2; aB+=pv/2; pA+=pv/2; pB+=pv/2; }
-    else if (s.state==="live"||s.state==="gap") {
-      s.leader==="A" ? pA+=pv : s.leader==="B" ? pB+=pv : (pA+=pv/2, pB+=pv/2);
+    // Fall back to the first two teams for matches with no explicit assignment
+    // (every match in a legacy two-team cup).
+    const aId = ids.includes(m.teamA) ? m.teamA : ids[0];
+    const bId = ids.includes(m.teamB) ? m.teamB : ids[1] ?? ids[0];
+    const aShort = teams.find(t => t.id === aId)?.short;
+    const bShort = teams.find(t => t.id === bId)?.short;
+    totalPoints += pv;
+
+    const s = computeMatchStatus(m.scores, aShort, bShort, m.startHole || 0, round.totalHoles || 18);
+    const credit = (bucket, id, v) => { bucket[id] += v; };
+    if (s.state === "complete") {
+      const w = s.leader === "A" ? aId : bId;
+      credit(actual, w, pv); credit(proj, w, pv);
+    } else if (s.state === "halved") {
+      credit(actual, aId, pv/2); credit(actual, bId, pv/2);
+      credit(proj,   aId, pv/2); credit(proj,   bId, pv/2);
+    } else {
+      credit(remaining, aId, pv); credit(remaining, bId, pv);
+      if (s.state === "live" || s.state === "gap") {
+        if (s.leader === "A")      credit(proj, aId, pv);
+        else if (s.leader === "B") credit(proj, bId, pv);
+        else { credit(proj, aId, pv/2); credit(proj, bId, pv/2); }
+      }
     }
   }
-  return { actualA:aA, actualB:aB, projA:pA, projB:pB };
+  return { actual, proj, remaining, totalPoints };
+}
+
+// Teams ordered for the standings board: most points first, then projected, then
+// cup order so the list never jitters between equal teams.
+export function standings(days, teams) {
+  const { actual, proj, remaining, totalPoints } = computeAllPoints(days, teams);
+  const rows = teams.map((t, i) => ({
+    team: t, actual: actual[t.id] || 0, proj: proj[t.id] || 0,
+    // The most this team can still finish on.
+    ceiling: (actual[t.id] || 0) + (remaining[t.id] || 0),
+    order: i,
+  }));
+  rows.sort((x, y) => y.actual - x.actual || y.proj - x.proj || x.order - y.order);
+
+  // A team has won the cup once it is clear of every rival's best possible
+  // finish. With two teams that is exactly the familiar "more than half the
+  // points" rule; with three or four it is the same idea generalized.
+  const winner = rows.find(r => rows.every(o => o.team.id === r.team.id || r.actual > o.ceiling))?.team || null;
+  // Otherwise, who the current projection has winning — only called out when one
+  // team is projected clear of the rest.
+  const byProj = [...rows].sort((x, y) => y.proj - x.proj || x.order - y.order);
+  const projWinner = winner ? null
+    : byProj.length > 1 && byProj[0].proj > byProj[1].proj ? byProj[0].team : null;
+
+  // The classic "WIN: 14.5" target is only meaningful head-to-head, where half
+  // the points plus a half wins it. With three or four teams what it takes to
+  // clinch depends on who still plays whom, so the board just omits the target
+  // and relies on `winner` above.
+  const winTarget = teams.length === 2 ? totalPoints / 2 + 0.5 : null;
+
+  return { rows, totalPoints, winner, projWinner, winTarget };
 }

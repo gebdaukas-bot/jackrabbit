@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set, get } from "../firebase";
+import { teamsToMeta, DEFAULT_TEAM_COLORS } from "../utils/teams";
 import { GOLD } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import LiveBackground from "../components/LiveBackground";
@@ -200,8 +201,12 @@ export default function CreateMatch({ user }) {
       const meta = {
         name: `${sideA} vs ${sideB}`,
         eventType: "live_match",
-        teamAName: sideA, teamBName: sideB,
-        teamAColor: "#C8102E", teamBColor: "#003087",
+        // A standalone match is just a two-team cup — written through the same
+        // team model so the rest of the app reads it the same way.
+        ...teamsToMeta([
+          { id:"A", name:sideA, color:DEFAULT_TEAM_COLORS[0] },
+          { id:"B", name:sideB, color:DEFAULT_TEAM_COLORS[1] },
+        ]),
         createdBy: user.uid, createdAt: Date.now(),
         inviteCode, status: "active",
       };
@@ -244,7 +249,7 @@ export default function CreateMatch({ user }) {
       await set(ref(db, `inviteCodes/${inviteCode}`), cupId);
       await set(ref(db, `users/${user.uid}/cups/${cupId}`), {
         name: meta.name, eventType: "live_match",
-        teamAName: sideA, teamBName: sideB, createdAt: meta.createdAt,
+        teams: meta.teams, teamAName: sideA, teamBName: sideB, createdAt: meta.createdAt,
       });
       localStorage.setItem(`jr_player_${cupId}`, names.a1.trim());
       nav(`/cup/${cupId}`);

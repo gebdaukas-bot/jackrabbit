@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { getTeams } from "../utils/teams";
 import { auth, signOut, db, ref, onValue, get, set } from "../firebase";
 import { GOLD } from "../utils/scoring";
 import LiveBackground from "../components/LiveBackground";
@@ -20,7 +21,7 @@ export default function Home({ user }) {
     const unsub = onValue(userRef, snap => {
       const data = snap.val();
       if (!data) { setCups([]); return; }
-      // data is { cupId: { name, teamAName, teamBName, createdAt } }
+      // data is { cupId: { name, teams?, teamAName, teamBName, createdAt } }
       const list = Object.entries(data).map(([id, meta]) => ({ id, ...meta }));
       list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       setCups(list);
@@ -46,7 +47,8 @@ export default function Home({ user }) {
       if (!cupSnap.exists()) { setJoinError("Cup not found."); setJoining(false); return; }
       const meta = cupSnap.val();
       await set(ref(db, `users/${user.uid}/cups/${cupId}`), {
-        name: meta.name, teamAName: meta.teamAName, teamBName: meta.teamBName,
+        name: meta.name, teams: getTeams(meta).map(t=>({ id:t.id, name:t.name, short:t.short, color:t.color })),
+        teamAName: meta.teamAName || null, teamBName: meta.teamBName || null,
         createdAt: meta.createdAt,
       });
       nav(`/cup/${cupId}`);
@@ -134,16 +136,19 @@ export default function Home({ user }) {
                         )}
                         <div style={{ fontSize: 15, fontWeight: 800, color: TEXT }}>{cup.name}</div>
                       </div>
-                      <div style={{ fontSize: 11, color: MUTED }}>
-                        {cup.eventType === "live_match" ? (
-                          <span style={{ color: MUTED }}>{cup.teamAName} vs {cup.teamBName}</span>
-                        ) : (
-                          <>
-                            <span style={{ color: "#C8102E", fontWeight: 700 }}>{cup.teamAName}</span>
-                            <span style={{ color: MUTED }}> vs </span>
-                            <span style={{ color: "#4A90D9", fontWeight: 700 }}>{cup.teamBName}</span>
-                          </>
-                        )}
+                      <div style={{ fontSize: 11, color: MUTED, display:"flex", flexWrap:"wrap", alignItems:"center", gap:3 }}>
+                        {(() => {
+                          // Saved list rows predate meta.teams, so fall back to the
+                          // teamAName/teamBName pair they were written with.
+                          const ts = getTeams(cup);
+                          const plain = cup.eventType === "live_match";
+                          return ts.map((t,i)=>(
+                            <span key={t.id}>
+                              {i>0&&<span style={{ color: MUTED }}>{ts.length===2?" vs ":" · "}</span>}
+                              <span style={{ color: plain?MUTED:t.colorDisp, fontWeight: plain?400:700 }}>{t.name}</span>
+                            </span>
+                          ));
+                        })()}
                       </div>
                     </button>
                     <button onClick={e => { e.stopPropagation(); setConfirmDelete(cup.id); }} style={{ position: "absolute", top: 10, right: 10, background: "none", border: "none", color: MUTED, fontSize: 16, cursor: "pointer", lineHeight: 1, padding: "2px 6px" }}>×</button>
