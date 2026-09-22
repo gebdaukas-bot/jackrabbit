@@ -341,6 +341,44 @@ function Step4({ data, setData, prevCourses }) {
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
 
+  // Look up a course by the name already typed in Step 3 — same GolfCourseAPI
+  // (falling back to Claude) lookup the standalone match wizard uses, wired in
+  // here too so the full cup wizard doesn't require manual par/hcp entry.
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookupDone, setLookupDone] = useState(false);
+  const [lookupFound, setLookupFound] = useState(false);
+  const [lookupError, setLookupError] = useState("");
+
+  const applyToActiveRound = patch => setData(d => {
+    const days = [...d.days];
+    const rounds = [...days[activeDay].rounds];
+    rounds[ri] = { ...rounds[ri], ...patch };
+    days[activeDay] = { ...days[activeDay], rounds };
+    return { ...d, days };
+  });
+
+  const handleLookup = async () => {
+    const name = round.courseName.trim();
+    if (!name || lookingUp) return;
+    setLookingUp(true); setLookupError(""); setLookupDone(false);
+    try {
+      const res = await fetch("/api/lookup-course", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseName: name }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setLookupError(data.error || "Lookup failed"); setLookupFound(false); }
+      else if (!data.found) { setLookupFound(false); }
+      else {
+        applyToActiveRound({ courseName: data.name, par: [...data.par], hcp: [...data.hcp] });
+        setLookupFound(true);
+      }
+      setLookupDone(true);
+    } catch { setLookupError("Something went wrong — try again"); setLookupDone(true); }
+    finally { setLookingUp(false); }
+  };
+
   const handleScan = async (file) => {
     if (!file) return;
     setScanError(""); setScanning(true);
@@ -422,16 +460,33 @@ function Step4({ data, setData, prevCourses }) {
         </div>
       )}
 
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-        <div style={{ fontSize:12, color:MUTED }}>
-          <strong style={{ color:TEXT }}>{round.courseName||`${day.label} course`}</strong> — par and handicap index
-        </div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+        <div style={{ fontSize:12, color:MUTED }}>par and handicap index for <strong style={{ color:TEXT }}>{day.label}</strong></div>
         <label style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:scanning?MUTED:GOLD, fontFamily:"monospace", cursor:scanning?"wait":"pointer", flexShrink:0, marginLeft:10 }}>
           {scanning ? "SCANNING..." : "📷 SCAN"}
           <input type="file" accept="image/*" style={{ display:"none" }} disabled={scanning}
             onChange={e => handleScan(e.target.files?.[0])}/>
         </label>
       </div>
+
+      {/* Course name + Look Up — same GolfCourseAPI/Claude lookup as the quick-match wizard */}
+      <div style={{ marginBottom:8 }}>
+        <div style={{ display:"flex", gap:8 }}>
+          <input
+            value={round.courseName}
+            onChange={e => { applyToActiveRound({ courseName:e.target.value }); setLookupDone(false); setLookupError(""); }}
+            placeholder="e.g. Pebble Beach Golf Links"
+            style={{ flex:1, padding:"10px 12px", background:CARD2, border:`1px solid ${lookupDone&&lookupFound?"#4caf50":BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", boxSizing:"border-box" }}
+          />
+          <button onClick={handleLookup} disabled={lookingUp || !round.courseName.trim()}
+            style={{ padding:"10px 14px", background:GOLD, border:"none", borderRadius:8, color:"#000", fontWeight:900, fontSize:11, cursor:lookingUp||!round.courseName.trim()?"default":"pointer", fontFamily:"monospace", flexShrink:0, opacity:lookingUp||!round.courseName.trim()?0.5:1 }}>
+            {lookingUp ? "…" : "🔍 Look Up"}
+          </button>
+        </div>
+      </div>
+      {lookupDone && lookupFound && <div style={{ fontSize:11, color:"#4caf50", marginBottom:10 }}>✓ Found — par &amp; handicap filled in below.</div>}
+      {lookupDone && !lookupFound && !lookupError && <div style={{ fontSize:11, color:"#e67e22", marginBottom:10 }}>Course not found — enter par/hcp manually below, or scan a scorecard.</div>}
+      {lookupError && <div style={{ fontSize:11, color:"#e74c3c", marginBottom:10 }}>{lookupError}</div>}
       {scanError && <div style={{ fontSize:11, color:"#e74c3c", marginBottom:10 }}>{scanError}</div>}
 
       {prevCourses?.length > 0 && (
