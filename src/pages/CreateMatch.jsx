@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set, get } from "../firebase";
 import { teamsToMeta, DEFAULT_TEAM_COLORS } from "../utils/teams";
-import { GOLD } from "../utils/scoring";
+import { GOLD, playingHcp, SHAMBLE_ALLOWANCE } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import LiveBackground from "../components/LiveBackground";
 
@@ -66,7 +66,7 @@ export default function CreateMatch({ user }) {
   const [creating, setCreating] = useState(false);
 
   const is2v2 = format !== "1v1";
-  const matchFormat = format === "scramble" ? "Scramble" : format === "2v2" ? "2v2 Best Ball" : "Singles";
+  const matchFormat = format === "scramble" ? "Scramble" : format === "shamble" ? "Shamble" : format === "2v2" ? "2v2 Best Ball" : "Singles";
   const namesOk = names.a1.trim() && names.b1.trim() && (!is2v2 || (names.a2.trim() && names.b2.trim()));
   const STEPS = ["Players", "Handicaps", "Course"];
 
@@ -197,6 +197,8 @@ export default function CreateMatch({ user }) {
 
       const selectedTee = selectedTeeIdx !== null ? tees[selectedTeeIdx] : null;
       const resolveHcp = (hi) => selectedTee ? calcCourseHcp(hi, selectedTee.slope, selectedTee.rating) : hi;
+      // What the player actually plays off in this match — a share of the course handicap for Shamble.
+      const matchHcp = (hi) => playingHcp(resolveHcp(hi), matchFormat);
 
       const meta = {
         name: `${sideA} vs ${sideB}`,
@@ -235,10 +237,10 @@ export default function CreateMatch({ user }) {
       const day = { label: "Match", rounds: [{ format: matchFormat, course: courseObj, ...(format === "1v1" && allowExtraHoles ? { allowExtraHoles: true } : {}) }] };
       const match = {
         teeTime: "", format: matchFormat,
-        player1a: names.a1.trim(), hcp1a: resolveHcp(hcps.a1 || 0),
-        player1b: is2v2 ? names.a2.trim() : null, hcp1b: is2v2 ? resolveHcp(hcps.a2 || 0) : 0,
-        player2a: names.b1.trim(), hcp2a: resolveHcp(hcps.b1 || 0),
-        player2b: is2v2 ? names.b2.trim() : null, hcp2b: is2v2 ? resolveHcp(hcps.b2 || 0) : 0,
+        player1a: names.a1.trim(), hcp1a: matchHcp(hcps.a1 || 0),
+        player1b: is2v2 ? names.a2.trim() : null, hcp1b: is2v2 ? matchHcp(hcps.a2 || 0) : 0,
+        player2a: names.b1.trim(), hcp2a: matchHcp(hcps.b1 || 0),
+        player2b: is2v2 ? names.b2.trim() : null, hcp2b: is2v2 ? matchHcp(hcps.b2 || 0) : 0,
         companionId: null,
       };
 
@@ -296,7 +298,7 @@ export default function CreateMatch({ user }) {
             <div>
               <div style={{ fontSize:11, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>FORMAT</div>
               <div style={{ display:"flex", gap:8 }}>
-                {[["1v1","1v1"],["2v2","2v2 Best Ball"],["scramble","Scramble"]].map(([key, label]) => (
+                {[["1v1","1v1"],["2v2","2v2 Best Ball"],["scramble","Scramble"],["shamble","Shamble"]].map(([key, label]) => (
                   <button key={key} onClick={() => setFormat(key)}
                     style={{ flex:1, padding:"14px 4px", background:format===key?GOLD:"none", border:`1px solid ${format===key?GOLD:BORDER}`, borderRadius:12, color:format===key?"#000":MUTED, fontWeight:800, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
                     {label}
@@ -337,7 +339,7 @@ export default function CreateMatch({ user }) {
         {/* ── Step 2: Handicaps ───────────────────────────────────────────── */}
         {step === 2 && (
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            <div style={{ fontSize:11, color:MUTED, marginBottom:8 }}>Set each player's handicap index. Use + for a plus-handicap.</div>
+            <div style={{ fontSize:11, color:MUTED, marginBottom:8 }}>Set each player's handicap index. Use + for a plus-handicap.{matchFormat === "Shamble" ? ` Shamble players get ${SHAMBLE_ALLOWANCE * 100}% of their course handicap.` : ""}</div>
             <div style={{ background:"rgba(200,16,46,0.08)", border:`1px solid #C8102E44`, borderRadius:14, padding:"16px 16px" }}>
               <div style={{ fontSize:10, color:"#C8102E", fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>SIDE A</div>
               <div style={{ display:"flex", flexDirection:"column", gap:14 }}>

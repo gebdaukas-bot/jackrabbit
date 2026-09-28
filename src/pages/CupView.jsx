@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, onValue, set, update } from "../firebase";
-import { computeMatchStatus, standings, GOLD } from "../utils/scoring";
+import { computeMatchStatus, standings, playingHcp, SHAMBLE_ALLOWANCE, GOLD } from "../utils/scoring";
 import { getTeams, cupSidesFor, matchTeams, teamsToMeta, autoShort, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import { contrastText } from "../utils/color";
 import HoleEntry from "../components/HoleEntry";
@@ -40,7 +40,9 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels }) {
   // pairing's colors rather than a cup-wide team A/team B.
   const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cupSidesFor(teams, match);
   const isSingles = !match.player1b;
-  const isScramble = match.format === "Scramble";
+  const format = match.format || round?.format;
+  const isScramble = format === "Scramble";
+  const isShamble = format === "Shamble";
   const pointValue = round?.pointValue ?? 1;
   const st = computeMatchStatus(match.scores, teamAShort, teamBShort, match.startHole || 0, round?.totalHoles || 18, pointValue, round?.allowExtraHoles || false, match.extra || []);
 
@@ -93,7 +95,7 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels }) {
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"#ffffffbb", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
           <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"monospace", lineHeight:1 }}>{badgeBot}</div>
-          {isScramble&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"monospace", marginTop:1, letterSpacing:0.5 }}>SCRAMBLE</div>}
+          {(isScramble||isShamble)&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"monospace", marginTop:1, letterSpacing:0.5 }}>{isScramble?"SCRAMBLE":"SHAMBLE"}</div>}
         </div>
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
           {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
@@ -430,7 +432,7 @@ function AdminRounds({ initDays, onSave, onBack }) {
                     style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
                 </div>}
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {["2v2 Best Ball","Singles","Scramble"].map(f=>(
+                {["2v2 Best Ball","Singles","Scramble","Shamble"].map(f=>(
                   <button key={f} onClick={()=>setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,rounds:d.rounds.map((x,j)=>j!==ri?x:{...x,format:f})}))}
                     style={{padding:"6px 12px",background:r.format===f?GOLD:"none",border:`1px solid ${r.format===f?GOLD:BORDER}`,borderRadius:6,color:r.format===f?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace",fontWeight:r.format===f?800:400}}>
                     {f}
@@ -503,7 +505,8 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
     // approximate by prorating the full course handicap — the common "half your handicap for
     // nine holes" convention.
     const scale = (round.totalHoles || 18) / 18;
-    const toCh = idx => ((Number(idx)||0) * (slope/113) + (rating - par)) * scale;
+    // Shamble plays off a share of each course handicap; other formats play off it in full.
+    const toCh = idx => playingHcp(((Number(idx)||0) * (slope/113) + (rating - par)) * scale, round.format);
     const isSingles = round.format === "Singles";
     const isScramble = round.format === "Scramble";
     setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>{
@@ -538,7 +541,7 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
     onBack();
   };
 
-  const PSel = ({di,matchId,field,side,isScramble})=>{
+  const PSel = ({di,matchId,field,side,isScramble,format})=>{
     const m=days[di].matches.find(x=>x.id===matchId);
     const opts=rosterOf(side==="A"?sidesOf(m).a:sidesOf(m).b);
     return (
@@ -550,7 +553,7 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
           // For scramble, don't auto-set hcp from player — team hcp is set separately
           if(isScramble) return {...mx,[field]:val||""};
           const hcpKey=field.replace("player","hcp");
-          return {...mx,[field]:val||"",[hcpKey]:player?.hcp||0};
+          return {...mx,[field]:val||"",[hcpKey]:playingHcp(player?.hcp||0,format)};
         })}));
       }}
         style={{flex:1,padding:"5px 6px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:11,cursor:"pointer",minWidth:0}}>
@@ -646,22 +649,22 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
                     )}
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5}}>
                       <span style={{fontSize:8,color:sidesOf(m).a.colorDisp,fontWeight:800,fontFamily:"monospace",width:pickTeams?24:10,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pickTeams?sidesOf(m).a.short:"A"}</span>
-                      <PSel di={di} matchId={m.id} field="player1a" side="A" isScramble={isScramble}/>
+                      <PSel di={di} matchId={m.id} field="player1a" side="A" isScramble={isScramble} format={r.format}/>
                       {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={sidesOf(m).a.colorDisp}/>}
-                      {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" side="A" isScramble={isScramble}/>}
+                      {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" side="A" isScramble={isScramble} format={r.format}/>}
                       {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1b" color={sidesOf(m).a.colorDisp}/>}
                       {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={sidesOf(m).a.colorDisp}/>}
                     </div>
                     <div style={{display:"flex",gap:6,alignItems:"center"}}>
                       <span style={{fontSize:8,color:sidesOf(m).b.colorDisp,fontWeight:800,fontFamily:"monospace",width:pickTeams?24:10,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pickTeams?sidesOf(m).b.short:"B"}</span>
-                      <PSel di={di} matchId={m.id} field="player2a" side="B" isScramble={isScramble}/>
+                      <PSel di={di} matchId={m.id} field="player2a" side="B" isScramble={isScramble} format={r.format}/>
                       {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={sidesOf(m).b.colorDisp}/>}
-                      {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" side="B" isScramble={isScramble}/>}
+                      {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" side="B" isScramble={isScramble} format={r.format}/>}
                       {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2b" color={sidesOf(m).b.colorDisp}/>}
                       {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={sidesOf(m).b.colorDisp}/>}
                     </div>
                     {isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>Team HCP (lowest = 0)</div>}
-                    {!isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>HCP · lowest = 0</div>}
+                    {!isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>HCP · lowest = 0{r.format==="Shamble"?` · ${SHAMBLE_ALLOWANCE*100}% allowance`:""}</div>}
                   </div>
                 ))}
                 <button onClick={()=>addMatch(di,ri)} style={{width:"100%",padding:"8px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>+ ADD MATCH</button>

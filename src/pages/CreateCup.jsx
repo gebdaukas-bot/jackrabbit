@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set, get } from "../firebase";
-import { GOLD } from "../utils/scoring";
+import { GOLD, playingHcp } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import { teamsToMeta, matchTeams, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import LiveBackground from "../components/LiveBackground";
 
-const FORMATS   = ["2v2 Best Ball", "Singles", "Scramble"];
+const FORMATS   = ["2v2 Best Ball", "Singles", "Scramble", "Shamble"];
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
 const DEFAULT_HCP = [1,3,17,9,5,13,15,7,11, 2,18,8,4,16,12,6,14,10];
 const DAY_NAMES   = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -543,8 +543,8 @@ function Step4({ data, setData, prevCourses }) {
 }
 
 // ── Step 5: Pairings ─────────────────────────────────────────────────────────
-const FMT_LABELS = { "Singles":"1v1", "2v2 Best Ball":"Best Ball", "Scramble":"Scramble" };
-const ALL_MATCH_FMTS = ["Singles", "2v2 Best Ball", "Scramble"];
+const FMT_LABELS = { "Singles":"1v1", "2v2 Best Ball":"Best Ball", "Scramble":"Scramble", "Shamble":"Shamble" };
+const ALL_MATCH_FMTS = ["Singles", "2v2 Best Ball", "Scramble", "Shamble"];
 
 function Step5({ data, setData }) {
   const { CARD2, BORDER, TEXT, MUTED } = useTheme();
@@ -601,6 +601,13 @@ function Step5({ data, setData }) {
     if (isSingles){ m.player1b=null; m.hcp1b=0; m.player2b=null; m.hcp2b=0; }
     else { if(m.player1b===null)m.player1b=""; if(m.player2b===null)m.player2b=""; }
     if (fmt==="Scramble"){ m.hcp1a=0; m.hcp1b=0; m.hcp2a=0; m.hcp2b=0; }
+    else {
+      // Re-derive each player's handicap so switching to/from Shamble applies or drops its allowance.
+      for (const k of ["1a","1b","2a","2b"]) {
+        const p=data.players.find(x=>x.name===m[`player${k}`]);
+        m[`hcp${k}`]=p ? playingHcp(p.hcp,fmt) : 0;
+      }
+    }
     matches[mi]=m;
     return { ...r, matches };
   });
@@ -611,7 +618,7 @@ function Step5({ data, setData }) {
       const fmt=matches[mi].format||round.format;
       const player=data.players.find(p=>p.name===val);
       const hcpKey=key.replace("player","hcp");
-      matches[mi]={...matches[mi],[key]:val,[hcpKey]:fmt==="Scramble"?0:(player?.hcp||0)};
+      matches[mi]={...matches[mi],[key]:val,[hcpKey]:fmt==="Scramble"?0:playingHcp(player?.hcp||0,fmt)};
     } else {
       matches[mi]={...matches[mi],[key]:val};
     }

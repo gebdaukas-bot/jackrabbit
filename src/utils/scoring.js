@@ -1,5 +1,24 @@
 export const GOLD = "#C4A44A";
 
+// Shamble: both players drive, the team picks the better drive, then each plays
+// their own ball in. Scored like a best ball (lower net of the pair wins the
+// hole), but each player only gets this share of their course handicap. Some
+// clubs use 0.80–0.85 instead.
+export const SHAMBLE_ALLOWANCE = 0.75;
+
+// The share of a player's handicap a format plays off.
+export function hcpAllowance(format) {
+  return format === "Shamble" ? SHAMBLE_ALLOWANCE : 1;
+}
+
+// A player's handicap for this format. Reduced allowances are rounded to a whole
+// number, as the USGA does for playing handicaps (13 × 75% = 9.75 → 10); full
+// handicaps are passed through untouched.
+export function playingHcp(hcp, format) {
+  const a = hcpAllowance(format);
+  return a === 1 ? hcp : Math.round((Number(hcp) || 0) * a);
+}
+
 export function netScore(gross, playerHcp, holeHcpIndex) {
   return gross - (holeHcpIndex <= playerHcp ? 1 : 0)
                - (playerHcp > 18 && holeHcpIndex <= playerHcp - 18 ? 1 : 0);
