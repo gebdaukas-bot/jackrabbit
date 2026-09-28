@@ -7,6 +7,7 @@ import { getTeams, cupSidesFor } from "../utils/teams";
 import { useTheme } from "../context/ThemeContext";
 import LiveBackground from "../components/LiveBackground";
 import HoleByHoleTable from "../components/HoleByHoleTable";
+import { courseLabel } from "../utils/courses";
 
 // Read-only spectator view for a standalone 1v1/2v2 match — no login, no join,
 // no scoring. Just the live status, for sharing with people who only want to watch.
@@ -100,7 +101,7 @@ export default function WatchPage() {
 
         <div style={{ textAlign: "center", fontSize: 12, color: MUTED, marginBottom: 16 }}>
           {match.player1a}{match.player1b ? ` & ${match.player1b}` : ""} <span style={{ color: "#557" }}>vs</span> {match.player2a}{match.player2b ? ` & ${match.player2b}` : ""}
-          {course.name && <div style={{ marginTop: 4, fontSize: 10 }}>{course.name}</div>}
+          {course.name && <div style={{ marginTop: 4, fontSize: 10 }}>{courseLabel(course)}</div>}
         </div>
 
         {/* Hole by hole */}

@@ -11,6 +11,7 @@ import HoleByHoleTable from "../components/HoleByHoleTable";
 import CourseSearch from "../components/CourseSearch";
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
+import { courseLabel } from "../utils/courses";
 import confetti from "canvas-confetti";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -173,7 +174,7 @@ function DayBlock({ day, teams, onOpen, canEdit }) {
             {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>}
           </div>
           {rounds[0].course?.name && (
-            <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>{rounds[0].course.name}</div>
+            <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>{courseLabel(rounds[0].course)}</div>
           )}
         </div>
       )}
@@ -187,7 +188,7 @@ function DayBlock({ day, teams, onOpen, canEdit }) {
               <div style={{ display:"flex", background:"#0a1428", borderBottom:`1px solid ${BORDER}`, borderTop:ri>0?`1px solid ${BORDER}`:"none" }}>
                 {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>}
                 <div style={{ flex:twoTeam?undefined:1, textAlign:twoTeam?undefined:"center", padding:"5px 10px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>
-                  {round.format?.toUpperCase()}{round.course?.name?` · ${round.course.name}`:""}
+                  {round.format?.toUpperCase()}{round.course?.name?` · ${courseLabel(round.course)}`:""}
                 </div>
                 {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>}
               </div>
@@ -840,7 +841,7 @@ export default function CupView({ user }) {
           // Firebase Realtime Database collapses `null` entries out of arrays (reindexing
           // everything after them), so any unset yardage holes get written as 0 instead —
           // read paths treat 0 the same as "no data" for this field.
-          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...(r.course?.teeName?{teeName:r.course.teeName}:{})},
+          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...((r.course?.teeName||r.course?.selectedTee?.name)?{teeName:r.course.teeName||r.course.selectedTee.name}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
           ...(r.pointValue?{pointValue:r.pointValue}:{}),
         })),
@@ -862,7 +863,7 @@ export default function CupView({ user }) {
           // Firebase Realtime Database collapses `null` entries out of arrays (reindexing
           // everything after them), so any unset yardage holes get written as 0 instead —
           // read paths treat 0 the same as "no data" for this field.
-          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...(r.course?.teeName?{teeName:r.course.teeName}:{})},
+          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...((r.course?.teeName||r.course?.selectedTee?.name)?{teeName:r.course.teeName||r.course.selectedTee.name}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
           ...(r.pointValue?{pointValue:r.pointValue}:{}),
         })),

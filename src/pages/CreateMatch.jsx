@@ -224,7 +224,7 @@ export default function CreateMatch({ user }) {
         // holes are written as 0 instead — read paths treat 0 the same as "no data".
         ...(yardage.some(y => y) ? { yardage: yardage.map(y => y || 0) } : {}),
         ...(tees.length > 0 ? { tees } : {}),
-        ...(selectedTee ? { selectedTee } : {}),
+        ...(selectedTee ? { selectedTee, teeName: selectedTee.name } : {}),
       };
       const day = { label: "Match", rounds: [{ format: matchFormat, course: courseObj, ...(format === "1v1" && allowExtraHoles ? { allowExtraHoles: true } : {}) }] };
       const match = {

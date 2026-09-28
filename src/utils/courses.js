@@ -60,3 +60,15 @@ export const BUILT_IN_COURSES = [
     hcp: [5,11,7,13,17,1,15,9,3, 10,8,2,6,18,16,4,12,14],
   },
 ];
+
+// The course and the tees being played, e.g. "Streamsong Black - Blue Tees".
+// A women's/men's tag from the course search moves after the word "Tees"
+// ("Gold (W)" → "Gold Tees (W)"). Just the course name if no tee was picked.
+export function courseLabel(course) {
+  const name = course?.name || "";
+  const tee = course?.teeName || course?.selectedTee?.name;
+  if (!name || !tee) return name;
+  const [, base, tag] = tee.match(/^(.*?)\s*(\([MW]\))?$/);
+  const tees = /\btees?\b/i.test(base) ? base : `${base} Tees`;
+  return `${name} - ${tees}${tag ? ` ${tag}` : ""}`;
+}
