@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, onValue, set, update } from "../firebase";
-import { computeMatchStatus, standings, playingHcp, SHAMBLE_ALLOWANCE, GOLD } from "../utils/scoring";
+import { computeMatchStatus, standings, courseHcp, playingHcp, SHAMBLE_ALLOWANCE, GOLD } from "../utils/scoring";
 import { getTeams, cupSidesFor, matchTeams, teamsToMeta, autoShort, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import { contrastText } from "../utils/color";
 import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
 import HoleByHoleTable from "../components/HoleByHoleTable";
+import CourseSearch from "../components/CourseSearch";
+import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import confetti from "canvas-confetti";
 import { QRCodeSVG } from "qrcode.react";
@@ -261,45 +263,9 @@ function AdminCourses({ initDays, onSave, onBack }) {
   const round = days[selDay]?.rounds[selRound] || {};
   const course = round.course || {};
 
-  // Look up a course by the name already typed above — same GolfCourseAPI
-  // (falling back to Claude) lookup used when first creating the cup, so an
-  // existing course can be corrected/filled in from here too.
-  const [lookingUp, setLookingUp] = useState(false);
-  const [lookupDone, setLookupDone] = useState(false);
-  const [lookupFound, setLookupFound] = useState(false);
-  const [lookupError, setLookupError] = useState("");
-
-  const updateCourse = patch => setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,...patch}})}));
-
-  const handleLookup = async () => {
-    const name = (course.name||"").trim();
-    if (!name || lookingUp) return;
-    setLookingUp(true); setLookupError(""); setLookupDone(false);
-    try {
-      const res = await fetch("/api/lookup-course", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseName: name }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setLookupError(data.error || "Lookup failed"); setLookupFound(false); }
-      else if (!data.found) { setLookupFound(false); }
-      else {
-        // AdminCourses stores one slope/rating per course (no tee selection like
-        // the creation wizards), so default to the first tee returned — the
-        // slope/rating fields below stay editable if a different tee was played.
-        const primaryTee = data.tees?.[0];
-        updateCourse({
-          name: data.name, par: [...data.par], hcp: [...data.hcp],
-          yardage: data.yardage ? [...data.yardage] : Array(18).fill(null),
-          ...(primaryTee ? { slope:primaryTee.slope, rating:primaryTee.rating } : {}),
-        });
-        setLookupFound(true);
-      }
-      setLookupDone(true);
-    } catch { setLookupError("Something went wrong — try again"); setLookupDone(true); }
-    finally { setLookingUp(false); }
-  };
+  // Picking a tee sets the round's slope/rating (what RECALC HCPs works from)
+  // and takes that tee's own par/stroke index/yardage.
+  const applyTee = (c, tee) => updateCourse(courseFromTee(c, tee));
 
   const updateHole = (field, hi, val) => {
     if (field==="yardage" && val.trim()==="") {
@@ -318,21 +284,12 @@ function AdminCourses({ initDays, onSave, onBack }) {
       <AdminHeader title="Edit Courses" onBack={onBack} onSave={handleSave} saving={saving}/>
       {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>{days.map((d,di)=><button key={di} onClick={()=>{setSelDay(di);setSelRound(0);}} style={{padding:"4px 10px",background:selDay===di?GOLD:"none",border:`1px solid ${selDay===di?GOLD:BORDER}`,borderRadius:6,color:selDay===di?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>{d.label}</button>)}</div>}
       {days[selDay]?.rounds.length>1&&<div style={{display:"flex",gap:6,marginBottom:10}}>{days[selDay].rounds.map((_,ri)=><button key={ri} onClick={()=>setSelRound(ri)} style={{padding:"4px 10px",background:selRound===ri?GOLD:"none",border:`1px solid ${selRound===ri?GOLD:BORDER}`,borderRadius:6,color:selRound===ri?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>Round {ri+1}</button>)}</div>}
-      <div style={{marginBottom:8}}>
+      <div style={{marginBottom:12}}>
         <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>COURSE NAME</div>
-        <div style={{display:"flex",gap:8}}>
-          <input value={course.name||""}
-            onChange={e=>{ updateCourse({name:e.target.value}); setLookupDone(false); setLookupError(""); }}
-            style={{flex:1,padding:"8px 10px",background:CARD2,border:`1px solid ${lookupDone&&lookupFound?"#4caf50":BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
-          <button onClick={handleLookup} disabled={lookingUp || !(course.name||"").trim()}
-            style={{padding:"8px 14px",background:GOLD,border:"none",borderRadius:8,color:"#000",fontWeight:900,fontSize:11,cursor:lookingUp||!(course.name||"").trim()?"default":"pointer",fontFamily:"monospace",flexShrink:0,opacity:lookingUp||!(course.name||"").trim()?0.5:1}}>
-            {lookingUp ? "…" : "🔍 Look Up"}
-          </button>
-        </div>
+        <CourseSearch key={`${selDay}-${selRound}`} query={course.name||""} onQueryChange={name=>updateCourse({name})}
+          onTee={applyTee} selectedTee={course.teeName}/>
+        {course.teeName&&<div style={{fontSize:11,color:GOLD,marginTop:8,fontFamily:"monospace"}}>Playing the {course.teeName} tees · Rating {course.rating} · Slope {course.slope} — hit RECALC HCPs in Edit Matchups to update strokes.</div>}
       </div>
-      {lookupDone&&lookupFound&&<div style={{fontSize:11,color:"#4caf50",marginBottom:10}}>✓ Found — par, handicap, yardage &amp; slope/rating filled in below.</div>}
-      {lookupDone&&!lookupFound&&!lookupError&&<div style={{fontSize:11,color:"#e67e22",marginBottom:10}}>Course not found — edit the fields below manually.</div>}
-      {lookupError&&<div style={{fontSize:11,color:"#e74c3c",marginBottom:10}}>{lookupError}</div>}
       <div style={{display:"flex",gap:10,marginBottom:12}}>
         <div style={{flex:1}}>
           <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>HOLES</div>
@@ -498,15 +455,8 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
     const round = days[di]?.rounds[ri];
     const course = round?.course;
     if (!course?.par?.length) return;
-    const par = course.par.reduce((a,b)=>a+b,0);
-    const slope = course.slope || 113;
-    const rating = course.rating || par;
-    // Partial (e.g. 9-hole) rounds don't have their own published rating/slope on file, so
-    // approximate by prorating the full course handicap — the common "half your handicap for
-    // nine holes" convention.
-    const scale = (round.totalHoles || 18) / 18;
     // Shamble plays off a share of each course handicap; other formats play off it in full.
-    const toCh = idx => playingHcp(((Number(idx)||0) * (slope/113) + (rating - par)) * scale, round.format);
+    const toCh = idx => playingHcp(courseHcp(idx, course, round.totalHoles || 18), round.format);
     const isSingles = round.format === "Singles";
     const isScramble = round.format === "Scramble";
     setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>{
@@ -890,7 +840,7 @@ export default function CupView({ user }) {
           // Firebase Realtime Database collapses `null` entries out of arrays (reindexing
           // everything after them), so any unset yardage holes get written as 0 instead —
           // read paths treat 0 the same as "no data" for this field.
-          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{})},
+          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...(r.course?.teeName?{teeName:r.course.teeName}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
           ...(r.pointValue?{pointValue:r.pointValue}:{}),
         })),
@@ -912,7 +862,7 @@ export default function CupView({ user }) {
           // Firebase Realtime Database collapses `null` entries out of arrays (reindexing
           // everything after them), so any unset yardage holes get written as 0 instead —
           // read paths treat 0 the same as "no data" for this field.
-          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{})},
+          course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...(r.course?.teeName?{teeName:r.course.teeName}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
           ...(r.pointValue?{pointValue:r.pointValue}:{}),
         })),

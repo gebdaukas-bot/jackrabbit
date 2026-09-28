@@ -6,6 +6,8 @@ import { teamsToMeta, DEFAULT_TEAM_COLORS } from "../utils/teams";
 import { GOLD, playingHcp, SHAMBLE_ALLOWANCE } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import LiveBackground from "../components/LiveBackground";
+import CourseSearch from "../components/CourseSearch";
+import { courseFromTee } from "../utils/courseLookup";
 
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
 const DEFAULT_HCP = [1,3,17,9,5,13,15,7,11, 2,18,8,4,16,12,6,14,10];
@@ -45,11 +47,8 @@ export default function CreateMatch({ user }) {
   const [showHoles, setShowHoles] = useState(false);
   const [prevCourses, setPrevCourses] = useState([]);
 
-  // Lookup state
-  const [lookingUp, setLookingUp] = useState(false);
-  const [lookupDone, setLookupDone] = useState(false);
-  const [lookupFound, setLookupFound] = useState(false);
-  const [lookupError, setLookupError] = useState("");
+  // Whether a course (with its tees) has come back from the course search
+  const [courseLoaded, setCourseLoaded] = useState(false);
 
   // Tee state
   const [tees, setTees] = useState([]);
@@ -71,7 +70,8 @@ export default function CreateMatch({ user }) {
   const STEPS = ["Players", "Handicaps", "Course"];
 
   const totalPar = par.reduce((a, b) => a + b, 0);
-  const calcCourseHcp = (hi, slope, rating) => Math.round(hi * (slope / 113) + (rating - totalPar));
+  const calcCourseHcp = (hi, slope, rating, coursePar = totalPar) => Math.round(hi * (slope / 113) + (rating - coursePar));
+  const teePar = tee => tee.par?.length === 18 ? tee.par.reduce((a, b) => a + b, 0) : totalPar;
 
   const courseNameOk = courseName.trim().length >= 6 && courseName.trim().toLowerCase() !== "unknown course";
   const teeOk = tees.length === 0 || selectedTeeIdx !== null;
@@ -109,35 +109,27 @@ export default function CreateMatch({ user }) {
   }, [user.uid]);
 
   const resetCourseData = () => {
-    setLookupDone(false); setLookupFound(false); setLookupError("");
+    setCourseLoaded(false);
     setTees([]); setSelectedTeeIdx(null);
     setScanned(false); setScanError("");
   };
 
-  const handleLookup = async () => {
-    if (!courseName.trim() || lookingUp) return;
-    setLookingUp(true); setLookupError(""); setLookupDone(false);
-    setTees([]); setSelectedTeeIdx(null);
-    try {
-      const res = await fetch("/api/lookup-course", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseName: courseName.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setLookupError(data.error || "Lookup failed"); setLookupFound(false); }
-      else if (!data.found) { setLookupFound(false); }
-      else {
-        setCourseName(data.name);
-        setPar([...data.par]);
-        setHcp([...data.hcp]);
-        setYardage(data.yardage ? [...data.yardage] : Array(18).fill(null));
-        setTees(data.tees || []);
-        setLookupFound(true);
-      }
-      setLookupDone(true);
-    } catch { setLookupError("Something went wrong — try again"); setLookupDone(true); }
-    finally { setLookingUp(false); }
+  // A course picked from the search, with every tee box it has.
+  const handleCourse = c => {
+    setCourseName(c.name); setPar([...c.par]); setHcp([...c.hcp]);
+    setYardage(c.yardage ? c.yardage.map(y => y || null) : Array(18).fill(null));
+    setTees(c.tees || []);
+    setSelectedTeeIdx(null);
+    setCourseLoaded(true);
+    if (c.tees?.length === 1) selectTee(0, c.tees, c);
+  };
+
+  // Tees can have their own par, stroke index and yardages (women's tees
+  // especially) — picking one loads them, falling back to what's on screen.
+  const selectTee = (i, list = tees, base = { name: courseName, par, hcp, yardage }) => {
+    setSelectedTeeIdx(i);
+    const c = courseFromTee(base, list[i]);
+    setPar(c.par); setHcp(c.hcp); setYardage(c.yardage);
   };
 
   const handleScan = async (file) => {
@@ -381,10 +373,10 @@ export default function CreateMatch({ user }) {
                 onChange={e => {
                   const c = prevCourses.find(x => x.name === e.target.value);
                   if (!c) return;
+                  resetCourseData();
                   setCourseName(c.name); setPar([...c.par]); setHcp([...c.hcp]);
                   setYardage(c.yardage ? [...c.yardage] : Array(18).fill(null));
-                  setTees(c.tees || []); setSelectedTeeIdx(null);
-                  resetCourseData();
+                  setTees(c.tees || []);
                 }}
                 style={{ width:"100%", padding:"14px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, color:MUTED, fontSize:14, outline:"none", cursor:"pointer" }}
               >
@@ -393,44 +385,16 @@ export default function CreateMatch({ user }) {
               </select>
             </div>
 
-            {/* Course name + Look Up */}
+            {/* Course search → pick the course; its tees are listed below */}
             <div>
               <div style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>COURSE NAME</div>
-              <div style={{ display:"flex", gap:8 }}>
-                <input
-                  value={courseName}
-                  onChange={e => { setCourseName(e.target.value); resetCourseData(); }}
-                  placeholder="Type course name…"
-                  style={{ flex:1, padding:"14px 12px", background:CARD2, border:`1px solid ${lookupDone&&lookupFound?"#4caf50":BORDER}`, borderRadius:12, color:TEXT, fontSize:14, outline:"none" }}
-                />
-                <button onClick={handleLookup} disabled={lookingUp || !courseName.trim()}
-                  style={{ padding:"14px 16px", background:GOLD, border:"none", borderRadius:12, color:"#000", fontWeight:900, fontSize:12, cursor:lookingUp||!courseName.trim()?"default":"pointer", fontFamily:"monospace", flexShrink:0, opacity:lookingUp||!courseName.trim()?0.5:1 }}>
-                  {lookingUp ? "…" : "Look Up"}
-                </button>
-              </div>
+              <CourseSearch large pickTee={false} query={courseName}
+                onQueryChange={v => { setCourseName(v); resetCourseData(); }}
+                onCourse={handleCourse}/>
             </div>
 
-            {/* Lookup result banner */}
-            {lookupDone && lookupFound && (
-              <div style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 14px", background:"#0d2b0d", border:"1px solid #4caf5055", borderRadius:10 }}>
-                <div style={{ fontSize:18 }}>✓</div>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:700, color:"#4caf50" }}>{courseName}</div>
-                  <div style={{ fontSize:10, color:MUTED }}>{tees.length} tee box{tees.length!==1?"es":""} found</div>
-                </div>
-              </div>
-            )}
-            {lookupDone && !lookupFound && !lookupError && (
-              <div style={{ padding:"10px 14px", background:"#1a1a0a", border:"1px solid #e67e2255", borderRadius:10, fontSize:12, color:"#e67e22" }}>
-                Course not found — enter tees manually below, or scan the scorecard for hole data.
-              </div>
-            )}
-            {lookupError && (
-              <div style={{ fontSize:12, color:"#e74c3c" }}>{lookupError}</div>
-            )}
-
             {/* Tee boxes */}
-            {(tees.length > 0 || lookupDone) && (
+            {(tees.length > 0 || courseLoaded || courseNameOk) && (
               <div>
                 <div style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>
                   SELECT TEES {tees.length > 0 ? "" : "(add one below)"}
@@ -438,7 +402,7 @@ export default function CreateMatch({ user }) {
                 {tees.map((tee, i) => {
                   const sel = selectedTeeIdx === i;
                   return (
-                    <div key={i} onClick={() => setSelectedTeeIdx(i)}
+                    <div key={i} onClick={() => selectTee(i)}
                       style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:sel?`${GOLD}18`:CARD2, border:`1px solid ${sel?GOLD:BORDER}`, borderRadius:10, cursor:"pointer", marginBottom:6 }}>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:13, fontWeight:700, color:sel?GOLD:TEXT }}>{tee.name}</div>
@@ -449,7 +413,7 @@ export default function CreateMatch({ user }) {
                       <div style={{ display:"flex", flexDirection:"column", gap:2, alignItems:"flex-end" }}>
                         {activePlayers.map(p => (
                           <div key={p.key} style={{ fontSize:10, fontFamily:"monospace", color:sel?p.color:MUTED, whiteSpace:"nowrap" }}>
-                            {p.name}: <span style={{ fontWeight:800, color:sel?GOLD:MUTED }}>{fmtHcp(calcCourseHcp(p.hi, tee.slope, tee.rating))}</span>
+                            {p.name}: <span style={{ fontWeight:800, color:sel?GOLD:MUTED }}>{fmtHcp(calcCourseHcp(p.hi, tee.slope, tee.rating, teePar(tee)))}</span>
                           </div>
                         ))}
                       </div>

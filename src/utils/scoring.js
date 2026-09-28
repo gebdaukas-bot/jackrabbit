@@ -11,6 +11,18 @@ export function hcpAllowance(format) {
   return format === "Shamble" ? SHAMBLE_ALLOWANCE : 1;
 }
 
+// Course handicap from a handicap index: index × slope/113 + (rating − par),
+// unrounded. A course with no slope/rating on file plays as a neutral 113/par.
+// Partial (e.g. 9-hole) rounds don't have their own published rating/slope on
+// file, so they prorate the full course handicap — the common "half your
+// handicap for nine holes" convention.
+export function courseHcp(index, course, totalHoles = 18) {
+  const par = (course?.par || []).reduce((a, b) => a + b, 0) || 72;
+  const slope = course?.slope || 113;
+  const rating = course?.rating || par;
+  return ((Number(index) || 0) * (slope / 113) + (rating - par)) * (totalHoles / 18);
+}
+
 // A player's handicap for this format. Reduced allowances are rounded to a whole
 // number, as the USGA does for playing handicaps (13 × 75% = 9.75 → 10); full
 // handicaps are passed through untouched.

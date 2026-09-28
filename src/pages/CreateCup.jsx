@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set, get } from "../firebase";
-import { GOLD, playingHcp } from "../utils/scoring";
+import { GOLD, courseHcp, playingHcp } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import { teamsToMeta, matchTeams, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import LiveBackground from "../components/LiveBackground";
+import CourseSearch from "../components/CourseSearch";
+import { courseFromTee } from "../utils/courseLookup";
 
 const FORMATS   = ["2v2 Best Ball", "Singles", "Scramble", "Shamble"];
 const DEFAULT_PAR = [4,4,3,4,5,4,3,4,4, 4,3,4,5,3,4,4,5,4];
@@ -341,14 +343,6 @@ function Step4({ data, setData, prevCourses }) {
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
 
-  // Look up a course by the name already typed in Step 3 — same GolfCourseAPI
-  // (falling back to Claude) lookup the standalone match wizard uses, wired in
-  // here too so the full cup wizard doesn't require manual par/hcp entry.
-  const [lookingUp, setLookingUp] = useState(false);
-  const [lookupDone, setLookupDone] = useState(false);
-  const [lookupFound, setLookupFound] = useState(false);
-  const [lookupError, setLookupError] = useState("");
-
   const applyToActiveRound = patch => setData(d => {
     const days = [...d.days];
     const rounds = [...days[activeDay].rounds];
@@ -357,27 +351,15 @@ function Step4({ data, setData, prevCourses }) {
     return { ...d, days };
   });
 
-  const handleLookup = async () => {
-    const name = round.courseName.trim();
-    if (!name || lookingUp) return;
-    setLookingUp(true); setLookupError(""); setLookupDone(false);
-    try {
-      const res = await fetch("/api/lookup-course", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseName: name }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setLookupError(data.error || "Lookup failed"); setLookupFound(false); }
-      else if (!data.found) { setLookupFound(false); }
-      else {
-        applyToActiveRound({ courseName: data.name, par: [...data.par], hcp: [...data.hcp] });
-        setLookupFound(true);
-      }
-      setLookupDone(true);
-    } catch { setLookupError("Something went wrong — try again"); setLookupDone(true); }
-    finally { setLookingUp(false); }
+  // A picked tee sets the round's slope/rating — Pairings works handicaps out
+  // from them — along with that tee's own par, stroke index and yardage.
+  const applyTee = (c, tee) => {
+    const { name, par, hcp, yardage, slope, rating, teeName } = courseFromTee(c, tee);
+    applyToActiveRound({ courseName:name, par, hcp, yardage, slope, rating, teeName });
   };
+  // Hole data from somewhere other than a tee pick (scan, previous course) —
+  // any slope/rating from an earlier pick no longer applies.
+  const noTee = { slope:undefined, rating:undefined, teeName:undefined };
 
   const handleScan = async (file) => {
     if (!file) return;
@@ -403,7 +385,7 @@ function Step4({ data, setData, prevCourses }) {
         setData(d => {
           const days = [...d.days];
           const rounds = [...days[activeDay].rounds];
-          rounds[ri] = { ...rounds[ri], courseName: parsed.name, par: [...parsed.par], hcp: [...parsed.hcp] };
+          rounds[ri] = { ...rounds[ri], ...noTee, courseName: parsed.name, par: [...parsed.par], hcp: [...parsed.hcp], yardage: parsed.yardage ? [...parsed.yardage] : undefined };
           days[activeDay] = { ...days[activeDay], rounds };
           return { ...d, days };
         });
@@ -469,24 +451,14 @@ function Step4({ data, setData, prevCourses }) {
         </label>
       </div>
 
-      {/* Course name + Look Up — same GolfCourseAPI/Claude lookup as the quick-match wizard */}
-      <div style={{ marginBottom:8 }}>
-        <div style={{ display:"flex", gap:8 }}>
-          <input
-            value={round.courseName}
-            onChange={e => { applyToActiveRound({ courseName:e.target.value }); setLookupDone(false); setLookupError(""); }}
-            placeholder="e.g. Pebble Beach Golf Links"
-            style={{ flex:1, padding:"10px 12px", background:CARD2, border:`1px solid ${lookupDone&&lookupFound?"#4caf50":BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", boxSizing:"border-box" }}
-          />
-          <button onClick={handleLookup} disabled={lookingUp || !round.courseName.trim()}
-            style={{ padding:"10px 14px", background:GOLD, border:"none", borderRadius:8, color:"#000", fontWeight:900, fontSize:11, cursor:lookingUp||!round.courseName.trim()?"default":"pointer", fontFamily:"monospace", flexShrink:0, opacity:lookingUp||!round.courseName.trim()?0.5:1 }}>
-            {lookingUp ? "…" : "🔍 Look Up"}
-          </button>
-        </div>
+      {/* Search → pick the course → pick the tees (slope/rating set handicap strokes in Pairings) */}
+      <div style={{ marginBottom:10 }}>
+        <CourseSearch key={`${activeDay}-${ri}`} query={round.courseName} onQueryChange={v=>applyToActiveRound({ courseName:v })}
+          onTee={applyTee} selectedTee={round.teeName} placeholder="e.g. Streamsong Black"/>
       </div>
-      {lookupDone && lookupFound && <div style={{ fontSize:11, color:"#4caf50", marginBottom:10 }}>✓ Found — par &amp; handicap filled in below.</div>}
-      {lookupDone && !lookupFound && !lookupError && <div style={{ fontSize:11, color:"#e67e22", marginBottom:10 }}>Course not found — enter par/hcp manually below, or scan a scorecard.</div>}
-      {lookupError && <div style={{ fontSize:11, color:"#e74c3c", marginBottom:10 }}>{lookupError}</div>}
+      {round.teeName
+        ? <div style={{ fontSize:11, color:GOLD, marginBottom:10, fontFamily:"monospace" }}>Playing the {round.teeName} tees · Rating {round.rating} · Slope {round.slope}</div>
+        : <div style={{ fontSize:11, color:MUTED, marginBottom:10 }}>No tees picked — handicaps will use each player's index as-is. Search to pick tees, or enter par/hcp by hand below.</div>}
       {scanError && <div style={{ fontSize:11, color:"#e74c3c", marginBottom:10 }}>{scanError}</div>}
 
       {prevCourses?.length > 0 && (
@@ -500,7 +472,7 @@ function Step4({ data, setData, prevCourses }) {
               setData(d => {
                 const days = [...d.days];
                 const rounds = [...days[activeDay].rounds];
-                rounds[ri] = { ...rounds[ri], courseName: c.name, par: [...c.par], hcp: [...c.hcp] };
+                rounds[ri] = { ...rounds[ri], ...noTee, courseName: c.name, par: [...c.par], hcp: [...c.hcp], yardage: c.yardage ? [...c.yardage] : undefined };
                 days[activeDay] = { ...days[activeDay], rounds };
                 return { ...d, days };
               });
@@ -561,6 +533,9 @@ function Step5({ data, setData }) {
   const pickTeams = data.teams.length > 2;
   const sidesOf = m => matchTeams(data.teams, m);
   const rosterOf = t => data.players.filter(p=>p.team===t.id);
+  // What a player plays off in this round: their course handicap from the tees
+  // picked in Courses (the bare index if none were), reduced for Shamble.
+  const matchHcp = (p, fmt) => playingHcp(round.slope ? Math.round(courseHcp(p.hcp, round)) : p.hcp, fmt);
 
   const mutateRound = (fn) => setData(d => {
     const days=[...d.days];
@@ -605,7 +580,7 @@ function Step5({ data, setData }) {
       // Re-derive each player's handicap so switching to/from Shamble applies or drops its allowance.
       for (const k of ["1a","1b","2a","2b"]) {
         const p=data.players.find(x=>x.name===m[`player${k}`]);
-        m[`hcp${k}`]=p ? playingHcp(p.hcp,fmt) : 0;
+        m[`hcp${k}`]=p ? matchHcp(p,fmt) : 0;
       }
     }
     matches[mi]=m;
@@ -618,7 +593,7 @@ function Step5({ data, setData }) {
       const fmt=matches[mi].format||round.format;
       const player=data.players.find(p=>p.name===val);
       const hcpKey=key.replace("player","hcp");
-      matches[mi]={...matches[mi],[key]:val,[hcpKey]:fmt==="Scramble"?0:playingHcp(player?.hcp||0,fmt)};
+      matches[mi]={...matches[mi],[key]:val,[hcpKey]:fmt==="Scramble"||!player?0:matchHcp(player,fmt)};
     } else {
       matches[mi]={...matches[mi],[key]:val};
     }
@@ -849,7 +824,13 @@ export default function CreateCup({ user }) {
       // Build Firebase days (rounds structure, no matches embedded)
       const daysMeta = data.days.map(day => ({
         label: day.label,
-        rounds: day.rounds.map(r => ({ format:r.format, course:{ name:r.courseName, par:r.par, hcp:r.hcp } })),
+        rounds: day.rounds.map(r => ({ format:r.format, course:{
+          name:r.courseName, par:r.par, hcp:r.hcp,
+          ...(r.slope ? { slope:r.slope, rating:r.rating } : {}),
+          ...(r.teeName ? { teeName:r.teeName } : {}),
+          // Firebase collapses `null` array entries, so unset holes are written as 0.
+          ...(r.yardage?.some(y=>y) ? { yardage:r.yardage.map(y=>y||0) } : {}),
+        } })),
       }));
 
       // Build flat matches map with new ID scheme:
