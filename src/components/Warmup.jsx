@@ -33,16 +33,12 @@ export function warmupTotals(card, par) {
 const fmtToPar = n => n === 0 ? "E" : n > 0 ? `+${n}` : `${n}`;
 const toParColor = n => n < 0 ? "#4caf50" : n > 0 ? "#e88" : "#ccd";
 
-// The board view of a warmup round: its groups, then a leaderboard.
+// The board view of a warmup round: its groups, each player's score to par.
 export function WarmupRound({ round, scores, teamColorOf, canScore, onOpen }) {
-  const { BORDER, MUTED } = useTheme();
+  const { BORDER } = useTheme();
   const par = round.course?.par || [];
   const groups = round.groups || [];
   const totalsOf = name => warmupTotals(scores?.[warmupKey(name)], par);
-  const board = groups.flatMap(g => g.players || [])
-    .map(name => ({ name, ...totalsOf(name) }))
-    .sort((a, b) => (b.thru > 0) - (a.thru > 0) || a.toPar - b.toPar || b.thru - a.thru || a.name.localeCompare(b.name));
-  const started = board.some(p => p.thru > 0);
 
   return (
     <div>
@@ -79,24 +75,6 @@ export function WarmupRound({ round, scores, teamColorOf, canScore, onOpen }) {
           </div>
         );
       })}
-      {started && (
-        <div style={{ padding: "8px 10px", borderBottom: `1px solid ${BORDER}` }}>
-          <div style={{ fontSize: 8, color: MUTED, fontFamily: "monospace", letterSpacing: 2, marginBottom: 4 }}>WARMUP LEADERBOARD</div>
-          {board.map((p, i) => {
-            const pos = board.findIndex(x => x.thru > 0 && x.toPar === p.toPar) + 1;
-            const tied = board.filter(x => x.thru > 0 && x.toPar === p.toPar).length > 1;
-            return (
-              <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 0", borderTop: i ? "1px solid #0a1628" : "none" }}>
-                <div style={{ width: 22, fontSize: 10, color: "#557", fontFamily: "monospace" }}>{p.thru > 0 ? `${tied ? "T" : ""}${pos}` : ""}</div>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: teamColorOf(p.name), flexShrink: 0 }} />
-                <div style={{ flex: 1, fontSize: 12, color: "#dde", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
-                <div style={{ fontSize: 9, color: "#557", fontFamily: "monospace" }}>{p.thru === 0 ? "" : p.thru === 18 ? `F · ${p.strokes}` : `thru ${p.thru} · ${p.strokes}`}</div>
-                <div style={{ fontSize: 12, fontWeight: 900, color: p.thru ? toParColor(p.toPar) : "#446", fontFamily: "monospace", minWidth: 30, textAlign: "right" }}>{p.thru ? fmtToPar(p.toPar) : "—"}</div>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
