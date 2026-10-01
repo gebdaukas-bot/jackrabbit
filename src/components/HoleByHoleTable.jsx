@@ -13,19 +13,19 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
   const startHole = match.startHole || 0;
 
   const scoreStyle = (gross, par) => {
-    if (gross === null || gross === undefined) return { val: "·", color: "#334", bg: "transparent", border: "none", radius: 2 };
+    if (gross === null || gross === undefined) return { val: "·", color: "var(--faint)", bg: "transparent", border: "none", radius: 2 };
     const d = gross - par;
     if (d <= -2) return { val: gross, color: "#FFD700", bg: "transparent", border: "1.5px double #FFD700", radius: 2 };
     if (d === -1) return { val: gross, color: "#4caf50", bg: "transparent", border: "1.5px solid #4caf50", radius: "50%" };
-    if (d === 0) return { val: gross, color: "#ccd", bg: "transparent", border: "none", radius: 2 };
+    if (d === 0) return { val: gross, color: "var(--text)", bg: "transparent", border: "none", radius: 2 };
     if (d === 1) return { val: gross, color: "#e88", bg: "transparent", border: "1.5px solid #e88", radius: 2 };
     if (d === 2) return { val: gross, color: "#e55", bg: "transparent", border: "1.5px solid #e55", radius: 2 };
     return { val: gross, color: "#fff", bg: "#c0392b", border: "none", radius: 2 };
   };
-  const totalStyle = (val) => ({ val: val ?? "—", color: val != null ? "#FFD700" : "#446", bg: "transparent", border: "none", radius: 2, bold: true });
+  const totalStyle = (val) => ({ val: val ?? "—", color: val != null ? "#FFD700" : "var(--muted)", bg: "transparent", border: "none", radius: 2, bold: true });
 
   const arrowCell = (num, isA) => {
-    if (num === 0) return <div style={{ fontSize: 11, fontWeight: 900, color: "#557" }}>—</div>;
+    if (num === 0) return <div style={{ fontSize: 11, fontWeight: 900, color: "var(--muted-b)" }}>—</div>;
     const col = isA ? teamAColor : teamBColor;
     return (
       <div style={{ position: "relative", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
@@ -79,7 +79,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
       const en = col.hi - 18;
       const es = match.extra?.[en];
       const p = course.par?.[0] || 4;
-      const scoreCell = es === "A" || es === "B" ? arrowCell(1, es === "A") : <div style={{ fontSize: 11, fontWeight: 900, color: "#557" }}>—</div>;
+      const scoreCell = es === "A" || es === "B" ? arrowCell(1, es === "A") : <div style={{ fontSize: 11, fontWeight: 900, color: "var(--muted-b)" }}>—</div>;
       if (isSingles) return [scoreStyle(match.extraGrossA?.[en] ?? null, p), scoreCell, scoreStyle(match.extraGrossB?.[en] ?? null, p)][ri];
       return [scoreStyle(match.extraGrossA?.[en] ?? null, p), scoreStyle(null, p), scoreCell, scoreStyle(match.extraGrossB?.[en] ?? null, p), scoreStyle(null, p)][ri];
     }
@@ -87,15 +87,15 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
       const hi = col.hi, p = par[hi] || 4;
       const s = (match.scores || [])[hi];
       let scoreCell;
-      if (s === null || s === undefined) scoreCell = <div style={{ fontSize: 9, color: "#334" }}>·</div>;
-      else if (s === "H") scoreCell = <div style={{ fontSize: 11, fontWeight: 900, color: "#557" }}>—</div>;
+      if (s === null || s === undefined) scoreCell = <div style={{ fontSize: 9, color: "var(--faint)" }}>·</div>;
+      else if (s === "H") scoreCell = <div style={{ fontSize: 11, fontWeight: 900, color: "var(--muted-b)" }}>—</div>;
       else { const rl = runLeads[hi]; scoreCell = arrowCell(rl === null ? 0 : Math.abs(rl), s === "A"); }
       if (isSingles) return [scoreStyle(grossP1a[hi], p), scoreCell, scoreStyle(grossP2a[hi], p)][ri];
       return [scoreStyle(grossP1a[hi], p), scoreStyle(grossP1b[hi], p), scoreCell, scoreStyle(grossP2a[hi], p), scoreStyle(grossP2b[hi], p)][ri];
     }
     // out / in / tot — subtotal columns, blank on the SCORE row
-    const dash = { val: "—", color: "#446", bg: "transparent", border: "none", radius: 2 };
-    const scoreDash = <div style={{ fontSize: 11, fontWeight: 900, color: "#334" }}></div>;
+    const dash = { val: "—", color: "var(--muted)", bg: "transparent", border: "none", radius: 2 };
+    const scoreDash = <div style={{ fontSize: 11, fontWeight: 900, color: "var(--faint)" }}></div>;
     const from = col.type === "in" ? 9 : 0;
     const sum = (arr) => col.type === "tot" ? sum18(arr) : sum9(arr, from);
     if (isSingles) return [totalStyle(sum(grossP1a)), scoreDash, totalStyle(sum(grossP2a))][ri];
@@ -125,7 +125,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
   return (
     <div style={{ background: CARD, borderRadius: 10, border: `1px solid ${BORDER}`, overflow: "hidden" }}>
       {(longLabel || meta) && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "6px 10px", background: "#060f22", borderBottom: `1px solid ${BORDER}`, gap: 8 }}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "6px 10px", background: "var(--panel-b)", borderBottom: `1px solid ${BORDER}`, gap: 8 }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: statusColor || GOLD, fontFamily: "monospace", textAlign: "center" }}>{longLabel}{sublabel ? ` · ${sublabel}` : ""}</div>
           {meta && <div style={{ fontSize: 9, color: MUTED, fontFamily: "monospace", textAlign: "center" }}>{meta}</div>}
         </div>
@@ -133,26 +133,26 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
       <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         <table style={{ borderCollapse: "collapse", fontSize: 11 }}>
           <thead>
-            <tr style={{ background: "#080f20", borderBottom: `1px solid ${BORDER}` }}>
-              <td style={{ padding: "5px 10px", fontSize: 8, whiteSpace: "nowrap", minWidth: 70, position: "sticky", left: 0, background: "#080f20", zIndex: 1 }}></td>
+            <tr style={{ background: "var(--panel-a)", borderBottom: `1px solid ${BORDER}` }}>
+              <td style={{ padding: "5px 10px", fontSize: 8, whiteSpace: "nowrap", minWidth: 70, position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}></td>
               {cols.map((col, i) => (
-                <td key={i} style={{ textAlign: "center", padding: "5px 4px", fontSize: 8, color: col.type === "hole" && col.hi >= 18 ? GOLD : col.type !== "hole" ? "#FFD700" : "#668", fontFamily: "monospace", minWidth: col.type === "hole" ? 34 : 38, borderLeft: divider(col), fontWeight: col.type !== "hole" || col.hi === 0 ? "800" : "400" }}>
+                <td key={i} style={{ textAlign: "center", padding: "5px 4px", fontSize: 8, color: col.type === "hole" && col.hi >= 18 ? GOLD : col.type !== "hole" ? "#FFD700" : "var(--muted2)", fontFamily: "monospace", minWidth: col.type === "hole" ? 34 : 38, borderLeft: divider(col), fontWeight: col.type !== "hole" || col.hi === 0 ? "800" : "400" }}>
                   {colHeader(col)}
                   {col.type === "hole" && col.hi < 18 && (match.disputes || []).includes(col.hi) ? <span style={{ color: "#e55", fontSize: 7, marginLeft: 1 }}>🚩</span> : null}
                 </td>
               ))}
             </tr>
-            <tr style={{ background: "#080f20", borderBottom: yardage ? undefined : `2px solid ${BORDER}` }}>
-              <td style={{ padding: "4px 10px", fontSize: 8, color: "#446", fontFamily: "monospace", whiteSpace: "nowrap", position: "sticky", left: 0, background: "#080f20", zIndex: 1 }}>PAR</td>
+            <tr style={{ background: "var(--panel-a)", borderBottom: yardage ? undefined : `2px solid ${BORDER}` }}>
+              <td style={{ padding: "4px 10px", fontSize: 8, color: "var(--muted)", fontFamily: "monospace", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}>PAR</td>
               {cols.map((col, i) => (
-                <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "#557", fontFamily: "monospace", fontWeight: 700, borderLeft: divider(col) }}>{colPar(col)}</td>
+                <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "var(--muted-b)", fontFamily: "monospace", fontWeight: 700, borderLeft: divider(col) }}>{colPar(col)}</td>
               ))}
             </tr>
             {yardage && (
-              <tr style={{ background: "#080f20", borderBottom: `2px solid ${BORDER}` }}>
-                <td style={{ padding: "4px 10px", fontSize: 8, color: "#446", fontFamily: "monospace", whiteSpace: "nowrap", position: "sticky", left: 0, background: "#080f20", zIndex: 1 }}>YDS</td>
+              <tr style={{ background: "var(--panel-a)", borderBottom: `2px solid ${BORDER}` }}>
+                <td style={{ padding: "4px 10px", fontSize: 8, color: "var(--muted)", fontFamily: "monospace", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}>YDS</td>
                 {cols.map((col, i) => (
-                  <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "#557", fontFamily: "monospace", fontWeight: 700, borderLeft: divider(col) }}>{colYardage(col) || "—"}</td>
+                  <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "var(--muted-b)", fontFamily: "monospace", fontWeight: 700, borderLeft: divider(col) }}>{colYardage(col) || "—"}</td>
                 ))}
               </tr>
             )}
@@ -162,8 +162,8 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
               const isScoreRow = label === "SCORE";
               const nameColor = rowColors[ri];
               return (
-                <tr key={ri} style={{ borderBottom: `1px solid ${BORDER}22`, background: isScoreRow ? "#060f22" : ri % 2 === 0 ? CARD : CARD2 }}>
-                  <td style={{ padding: "6px 10px", fontSize: isScoreRow ? 8 : 11, fontWeight: 700, color: isScoreRow ? "#446" : nameColor, whiteSpace: "nowrap", position: "sticky", left: 0, background: isScoreRow ? "#060f22" : ri % 2 === 0 ? CARD : CARD2, zIndex: 1, fontFamily: isScoreRow ? "monospace" : "inherit", letterSpacing: isScoreRow ? 1 : 0 }}>{label}</td>
+                <tr key={ri} style={{ borderBottom: `1px solid ${BORDER}22`, background: isScoreRow ? "var(--panel-b)" : ri % 2 === 0 ? CARD : CARD2 }}>
+                  <td style={{ padding: "6px 10px", fontSize: isScoreRow ? 8 : 11, fontWeight: 700, color: isScoreRow ? "var(--muted)" : nameColor, whiteSpace: "nowrap", position: "sticky", left: 0, background: isScoreRow ? "var(--panel-b)" : ri % 2 === 0 ? CARD : CARD2, zIndex: 1, fontFamily: isScoreRow ? "monospace" : "inherit", letterSpacing: isScoreRow ? 1 : 0 }}>{label}</td>
                   {cols.map((col, i) => {
                     const cell = cellFor(col, ri);
                     return (

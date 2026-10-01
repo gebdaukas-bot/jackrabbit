@@ -295,7 +295,7 @@ function Step3({ data, setData }) {
 
           {/* Rounds */}
           {day.rounds.map((round, ri)=>(
-            <div key={ri} style={{ background:"#060f22", border:`1px solid ${BORDER}`, borderRadius:10, padding:12, marginBottom:8 }}>
+            <div key={ri} style={{ background:"var(--panel-b)", border:`1px solid ${BORDER}`, borderRadius:10, padding:12, marginBottom:8 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:10, color:GOLD, fontFamily:"monospace", letterSpacing:1 }}>
                   {day.rounds.length > 1 ? `ROUND ${ri+1}` : "ROUND"}
@@ -895,7 +895,7 @@ export default function CreateCup({ user }) {
   return (
     <div style={{ minHeight:"100vh", color:TEXT }}>
       <LiveBackground/>
-      <div style={{ background:"rgba(8,20,43,0.85)", backdropFilter:"blur(8px)", borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
+      <div style={{ background:"var(--glass-85)", backdropFilter:"blur(8px)", borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
         <button onClick={()=>step>1?setStep(s=>s-1):nav("/")}
           style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:8, padding:"5px 10px", color:MUTED, fontSize:11, cursor:"pointer" }}>
           ← Back
@@ -909,7 +909,7 @@ export default function CreateCup({ user }) {
       </div>
 
       <div style={{ maxWidth:520, margin:"0 auto", padding:"16px 16px 32px" }}>
-        <div style={{ background:"rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border:`1px solid ${BORDER}`, borderRadius:16, padding:"20px" }}>
+        <div style={{ background:"var(--glass-80)", backdropFilter:"blur(10px)", border:`1px solid ${BORDER}`, borderRadius:16, padding:"20px" }}>
           {step===1&&<Step1 data={data} setData={setData}/>}
           {step===2&&<Step2 data={data} setData={setData}/>}
           {step===3&&<Step3 data={data} setData={setData}/>}

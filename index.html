@@ -27,8 +27,30 @@
       /* In the iOS app (and home-screen web app) the page runs under the status bar and home
          indicator; these insets are 0 in a normal browser tab. The ::before strip keeps
          scrolled content from showing through behind the clock. */
-      body { background: #020c18; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
-      body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: #020c18; z-index: 2000; }
+      /* Theme colors for the shades screens hard-code. Dark values are the app's original
+         colors; [data-theme="light"] (set by ThemeContext) swaps in light equivalents. */
+      :root {
+        --bg: #020c18; --bg-b: #040d1c;
+        --panel-a: #080f20; --panel-b: #060f22; --panel-c: #060d1e; --panel-d: #0a1428; --panel-e: #0d1929; --panel-f: #111a2e;
+        --glass-80: rgba(8,20,43,0.8); --glass-85: rgba(8,20,43,0.85); --glass-90: rgba(8,20,43,0.9); --glass-95: rgba(8,20,43,0.95);
+        --text: #ccd; --text-b: #dde;
+        --muted: #446; --muted-b: #557; --muted2: #668; --muted2-b: #8aa;
+        --faint: #334; --faint-b: #335; --faint-c: #334455;
+        --grid: #fff; --strong: #fff; --strong-dim: #ffffffbb; --sep: #0a1628;
+        --bg-grad: linear-gradient(135deg,#020c18 0%,#0a1f1a 25%,#071428 50%,#0d1f10 75%,#020c18 100%);
+      }
+      :root[data-theme="light"] {
+        --bg: #f4f6f9; --bg-b: #f4f6f9;
+        --panel-a: #eef1f7; --panel-b: #e8edf5; --panel-c: #e8edf5; --panel-d: #eef1f7; --panel-e: #e3e9f2; --panel-f: #e3e9f2;
+        --glass-80: rgba(255,255,255,0.85); --glass-85: rgba(255,255,255,0.88); --glass-90: rgba(255,255,255,0.92); --glass-95: rgba(255,255,255,0.96);
+        --text: #1a2a44; --text-b: #1a2a44;
+        --muted: #7a8fa8; --muted-b: #7a8fa8; --muted2: #5a6e82; --muted2-b: #5a6e82;
+        --faint: #b4c0d0; --faint-b: #b4c0d0; --faint-c: #b4c0d0;
+        --grid: #1a2a44; --strong: #0d1929; --strong-dim: #0d1929bb; --sep: #d8e0ed;
+        --bg-grad: linear-gradient(135deg,#f4f6f9 0%,#eaf3ee 25%,#eef2f9 50%,#edf4ea 75%,#f4f6f9 100%);
+      }
+      body { background: var(--bg); padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+      body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--bg); z-index: 2000; }
     </style>
   </head>
   <body>

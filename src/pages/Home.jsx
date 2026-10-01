@@ -78,7 +78,7 @@ export default function Home({ user }) {
     <div style={{ minHeight: "100vh", color: TEXT }}>
       <LiveBackground/>
       {/* Top bar */}
-      <div style={{ background: "rgba(8,20,43,0.85)", backdropFilter:"blur(8px)", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ background: "var(--glass-85)", backdropFilter:"blur(8px)", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontSize: 16, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 2 }}>⛳ DORMIE</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={toggle} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
@@ -106,7 +106,7 @@ export default function Home({ user }) {
         </button>
 
         {/* Join by code */}
-        <div style={{ background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", marginBottom: 24 }}>
+        <div style={{ background: "var(--glass-80)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", marginBottom: 24 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: MUTED2, letterSpacing: 1, marginBottom: 10, fontFamily: "monospace" }}>JOIN A CUP</div>
           <div style={{ display: "flex", gap: 8 }}>
             <input
@@ -127,7 +127,7 @@ export default function Home({ user }) {
         {/* Cups list */}
         <div style={{ fontSize: 12, fontWeight: 700, color: MUTED2, letterSpacing: 1, marginBottom: 10, fontFamily: "monospace" }}>YOUR CUPS</div>
         {cups.length === 0 ? (
-          <div style={{ background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "24px", textAlign: "center", color: MUTED, fontSize: 12 }}>
+          <div style={{ background: "var(--glass-80)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "24px", textAlign: "center", color: MUTED, fontSize: 12 }}>
             No cups yet. Create one or join with an invite code.
           </div>
         ) : (
@@ -135,7 +135,7 @@ export default function Home({ user }) {
             {cups.map(cup => (
               <div key={cup.id} style={{ position: "relative" }}>
                 {confirmDelete === cup.id ? (
-                  <div style={{ background: "rgba(8,20,43,0.95)", border: `1px solid #e74c3c`, borderRadius: 14, padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                  <div style={{ background: "var(--glass-95)", border: `1px solid #e74c3c`, borderRadius: 14, padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                     <div style={{ fontSize: 12, color: "#e74c3c", fontWeight: 700 }}>Remove "{cup.name}" from your list?</div>
                     <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                       <button onClick={() => setConfirmDelete(null)} style={{ padding: "6px 12px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, color: MUTED, fontSize: 12, cursor: "pointer" }}>Cancel</button>
@@ -144,7 +144,7 @@ export default function Home({ user }) {
                   </div>
                 ) : (
                   <>
-                    <button onClick={() => nav(`/cup/${cup.id}`)} style={{ width: "100%", textAlign: "left", background: "rgba(8,20,43,0.8)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
+                    <button onClick={() => nav(`/cup/${cup.id}`)} style={{ width: "100%", textAlign: "left", background: "var(--glass-80)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
                         {cup.eventType === "live_match" && (
                           <span style={{ fontSize:9, fontWeight:800, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, background:"#4A90D922", border:"1px solid #4A90D944", borderRadius:4, padding:"1px 5px" }}>⚡ MATCH</span>

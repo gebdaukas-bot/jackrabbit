@@ -11,6 +11,8 @@
 // getTeams() synthesizes the array from those, so old cups read correctly with
 // no migration and no re-seeding.
 
+import { inkOnLight } from "./color";
+
 export const MAX_TEAMS = 4;
 export const TEAM_IDS = ["A", "B", "C", "D"];
 
@@ -30,6 +32,10 @@ export function autoShort(name, fallback = "") {
   return s || fallback;
 }
 
+// ThemeContext keeps <html data-theme> current, which lets team colors adapt without
+// threading the theme through every getTeams() caller.
+const lightTheme = () => typeof document !== "undefined" && document.documentElement.dataset.theme === "light";
+
 function normalizeTeam(t, i) {
   const id = t?.id || TEAM_IDS[i] || `T${i + 1}`;
   const name = t?.name || DEFAULT_TEAM_NAMES[i] || `Team ${i + 1}`;
@@ -44,7 +50,9 @@ function normalizeTeam(t, i) {
     color,
     // colorDisp is the color used for text/accents. It only differs from color
     // when the team is on a default (see DEFAULT_DISP_COLORS).
-    colorDisp: t?.color || DEFAULT_DISP_COLORS[i] || color,
+    colorDisp: lightTheme()
+      ? inkOnLight(t?.color || DEFAULT_TEAM_COLORS[i] || color)
+      : t?.color || DEFAULT_DISP_COLORS[i] || color,
   };
 }
 

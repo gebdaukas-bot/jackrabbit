@@ -28,13 +28,13 @@ export default function LiveBackground() {
       `}</style>
       <div style={{
         position:"fixed", inset:0, zIndex:-3,
-        background:"linear-gradient(135deg,#020c18 0%,#0a1f1a 25%,#071428 50%,#0d1f10 75%,#020c18 100%)",
+        background:"var(--bg-grad)",
         backgroundSize:"400% 400%",
         animation:"lbGrad 20s ease infinite",
       }}/>
       <div style={{
         position:"fixed", inset:0, zIndex:-2, opacity:0.025,
-        backgroundImage:"linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)",
+        backgroundImage:"linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px)",
         backgroundSize:"40px 40px",
       }}/>
       {FLOATERS.map(f=>(

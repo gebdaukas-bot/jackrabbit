@@ -22,7 +22,7 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
       </div>
     );
   } else if (diff === 0) {
-    scoreDisplay = <span style={{fontSize:20,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{value}</span>;
+    scoreDisplay = <span style={{fontSize:20,fontWeight:900,color:"var(--strong)",fontFamily:"monospace"}}>{value}</span>;
   } else if (diff === 1) {
     scoreDisplay = (
       <div style={{position:"relative",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -53,11 +53,11 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
       </div>
       {hcp > 0 && <div style={{fontSize:9,color:GOLD,fontFamily:"monospace"}}>HCP {Number(hcp).toFixed(1)}</div>}
       <div style={{display:"flex",alignItems:"center",gap:0}}>
-        <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"#8aa",cursor:"pointer"}}>−</button>
+        <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"var(--muted2-b)",cursor:"pointer"}}>−</button>
         <div style={{width:52,height:52,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
           {scoreDisplay}
         </div>
-        <button onClick={()=>onChange(Math.min(12,value+1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 7px 7px 0",color:"#8aa",cursor:"pointer"}}>+</button>
+        <button onClick={()=>onChange(Math.min(12,value+1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 7px 7px 0",color:"var(--muted2-b)",cursor:"pointer"}}>+</button>
       </div>
       {par && diff !== 0 && (
         <div style={{fontSize:8,color:diff<0?"#4caf50":diff===1?"#e88":diff===2?"#e55":"#c0392b",fontFamily:"monospace",fontWeight:700}}>

@@ -43,7 +43,7 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   // Which two of the cup's teams contest *this* match — with more than two teams
   // in the cup that varies match to match, so the card paints itself in its own
   // pairing's colors rather than a cup-wide team A/team B.
-  const { teamAColor, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cupSidesFor(teams, match);
+  const { teamAColor, teamAColorDisp, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cupSidesFor(teams, match);
   const isSingles = !match.player1b;
   const format = match.format || round?.format;
   const isScramble = format === "Scramble";
@@ -59,10 +59,10 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   const bLeading = live && st.leader==="B";
   const allSquare= live && !st.leader;
 
-  const aNameColor = aWin ? contrastText(teamAColor) : aLeading ? "#ffffff" : "#7a8fa8";
-  const bNameColor = bWin ? contrastText(teamBColor) : bLeading ? "#ffffff" : "#7a8fa8";
-  const aBg = aWin ? teamAColor : aLeading ? `${teamAColor}22` : "#0d1929";
-  const bBg = bWin ? teamBColor : bLeading ? `${teamBColor}22` : "#0d1929";
+  const aNameColor = aWin ? contrastText(teamAColor) : aLeading ? "var(--strong)" : "#7a8fa8";
+  const bNameColor = bWin ? contrastText(teamBColor) : bLeading ? "var(--strong)" : "#7a8fa8";
+  const aBg = aWin ? teamAColor : aLeading ? `${teamAColor}22` : "var(--panel-e)";
+  const bBg = bWin ? teamBColor : bLeading ? `${teamBColor}22` : "var(--panel-e)";
   const liveBadgeColor = aLeading ? contrastText(teamAColor) : bLeading ? contrastText(teamBColor) : "#fff";
 
   const sideLabel = (short, color, align) => showTeamLabels ? (
@@ -78,17 +78,17 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   );
 
   if (!live) {
-    let badgeBg="#0d1929", badgeTop="", badgeBot="—", badgeTextColor="#fff";
+    let badgeBg="var(--panel-e)", badgeTop="", badgeBot="—", badgeTextColor="var(--strong)";
     if (aWin)       { badgeBg=teamAColor;  badgeTop="WIN";    badgeBot=st.sublabel; badgeTextColor=contrastText(teamAColor); }
     else if (bWin)  { badgeBg=teamBColor;  badgeTop="WIN";    badgeBot=st.sublabel; badgeTextColor=contrastText(teamBColor); }
-    else if (halved){ badgeBg="#334455";   badgeTop="HALVED"; badgeBot=pointValue===1?"½pt":`${pointValue/2}pt`; }
+    else if (halved){ badgeBg="var(--faint-c)";   badgeTop="HALVED"; badgeBot=pointValue===1?"½pt":`${pointValue/2}pt`; }
     // A match teeing off with the one above it (same group) doesn't repeat the time.
     else if (sameTeeAsAbove){ badgeBot=""; }
     else if (match.teeTime){ badgeTop="TEE"; badgeBot=match.teeTime; }
     return (
-      <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
+      <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:"1px solid var(--sep)", opacity:canEdit?1:0.85 }}>
         <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
-          {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColor, "left")}
+          {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
           <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
             {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
@@ -100,7 +100,7 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
           {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:GOLD,fontFamily:"monospace",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
         </div>
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
-          {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"#ffffffbb", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
+          {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"var(--strong-dim)", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
           <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"monospace", lineHeight:1 }}>{badgeBot}</div>
           {(isScramble||isShamble)&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"monospace", marginTop:1, letterSpacing:0.5 }}>{isScramble?"SCRAMBLE":"SHAMBLE"}</div>}
         </div>
@@ -123,9 +123,9 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   // LIVE — names fill left/right; score badge sits in its own fixed center column
   // (previously floated on top of the leading side at 25%/75%, which covered the name text)
   return (
-    <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
+    <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:"1px solid var(--sep)", opacity:canEdit?1:0.85 }}>
       <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
-        {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColor, "left")}
+        {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
         <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
           {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:GOLD,fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
@@ -159,22 +159,22 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
   // two teams. Past that, pairings vary per match, so each card names its own two
   // teams and the banner carries just the format and course.
   const twoTeam = teams.length === 2;
-  const [{ short: teamAShort, color: teamAColor }, { short: teamBShort, colorDisp: teamBColorDisp }] = teams;
+  const [{ short: teamAShort, colorDisp: teamAColor }, { short: teamBShort, colorDisp: teamBColorDisp }] = teams;
   const rounds = day.rounds || [{ format: day.format, course: day.course }];
   const multiRound = rounds.length > 1;
 
   return (
     <div style={{ marginBottom:14, borderRadius:10, overflow:"hidden", border:`1px solid ${BORDER}` }}>
       {/* Day header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"#060f22", padding:"7px 10px", borderBottom:`1px solid ${BORDER}` }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"var(--panel-b)", padding:"7px 10px", borderBottom:`1px solid ${BORDER}` }}>
         <div style={{ fontSize:10, fontWeight:800, color:GOLD, letterSpacing:2, fontFamily:"monospace" }}>{day.label?.toUpperCase()}</div>
       </div>
       {/* Team name header — only show if single round (multi-round has its own per-round) */}
       {!multiRound && !isWarmup(rounds[0]) && (
-        <div style={{ display:"flex", flexDirection:"column", background:"#080f20", borderBottom:`1px solid ${BORDER}` }}>
+        <div style={{ display:"flex", flexDirection:"column", background:"var(--panel-a)", borderBottom:`1px solid ${BORDER}` }}>
           <div style={{ display:"flex" }}>
             {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>}
-            <div style={{ flex:twoTeam?undefined:1, width:twoTeam?64:undefined, textAlign:"center", padding:"5px 0", fontSize:7, color:"#446", fontFamily:"monospace" }}>{rounds[0].format?.toUpperCase()}</div>
+            <div style={{ flex:twoTeam?undefined:1, width:twoTeam?64:undefined, textAlign:"center", padding:"5px 0", fontSize:7, color:"var(--muted)", fontFamily:"monospace" }}>{rounds[0].format?.toUpperCase()}</div>
             {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>}
           </div>
           {rounds[0].course?.name && (
@@ -196,7 +196,7 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
         return (
           <div key={ri}>
             {multiRound && (
-              <div style={{ display:"flex", background:"#0a1428", borderBottom:`1px solid ${BORDER}`, borderTop:ri>0?`1px solid ${BORDER}`:"none" }}>
+              <div style={{ display:"flex", background:"var(--panel-d)", borderBottom:`1px solid ${BORDER}`, borderTop:ri>0?`1px solid ${BORDER}`:"none" }}>
                 {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>}
                 <div style={{ flex:twoTeam?undefined:1, textAlign:twoTeam?undefined:"center", padding:"5px 10px", fontSize:7, color:GOLD, fontFamily:"monospace", fontWeight:700 }}>
                   {round.format?.toUpperCase()}{round.course?.name?` · ${courseLabel(round.course)}`:""}
@@ -663,9 +663,9 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
                           style={{width:44,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"monospace"}}/>
                         <div style={{display:"flex",flexDirection:"column",gap:1}}>
                           <button onClick={()=>moveMatch(di,m.id,-1,ri)} disabled={mi===0}
-                            style={{width:20,height:18,background:"none",border:`1px solid ${BORDER}`,borderRadius:3,color:mi===0?"#334":MUTED,cursor:mi===0?"default":"pointer",fontSize:9,lineHeight:1,padding:0}}>▲</button>
+                            style={{width:20,height:18,background:"none",border:`1px solid ${BORDER}`,borderRadius:3,color:mi===0?"var(--faint)":MUTED,cursor:mi===0?"default":"pointer",fontSize:9,lineHeight:1,padding:0}}>▲</button>
                           <button onClick={()=>moveMatch(di,m.id,1,ri)} disabled={mi===rMs.length-1}
-                            style={{width:20,height:18,background:"none",border:`1px solid ${BORDER}`,borderRadius:3,color:mi===rMs.length-1?"#334":MUTED,cursor:mi===rMs.length-1?"default":"pointer",fontSize:9,lineHeight:1,padding:0}}>▼</button>
+                            style={{width:20,height:18,background:"none",border:`1px solid ${BORDER}`,borderRadius:3,color:mi===rMs.length-1?"var(--faint)":MUTED,cursor:mi===rMs.length-1?"default":"pointer",fontSize:9,lineHeight:1,padding:0}}>▼</button>
                         </div>
                       </div>
                       <button onClick={()=>removeMatch(di,m.id)} style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14}}>×</button>
@@ -1185,7 +1185,7 @@ export default function CupView({ user }) {
       const s=computeMatchStatus(m.scores,sides.teamAName,sides.teamBName,m.startHole||0,day.rounds?.[m.roundIdx??0]?.totalHoles||18);
       const prev=prevMatchStates.current[m.id];
       if (prev!==undefined&&prev==="live"&&(s.state==="complete"||s.state==="halved")){
-        const color=s.state==="halved"?"#334455":s.leader==="A"?sides.teamAColor:sides.teamBColor;
+        const color=s.state==="halved"?"var(--faint-c)":s.leader==="A"?sides.teamAColor:sides.teamBColor;
         setMatchCelebration({label:s.longLabel,sublabel:s.sublabel||(s.state==="halved"?"½ pt each":"1 point"),color});
         if (celebTimer.current) clearTimeout(celebTimer.current);
         celebTimer.current=setTimeout(()=>setMatchCelebration(null),1500);
@@ -1395,11 +1395,11 @@ export default function CupView({ user }) {
                 <div style={{fontSize:10,fontWeight:900,color:`${contrastText(a.color)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{a.name}</div>
                 <div style={{fontSize:36,fontWeight:900,color:contrastText(a.color),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(pa.actual)}</div>
               </div>
-              <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:76}}>
-                <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
-                <div style={{fontSize:10,fontWeight:700,fontFamily:"monospace",color:pa.proj>pb.proj?a.color:pb.proj>pa.proj?b.colorDisp:"#557",whiteSpace:"nowrap"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
+              <div style={{background:"var(--panel-c)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:76}}>
+                <div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
+                <div style={{fontSize:10,fontWeight:700,fontFamily:"monospace",color:pa.proj>pb.proj?a.color:pb.proj>pa.proj?b.colorDisp:"var(--muted-b)",whiteSpace:"nowrap"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
                 {projWinner&&<div style={{fontSize:7,color:GOLD,fontFamily:"monospace",marginTop:2,whiteSpace:"nowrap"}}>→ {projWinner}</div>}
-                <div style={{fontSize:7,color:"#335",marginTop:3,fontFamily:"monospace",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget)}</div>
+                <div style={{fontSize:7,color:"var(--faint-b)",marginTop:3,fontFamily:"monospace",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget)}</div>
               </div>
               <div style={{flex:1,background:b.color,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"flex-end",minWidth:0}}>
                 <div style={{fontSize:10,fontWeight:900,color:`${contrastText(b.color)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{b.name}</div>
@@ -1413,9 +1413,9 @@ export default function CupView({ user }) {
             layout, so they stack as a leaderboard ordered by points. */}
         {meta.eventType!=="live_match"&&!twoTeam&&(
           <div>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#060d1e",padding:"4px 10px",borderBottom:`1px solid ${BORDER}`}}>
-              <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:2}}>STANDINGS</div>
-              <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:1}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"var(--panel-c)",padding:"4px 10px",borderBottom:`1px solid ${BORDER}`}}>
+              <div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace",letterSpacing:2}}>STANDINGS</div>
+              <div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace",letterSpacing:1}}>
                 PTS · PROJ{projWinner?` · → ${projWinner}`:""}
               </div>
             </div>
@@ -1451,11 +1451,11 @@ export default function CupView({ user }) {
               <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",minWidth:0}}>
                 <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamAColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{cup.teamAName}</div>
               </div>
-              <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 10px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:80}}>
-                {!st||st.state==="pending"?<div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:1}}>NOT STARTED</div>:null}
-                {st?.state==="live"&&<><div style={{fontSize:7,color:"#446",fontFamily:"monospace"}}>THRU {st.holesPlayed}</div><div style={{fontSize:18,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{!st.leader?"AS":`${st.up}UP`}</div><div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:3,animation:"pulse 1.5s infinite"}}/></>}
+              <div style={{background:"var(--panel-c)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 10px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:80}}>
+                {!st||st.state==="pending"?<div style={{fontSize:8,color:"var(--muted)",fontFamily:"monospace",letterSpacing:1}}>NOT STARTED</div>:null}
+                {st?.state==="live"&&<><div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace"}}>THRU {st.holesPlayed}</div><div style={{fontSize:18,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{!st.leader?"AS":`${st.up}UP`}</div><div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:3,animation:"pulse 1.5s infinite"}}/></>}
                 {st?.state==="complete"&&<><div style={{fontSize:7,color:GOLD,fontFamily:"monospace",fontWeight:700}}>WIN</div><div style={{fontSize:14,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{st.sublabel}</div></>}
-                {st?.state==="halved"&&<div style={{fontSize:10,fontWeight:900,color:"#557",fontFamily:"monospace"}}>HALVED</div>}
+                {st?.state==="halved"&&<div style={{fontSize:10,fontWeight:900,color:"var(--muted-b)",fontFamily:"monospace"}}>HALVED</div>}
                 {st?.state==="extra"&&<><div style={{fontSize:7,color:GOLD,fontFamily:"monospace",fontWeight:700}}>PLAYOFF</div><div style={{fontSize:12,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{st.sublabel}</div></>}
               </div>
               <div style={{flex:1,background:cup.teamBColor,padding:"8px 10px",minWidth:0,textAlign:"right"}}>
@@ -1486,7 +1486,7 @@ export default function CupView({ user }) {
             {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:12}}>
               {days.map((d,i)=>(
                 <button key={i} onClick={()=>setBoardDayOverride(i)}
-                  style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
+                  style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"var(--muted)",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
                   {d.label?.toUpperCase()||`DAY ${i+1}`}
                 </button>
               ))}
@@ -1508,7 +1508,7 @@ export default function CupView({ user }) {
                   const course=getCourse(boardDay,m);
                   const sides=cupSidesOf(m);
                   const st=computeMatchStatus(m.scores,sides.teamAShort,sides.teamBShort,m.startHole||0,mRound?.totalHoles||18,mRound?.pointValue||1,mRound?.allowExtraHoles||false,m.extra||[]);
-                  const stColor={pending:BORDER,live:"#4caf50",complete:st.leader==="A"?sides.teamAColor:sides.teamBColor,halved:"#557",extra:GOLD,gap:"#e67e22"}[st.state];
+                  const stColor={pending:MUTED,live:"#4caf50",complete:st.leader==="A"?sides.teamAColorDisp:sides.teamBColorDisp,halved:"var(--muted-b)",extra:GOLD,gap:"#e67e22"}[st.state];
                   return (
                     <div key={m.id} style={{marginBottom:14}}>
                       <HoleByHoleTable match={m} course={course} totalHoles={mRound?.totalHoles||18}
@@ -1816,13 +1816,13 @@ export default function CupView({ user }) {
             else{pos=i+1;started[i].pos=String(pos);}
           }
           const fmtPar=(n,p)=>p===0?"—":n===0?"E":n>0?`+${n}`:`${n}`;
-          const parColor=(n,p)=>p===0?MUTED:n<0?"#4caf50":n===0?"#ccd":n<=2?"#e88":"#c0392b";
+          const parColor=(n,p)=>p===0?MUTED:n<0?"#4caf50":n===0?"var(--text)":n<=2?"#e88":"#c0392b";
           const HoleScore=({gross,par})=>{
-            if(gross===null) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#335"}}>·</div>;
+            if(gross===null) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"var(--faint-b)"}}>·</div>;
             const d=gross-par;
             if(d<=-2) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,borderRadius:"50%",border:"1.5px solid #FFD700"}}/><div style={{position:"absolute",width:15,height:15,borderRadius:"50%",border:"1.5px solid #FFD700"}}/><span style={{fontSize:9,fontWeight:900,color:"#FFD700",zIndex:1}}>{gross}</span></div>;
             if(d===-1) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,borderRadius:"50%",border:"1.5px solid #4caf50"}}/><span style={{fontSize:9,fontWeight:900,color:"#4caf50",zIndex:1}}>{gross}</span></div>;
-            if(d===0) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"#ccd"}}>{gross}</div>;
+            if(d===0) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"var(--text)"}}>{gross}</div>;
             if(d===1) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,border:"1.5px solid #e88",borderRadius:2}}/><span style={{fontSize:9,fontWeight:900,color:"#e88",zIndex:1}}>{gross}</span></div>;
             if(d===2) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,border:"1.5px solid #e55",borderRadius:2}}/><div style={{position:"absolute",width:15,height:15,border:"1.5px solid #e55",borderRadius:1}}/><span style={{fontSize:9,fontWeight:900,color:"#e55",zIndex:1}}>{gross}</span></div>;
             return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",background:"#c0392b",borderRadius:2,fontSize:9,fontWeight:900,color:"#fff"}}>{gross}</div>;
@@ -1832,37 +1832,37 @@ export default function CupView({ user }) {
             <div style={{paddingBottom:30}}>
               <div style={{display:"flex",gap:6,marginBottom:12}}>
                 {days.map((d,i)=>(
-                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
+                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"var(--muted)",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
                     {d.label?.toUpperCase()||`DAY ${i+1}`}
                   </button>
                 ))}
               </div>
               <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.7}}>{lbDay.label?.toUpperCase()} · INDIVIDUAL SCORES</div>
               {started.length===0&&notStarted.length===0?(
-                <div style={{textAlign:"center",padding:"40px 20px",color:"#446"}}><div style={{fontSize:24,marginBottom:8}}>⛳</div><div style={{fontSize:12}}>No scores entered yet</div></div>
+                <div style={{textAlign:"center",padding:"40px 20px",color:"var(--muted)"}}><div style={{fontSize:24,marginBottom:8}}>⛳</div><div style={{fontSize:12}}>No scores entered yet</div></div>
               ):(
                 <div>
                   {started.length>0&&<div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
                     <table style={{borderCollapse:"collapse",width:"100%",minWidth:640,background:CARD,borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`}}>
                       <thead>
-                        <tr style={{background:"#060f22"}}>
-                          <td style={{width:28,padding:"5px 6px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>POS</td>
-                          <td style={{padding:"5px 8px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PLAYER</td>
-                          {Array.from({length:9},(_,i)=><td key={i} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+1}</td>)}
-                          <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>OUT</td>
-                          {Array.from({length:9},(_,i)=><td key={i+9} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+10}</td>)}
-                          <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>IN</td>
+                        <tr style={{background:"var(--panel-b)"}}>
+                          <td style={{width:28,padding:"5px 6px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>POS</td>
+                          <td style={{padding:"5px 8px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PLAYER</td>
+                          {Array.from({length:9},(_,i)=><td key={i} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+1}</td>)}
+                          <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>OUT</td>
+                          {Array.from({length:9},(_,i)=><td key={i+9} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+10}</td>)}
+                          <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>IN</td>
                           <td style={{width:36,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>TOT</td>
                           <td style={{width:40,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>TO PAR</td>
                         </tr>
-                        <tr style={{background:"#080f20"}}>
-                          <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}></td>
-                          <td style={{padding:"3px 8px",fontSize:7,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PAR</td>
-                          {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i]}</td>)}
-                          <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(0,9).reduce((a,b)=>a+b,0)}</td>
-                          {Array.from({length:9},(_,i)=><td key={i+9} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i+9]}</td>)}
-                          <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(9).reduce((a,b)=>a+b,0)}</td>
-                          <td style={{textAlign:"center",padding:"3px 4px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.reduce((a,b)=>a+b,0)}</td>
+                        <tr style={{background:"var(--panel-a)"}}>
+                          <td style={{padding:"3px 6px",fontSize:7,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}></td>
+                          <td style={{padding:"3px 8px",fontSize:7,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PAR</td>
+                          {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i]}</td>)}
+                          <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(0,9).reduce((a,b)=>a+b,0)}</td>
+                          {Array.from({length:9},(_,i)=><td key={i+9} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i+9]}</td>)}
+                          <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(9).reduce((a,b)=>a+b,0)}</td>
+                          <td style={{textAlign:"center",padding:"3px 4px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.reduce((a,b)=>a+b,0)}</td>
                           <td style={{borderBottom:`1px solid ${BORDER}`}}></td>
                         </tr>
                       </thead>
@@ -1874,7 +1874,7 @@ export default function CupView({ user }) {
                           const inPlayed=row.gross.slice(9).filter(g=>g!==null).length;
                           return (
                             <tr key={row.key} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
-                              <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
+                              <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"var(--muted)",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
                               <td style={{padding:"8px 8px",minWidth:80}}><div style={{fontSize:12,fontWeight:700,color:teamColorOf(row.team),whiteSpace:"nowrap"}}>{row.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",marginLeft:5}}>R{row.roundIdx+1}</span>}</div></td>
                               {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i]} par={row.course.par?.[i]||4}/></td>)}
                               <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?parColor(row.gross.slice(0,9).filter(g=>g!==null).reduce((a,g)=>a+g,0)-row.course.par.slice(0,9).reduce((a,b,i)=>row.gross[i]!==null?a+b:a,0),outPlayed):MUTED,fontFamily:"monospace"}}>{outPlayed>0?outTotal:"—"}</td>

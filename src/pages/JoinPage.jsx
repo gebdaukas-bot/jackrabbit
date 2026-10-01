@@ -32,7 +32,7 @@ export default function JoinPage({ user }) {
   return (
     <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
       <LiveBackground/>
-      <div style={{ background:"rgba(8,20,43,0.85)", backdropFilter:"blur(12px)", border:`1px solid ${BORDER}`, borderRadius:20, padding:"32px 28px", width:"100%", maxWidth:340, textAlign:"center" }}>
+      <div style={{ background:"var(--glass-85)", backdropFilter:"blur(12px)", border:`1px solid ${BORDER}`, borderRadius:20, padding:"32px 28px", width:"100%", maxWidth:340, textAlign:"center" }}>
         {status === "joining" && (
           <>
             <div style={{ fontSize:36, marginBottom:12 }}>⛳</div>

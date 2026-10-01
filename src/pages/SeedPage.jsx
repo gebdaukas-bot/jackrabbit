@@ -49,7 +49,7 @@ export default function SeedPage({ user }) {
         </div>
 
         {log.length>0&&(
-          <div style={{background:"#040d1c",border:`1px solid ${BORDER}`,borderRadius:10,padding:14,marginBottom:16,fontFamily:"monospace",fontSize:11,color:"#4caf50",maxHeight:200,overflowY:"auto"}}>
+          <div style={{background:"var(--bg-b)",border:`1px solid ${BORDER}`,borderRadius:10,padding:14,marginBottom:16,fontFamily:"monospace",fontSize:11,color:"#4caf50",maxHeight:200,overflowY:"auto"}}>
             {log.map((l,i)=><div key={i}>{l}</div>)}
           </div>
         )}

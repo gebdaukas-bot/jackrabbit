@@ -267,7 +267,7 @@ export default function CreateMatch({ user }) {
       <LiveBackground/>
 
       {/* Top bar */}
-      <div style={{ background:"rgba(8,20,43,0.9)", backdropFilter:"blur(8px)", borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
+      <div style={{ background:"var(--glass-90)", backdropFilter:"blur(8px)", borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
         <button onClick={() => step > 1 ? setStep(s => s - 1) : nav("/")}
           style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:8, padding:"5px 10px", color:MUTED, fontSize:11, cursor:"pointer" }}>
           ← Back
