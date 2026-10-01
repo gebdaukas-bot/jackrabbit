@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { db, ref, set, get } from "../firebase";
+import { db, ref, set, get, apiUrl } from "../firebase";
 import { teamsToMeta, DEFAULT_TEAM_COLORS } from "../utils/teams";
 import { GOLD, playingHcp, SHAMBLE_ALLOWANCE } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
@@ -144,7 +144,7 @@ export default function CreateMatch({ user }) {
       });
       const [header, imageBase64] = dataUrl.split(",");
       const mediaType = header.match(/:(.*?);/)[1];
-      const res = await fetch("/api/parse-scorecard", {
+      const res = await fetch(apiUrl("/api/parse-scorecard"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64, mediaType }),

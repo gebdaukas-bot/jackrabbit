@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { db, ref, set, get } from "../firebase";
+import { db, ref, set, get, apiUrl } from "../firebase";
 import { GOLD, courseHcp, playingHcp } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import { teamsToMeta, matchTeams, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
@@ -373,7 +373,7 @@ function Step4({ data, setData, prevCourses }) {
       });
       const [header, imageBase64] = dataUrl.split(",");
       const mediaType = header.match(/:(.*?);/)[1];
-      const res = await fetch("/api/parse-scorecard", {
+      const res = await fetch(apiUrl("/api/parse-scorecard"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64, mediaType }),

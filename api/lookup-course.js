@@ -160,6 +160,7 @@ Rules:
 // { unavailable: true, reason: "limit" | "nokey" | "error" } so the client can
 // say so instead of quietly passing off an estimate as real data.
 export default async function handler(req, res) {
+  if (req.method === "OPTIONS") return res.status(204).end(); // CORS preflight from the iOS app
   if (req.method !== "POST") return res.status(405).end();
 
   const { query, courseId, estimate, courseName } = req.body || {};

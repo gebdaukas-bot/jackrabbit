@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue, set, get, push, update } from "firebase/database";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { getAuth, initializeAuth, indexedDBLocalPersistence, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { Capacitor } from "@capacitor/core";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDTzfm5qck08_2I_zNF9pU_WwHXzuo-k7s",
@@ -15,7 +16,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
-const auth = getAuth(app);
+// Inside the iOS app the web SDK's default popup/redirect resolver can't run, so skip it and
+// sign in via the native plugin (see Login.jsx) instead.
+const isNative = Capacitor.isNativePlatform();
+const auth = isNative ? initializeAuth(app, { persistence: indexedDBLocalPersistence }) : getAuth(app);
+
+// The native app serves its pages from capacitor://localhost, so relative /api calls must go to the live site.
+const apiUrl = (path) => (isNative ? "https://dormie-golf.vercel.app" : "") + path;
 const googleProvider = new GoogleAuthProvider();
 
-export { db, ref, onValue, set, get, push, update, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged };
+export { isNative, apiUrl, db, ref, onValue, set, get, push, update, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged };

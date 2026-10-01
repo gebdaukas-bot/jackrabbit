@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { auth, googleProvider } from "../firebase";
+import { auth, googleProvider, isNative } from "../firebase";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import {
   signInWithPopup,
+  signInWithCredential,
+  GoogleAuthProvider,
+  OAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPhoneNumber,
@@ -45,14 +49,34 @@ export default function Login() {
   const handleGoogle = async () => {
     setError(""); setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      if (err.code !== "auth/popup-cancelled-by-user" && err.code !== "auth/cancelled-popup-request") {
-        setError(err.message);
+      if (isNative) {
+        // Native Google sheet, then hand its token to the web SDK so the rest of the app sees the user.
+        const { credential } = await FirebaseAuthentication.signInWithGoogle();
+        await signInWithCredential(auth, GoogleAuthProvider.credential(credential?.idToken));
+      } else {
+        await signInWithPopup(auth, googleProvider);
       }
+    } catch (err) {
+      if (!isCancel(err)) setError(err.message);
       setLoading(false);
     }
   };
+
+  const handleApple = async () => {
+    setError(""); setLoading(true);
+    try {
+      const { credential } = await FirebaseAuthentication.signInWithApple();
+      const apple = new OAuthProvider("apple.com").credential({ idToken: credential?.idToken, rawNonce: credential?.nonce });
+      await signInWithCredential(auth, apple);
+    } catch (err) {
+      if (!isCancel(err)) setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  const isCancel = (err) =>
+    ["auth/popup-cancelled-by-user", "auth/cancelled-popup-request"].includes(err.code) ||
+    /cancel/i.test(err.message || "");
 
   const handleEmail = async () => {
     if (!email || !password) { setError("Enter email and password."); return; }
@@ -166,9 +190,10 @@ export default function Login() {
 
           {/* Tabs */}
           <div style={{ display:"flex", borderBottom:"1px solid #ffffff11", marginBottom:20 }}>
-            <button style={tabStyle("google")} onClick={()=>{setMode("google");setError("");}}>Google</button>
+            <button style={tabStyle("google")} onClick={()=>{setMode("google");setError("");}}>{isNative ? "Quick" : "Google"}</button>
             <button style={tabStyle("email")} onClick={()=>{setMode("email");setError("");}}>Email</button>
-            <button style={tabStyle("phone")} onClick={()=>{setMode("phone");setError("");setConfirmResult(null);}}>Phone</button>
+            {/* Phone sign-in needs a web reCAPTCHA, which doesn't run inside the iOS app. */}
+            {!isNative && <button style={tabStyle("phone")} onClick={()=>{setMode("phone");setError("");setConfirmResult(null);}}>Phone</button>}
           </div>
 
           {error && (
@@ -191,6 +216,14 @@ export default function Login() {
                 </svg>
               )}
               {loading ? "Signing in..." : "Continue with Google"}
+            </button>
+          )}
+
+          {/* Apple requires Sign in with Apple alongside Google in iOS apps. */}
+          {mode === "google" && isNative && (
+            <button onClick={handleApple} disabled={loading} style={{ width:"100%", marginTop:12, display:"flex", alignItems:"center", justifyContent:"center", gap:10, padding:"14px 16px", background:"#fff", border:"none", borderRadius:14, cursor:loading?"wait":"pointer", fontSize:14, fontWeight:600, color:"#000", opacity:loading?0.7:1 }}>
+              <svg width="18" height="18" viewBox="0 0 384 512" fill="#000"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+              Sign in with Apple
             </button>
           )}
 

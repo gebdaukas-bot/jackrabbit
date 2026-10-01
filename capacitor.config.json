@@ -1,0 +1,18 @@
+{
+  "appId": "com.gebdaukas.dormie",
+  "appName": "Dormie",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "backgroundColor": "#020c18"
+    },
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": ["google.com", "apple.com"]
+    }
+  }
+}

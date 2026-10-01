@@ -1,4 +1,4 @@
-import { db, ref, get, set } from "../firebase";
+import { db, ref, get, set, apiUrl } from "../firebase";
 
 // Course search/lookup through /api/lookup-course, with a cache in Firebase that
 // every user shares.
@@ -32,7 +32,7 @@ function writeCache(path, data) {
 }
 
 async function post(body) {
-  const res = await fetch("/api/lookup-course", {
+  const res = await fetch(apiUrl("/api/lookup-course"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
