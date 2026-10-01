@@ -1803,9 +1803,11 @@ export default function CupView({ user }) {
               const grossArr=Array.isArray(p.gross)?p.gross:Array(18).fill(null);
               let toPar=0,holesPlayed=0;
               for (let i=0;i<18;i++) { if(grossArr[i]!==null){toPar+=grossArr[i]-(course.par?.[i]||4);holesPlayed++;} }
-              playerRows.push({name:p.name,team:p.team,gross:grossArr,toPar,holesPlayed,teeTime:m.teeTime,course});
+              // A player has a row per match, so a two-round day lists them twice; key rows by match.
+              playerRows.push({key:`${m.id}-${p.name}`,roundIdx:m.roundIdx??0,name:p.name,team:p.team,gross:grossArr,toPar,holesPlayed,teeTime:m.teeTime,course});
             }
           }
+          const multiRound=new Set(playerRows.map(r=>r.roundIdx)).size>1;
           const started=playerRows.filter(r=>r.holesPlayed>0).sort((a,b)=>b.holesPlayed-a.holesPlayed||a.toPar-b.toPar);
           const notStarted=playerRows.filter(r=>r.holesPlayed===0).sort((a,b)=>(a.teeTime||"").localeCompare(b.teeTime||""));
           let pos=1;
@@ -1871,9 +1873,9 @@ export default function CupView({ user }) {
                           const outPlayed=row.gross.slice(0,9).filter(g=>g!==null).length;
                           const inPlayed=row.gross.slice(9).filter(g=>g!==null).length;
                           return (
-                            <tr key={row.name} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
+                            <tr key={row.key} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
                               <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
-                              <td style={{padding:"8px 8px",minWidth:80}}><div style={{fontSize:12,fontWeight:700,color:teamColorOf(row.team),whiteSpace:"nowrap"}}>{row.name}</div></td>
+                              <td style={{padding:"8px 8px",minWidth:80}}><div style={{fontSize:12,fontWeight:700,color:teamColorOf(row.team),whiteSpace:"nowrap"}}>{row.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",marginLeft:5}}>R{row.roundIdx+1}</span>}</div></td>
                               {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i]} par={row.course.par?.[i]||4}/></td>)}
                               <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?parColor(row.gross.slice(0,9).filter(g=>g!==null).reduce((a,g)=>a+g,0)-row.course.par.slice(0,9).reduce((a,b,i)=>row.gross[i]!==null?a+b:a,0),outPlayed):MUTED,fontFamily:"monospace"}}>{outPlayed>0?outTotal:"—"}</td>
                               {Array.from({length:9},(_,i)=><td key={i+9} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i+9]} par={row.course.par?.[i+9]||4}/></td>)}
@@ -1889,8 +1891,8 @@ export default function CupView({ user }) {
                   {notStarted.length>0&&<div style={{marginTop:12}}>
                     <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>NOT STARTED</div>
                     {notStarted.map(r=>(
-                      <div key={r.name} style={{display:"flex",justifyContent:"space-between",padding:"8px 10px",background:CARD,borderRadius:6,marginBottom:4}}>
-                        <span style={{fontSize:12,fontWeight:700,color:teamColorOf(r.team)}}>{r.name}</span>
+                      <div key={r.key} style={{display:"flex",justifyContent:"space-between",padding:"8px 10px",background:CARD,borderRadius:6,marginBottom:4}}>
+                        <span style={{fontSize:12,fontWeight:700,color:teamColorOf(r.team)}}>{r.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",marginLeft:5}}>R{r.roundIdx+1}</span>}</span>
                         <span style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>{r.teeTime||"—"}</span>
                       </div>
                     ))}
