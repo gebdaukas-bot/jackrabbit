@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>560716965486-1g26904bq9c9fnrcc9bqg3u2bsbhgef5.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.560716965486-1g26904bq9c9fnrcc9bqg3u2bsbhgef5</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCDbciT_ejTWPxFSoYAob5qsR3WUxh5V40</string>
+	<key>GCM_SENDER_ID</key>
+	<string>560716965486</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.gebdaukas.dormie</string>
+	<key>PROJECT_ID</key>
+	<string>cbs-ryder-cup</string>
+	<key>STORAGE_BUCKET</key>
+	<string>cbs-ryder-cup.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:560716965486:ios:30b790234276a26d8c687f</string>
+	<key>DATABASE_URL</key>
+	<string>https://cbs-ryder-cup-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>

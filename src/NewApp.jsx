@@ -11,6 +11,7 @@ import CupView from "./pages/CupView";
 import SeedPage from "./pages/SeedPage";
 import JoinPage from "./pages/JoinPage";
 import WatchPage from "./pages/WatchPage";
+import Privacy from "./pages/Privacy";
 
 function AuthGate() {
   const [user, setUser] = useState(undefined); // undefined = loading
@@ -29,6 +30,7 @@ function AuthGate() {
       <Routes>
         <Route path="/join/:code" element={<JoinPage user={null} />} />
         <Route path="/watch/:cupId" element={<WatchPage />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<Login />} />
       </Routes>
     );
@@ -43,6 +45,7 @@ function AuthGate() {
       <Route path="/seed" element={<SeedPage user={user} />} />
       <Route path="/join/:code" element={<JoinPage user={user} />} />
       <Route path="/watch/:cupId" element={<WatchPage />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

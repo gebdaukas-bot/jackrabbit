@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { getTeams } from "../utils/teams";
 import { joinCup } from "../utils/joinCup";
-import { auth, signOut, db, ref, onValue, set } from "../firebase";
+import { auth, signOut, db, ref, onValue, set, isNative } from "../firebase";
+import { deleteUser } from "firebase/auth";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { GOLD } from "../utils/scoring";
 import LiveBackground from "../components/LiveBackground";
 
@@ -15,6 +17,8 @@ export default function Home({ user }) {
   const [joinError, setJoinError] = useState("");
   const [joining, setJoining] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false);
+  const [accountError, setAccountError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -33,6 +37,28 @@ export default function Home({ user }) {
   const handleDelete = async (cupId) => {
     await set(ref(db, `users/${user.uid}/cups/${cupId}`), null);
     setConfirmDelete(null);
+  };
+
+  const handleSignOut = async () => {
+    // Also clear the native Google/Apple session so the next sign-in can pick a different account.
+    if (isNative) await FirebaseAuthentication.signOut().catch(() => {});
+    await signOut(auth);
+  };
+
+  // Apple requires in-app account deletion. Shared cup data stays so the rest of the group keeps their results.
+  const handleDeleteAccount = async () => {
+    setAccountError("");
+    try {
+      await set(ref(db, `users/${user.uid}`), null);
+      await deleteUser(user);
+      if (isNative) await FirebaseAuthentication.signOut().catch(() => {});
+    } catch (e) {
+      if (e.code === "auth/requires-recent-login") {
+        setAccountError("For security, sign out and sign back in, then delete your account.");
+      } else {
+        setAccountError(e.message || "Couldn't delete your account. Try again.");
+      }
+    }
   };
 
   const handleJoin = async () => {
@@ -58,7 +84,7 @@ export default function Home({ user }) {
           <button onClick={toggle} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
             {theme === "dark" ? "☀" : "☾"}
           </button>
-          <button onClick={() => signOut(auth)} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
+          <button onClick={handleSignOut} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
             Sign out
           </button>
         </div>
@@ -147,6 +173,24 @@ export default function Home({ user }) {
             ))}
           </div>
         )}
+
+        <div style={{ marginTop: 40, paddingTop: 16, borderTop: `1px solid ${BORDER}`, textAlign: "center", fontSize: 11 }}>
+          {confirmDeleteAccount ? (
+            <div>
+              <div style={{ color: TEXT, marginBottom: 10 }}>Delete your Dormie account? Your cup list goes away; scores in shared cups stay for your group.</div>
+              <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                <button onClick={() => { setConfirmDeleteAccount(false); setAccountError(""); }} style={{ padding: "6px 12px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, color: MUTED, fontSize: 12, cursor: "pointer" }}>Cancel</button>
+                <button onClick={handleDeleteAccount} style={{ padding: "6px 12px", background: "#e74c3c", border: "none", borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Delete account</button>
+              </div>
+              {accountError && <div style={{ color: "#e74c3c", marginTop: 10 }}>{accountError}</div>}
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+              <button onClick={() => nav("/privacy")} style={{ background: "none", border: "none", color: MUTED, fontSize: 11, cursor: "pointer" }}>Privacy policy</button>
+              <button onClick={() => setConfirmDeleteAccount(true)} style={{ background: "none", border: "none", color: MUTED, fontSize: 11, cursor: "pointer" }}>Delete account</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
