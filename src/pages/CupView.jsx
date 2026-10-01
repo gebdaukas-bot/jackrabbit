@@ -37,7 +37,7 @@ function fmt(n) {
 }
 
 // ── TV Match Row (matches original CBS style) ─────────────────────────────────
-function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels }) {
+function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameTeeAsAbove }) {
   const { BORDER } = useTheme();
   // Which two of the cup's teams contest *this* match — with more than two teams
   // in the cup that varies match to match, so the card paints itself in its own
@@ -81,6 +81,8 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels }) {
     if (aWin)       { badgeBg=teamAColor;  badgeTop="WIN";    badgeBot=st.sublabel; badgeTextColor=contrastText(teamAColor); }
     else if (bWin)  { badgeBg=teamBColor;  badgeTop="WIN";    badgeBot=st.sublabel; badgeTextColor=contrastText(teamBColor); }
     else if (halved){ badgeBg="#334455";   badgeTop="HALVED"; badgeBot=pointValue===1?"½pt":`${pointValue/2}pt`; }
+    // A match teeing off with the one above it (same group) doesn't repeat the time.
+    else if (sameTeeAsAbove){ badgeBot=""; }
     else if (match.teeTime){ badgeTop="TEE"; badgeBot=match.teeTime; }
     return (
       <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:`1px solid #0a1628`, opacity:canEdit?1:0.85 }}>
@@ -201,8 +203,9 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
                 {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>}
               </div>
             )}
-            {roundMatches.map(m=>(
-              <MatchCard key={m.id} match={m} teams={teams} onOpen={onOpen} canEdit={canEdit(m.id)} round={round} showTeamLabels={!twoTeam}/>
+            {roundMatches.map((m,i)=>(
+              <MatchCard key={m.id} match={m} teams={teams} onOpen={onOpen} canEdit={canEdit(m.id)} round={round} showTeamLabels={!twoTeam}
+                sameTeeAsAbove={!!m.teeTime&&i>0&&roundMatches[i-1].teeTime===m.teeTime}/>
             ))}
           </div>
         );
