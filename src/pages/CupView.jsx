@@ -1625,6 +1625,15 @@ export default function CupView({ user }) {
                 {days.map((day,di)=>(
                   <div key={di} style={{marginBottom:di<days.length-1?12:0}}>
                     {days.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:6}}>{day.label?.toUpperCase()}</div>}
+                    {(day.rounds||[]).filter(isWarmup).flatMap(r=>(r.groups||[]).map((g,gi)=>(
+                      <div key={`${r.id}-${gi}`} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${BORDER}`}}>
+                        <div style={{fontSize:11,color:TEXT}}>Warmup{g.teeTime?` ${g.teeTime}`:""} · {(g.players||[]).map(n=>n.split(" ")[0]).join(", ")}</div>
+                        <button onClick={async()=>{if(!confirm(`Reset warmup scores for this group?`))return;await update(ref(db,`cups/${cupId}/warmupScores/${r.id}`),Object.fromEntries((g.players||[]).map(n=>[warmupKey(n),null])));}}
+                          style={{padding:"3px 8px",background:"none",border:"1px solid #e74c3c",borderRadius:6,color:"#e74c3c",fontSize:10,cursor:"pointer",fontFamily:"monospace",flexShrink:0,marginLeft:8}}>
+                          Reset
+                        </button>
+                      </div>
+                    )))}
                     {day.matches.map(m=>(
                       <div key={m.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${BORDER}`}}>
                         <div style={{fontSize:11,color:TEXT}}>{m.player1a}{m.player1b?` & ${m.player1b}`:""} vs {m.player2a}{m.player2b?` & ${m.player2b}`:""}</div>
