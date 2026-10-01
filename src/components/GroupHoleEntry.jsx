@@ -161,7 +161,7 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: BG, zIndex: 200, display: "flex", flexDirection: "column", overflowY: "auto" }}>
+    <div style={{ position: "fixed", inset: 0, top: "env(safe-area-inset-top)", bottom: "env(safe-area-inset-bottom)", background: BG, zIndex: 200, display: "flex", flexDirection: "column", overflowY: "auto" }}>
       {showEndEarly && (
         <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 24, maxWidth: 320, width: "100%", textAlign: "center" }}>

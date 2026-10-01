@@ -670,7 +670,7 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
   };
 
   return (
-    <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
+    <div style={{position:"fixed",inset:0,top:"env(safe-area-inset-top)",bottom:"env(safe-area-inset-bottom)",background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
       {showEndEarly&&(
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
@@ -877,7 +877,7 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effecti
   }).filter(e=>e.strokes>0);
 
   return (
-    <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
+    <div style={{position:"fixed",inset:0,top:"env(safe-area-inset-top)",bottom:"env(safe-area-inset-bottom)",background:BG,zIndex:200,display:"flex",flexDirection:"column",overflowY:"auto"}}>
       {showHcp&&<HcpModal match={match} isSingles={isSingles} course={course} courseKey={courseKey} format={format} playerIndexes={playerIndexes} onSave={v=>{onSave({...match,...v});setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
       {showEndEarly&&(
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
@@ -1061,7 +1061,7 @@ function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, 
   );
 
   return (
-    <div style={{position:"fixed",inset:0,background:BG,zIndex:200,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
+    <div style={{position:"fixed",inset:0,top:"env(safe-area-inset-top)",bottom:"env(safe-area-inset-bottom)",background:BG,zIndex:200,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
       {showHcp&&<HcpModal match={{...match,...hcpVals}} isSingles={isSingles} course={course} courseKey={courseKey} format={format} playerIndexes={playerIndexes} onSave={v=>{setHcpVals(v);setShowHcp(false);}} onClose={()=>setShowHcp(false)}/>}
       <style>{`*{box-sizing:border-box;margin:0;padding:0}`}</style>
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10,flexShrink:0}}>
@@ -1728,7 +1728,7 @@ export default function App() {
       )}
 
       {/* Header */}
-      <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,borderBottom:`2px solid ${BORDER}`,position:"sticky",top:0,zIndex:100}}>
+      <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,borderBottom:`2px solid ${BORDER}`,position:"sticky",top:"env(safe-area-inset-top)",zIndex:100}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 12px 5px"}}>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
             {CBS_LOGO}

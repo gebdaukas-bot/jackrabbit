@@ -120,7 +120,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
       ].map(p => ({ ...p, strokes: str(p.hcp) })).filter(e => e.strokes > 0);
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: BG, zIndex: 200, display: "flex", flexDirection: "column", overflowY: "auto" }}>
+    <div style={{ position: "fixed", inset: 0, top: "env(safe-area-inset-top)", bottom: "env(safe-area-inset-bottom)", background: BG, zIndex: 200, display: "flex", flexDirection: "column", overflowY: "auto" }}>
       {showHcp && (
         <HcpModal match={match} isSingles={isSingles} teamAColor={teamAColor} teamBColor={teamBColor}
           onSave={v => { onSave({ ...match, ...v }); setShowHcp(false); }} onClose={() => setShowHcp(false)} />

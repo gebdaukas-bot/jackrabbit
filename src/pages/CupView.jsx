@@ -1297,9 +1297,11 @@ export default function CupView({ user }) {
       )}
 
       {/* Header — cup logo + name top left, like old app */}
-      <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,borderBottom:`2px solid ${BORDER}`,position:"sticky",top:0,zIndex:100}}>
+      <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,borderBottom:`2px solid ${BORDER}`,position:"sticky",top:"env(safe-area-inset-top)",zIndex:100}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 12px 5px"}}>
           <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
+            {/* The iOS app has no browser back button, so give a way out to the cup list. */}
+            <button onClick={()=>nav("/")} aria-label="All cups" style={{background:"none",border:"none",color:MUTED,fontSize:22,lineHeight:1,cursor:"pointer",padding:"0 4px 2px 0"}}>‹</button>
             {meta.logoUrl
               ? <img src={meta.logoUrl} alt="logo" style={{height:32,width:32,objectFit:"contain",borderRadius:4}}/>
               : <div style={{fontSize:24,lineHeight:1}}>⛳</div>}

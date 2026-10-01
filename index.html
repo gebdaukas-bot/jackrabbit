@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Dormie | Live Golf Scoring</title>
     <meta name="description" content="Match play scoring for your crew" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -23,6 +23,13 @@
     <meta name="twitter:description" content="Match play scoring for your crew" />
     <meta name="twitter:image" content="https://dormie-golf.vercel.app/og.png" />
     <meta name="theme-color" content="#020c18" />
+    <style>
+      /* In the iOS app (and home-screen web app) the page runs under the status bar and home
+         indicator; these insets are 0 in a normal browser tab. The ::before strip keeps
+         scrolled content from showing through behind the clock. */
+      body { background: #020c18; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+      body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: #020c18; z-index: 2000; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

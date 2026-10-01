@@ -110,7 +110,7 @@ export function WarmupEntry({ round, group, scores, teamColorOf, onSaveHole, onC
   const divider = <div style={{ width: 1, background: BORDER }} />;
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: BG, zIndex: 200, display: "flex", flexDirection: "column", overflowY: "auto" }}>
+    <div style={{ position: "fixed", inset: 0, top: "env(safe-area-inset-top)", bottom: "env(safe-area-inset-bottom)", background: BG, zIndex: 200, display: "flex", flexDirection: "column", overflowY: "auto" }}>
       <div style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, padding: "10px 12px", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <button onClick={onClose} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 7, color: "#668", padding: "5px 10px", cursor: "pointer", fontSize: 11 }}>← Back</button>
