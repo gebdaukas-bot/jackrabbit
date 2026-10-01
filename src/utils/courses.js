@@ -45,6 +45,13 @@ export const BUILT_IN_COURSES = [
     hcp: [12,16,4,2,6,18,14,8,10, 11,3,7,9,15,17,1,13,5],
   },
   {
+    name: "Streamsong Bone Valley",
+    par: [4,4,3,5,4,4,3,4,5, 4,4,3,4,5,4,3,4,5],
+    hcp: [5,7,13,9,1,17,15,3,11, 6,12,18,2,14,16,10,4,8],
+    // GolfCourseAPI has no tee data for Bone Valley, so the tee we play is kept here.
+    tees: [{ name: "Black/Silver", slope: 125, rating: 70.6 }],
+  },
+  {
     name: "The Chain (Streamsong)",
     par: [3,3,3,3,3,3,3,4,3, 3,3,3,3,3,3,3,3,3],
     hcp: [2,4,6,8,10,12,14,16,18, 1,3,5,7,9,11,13,15,17],

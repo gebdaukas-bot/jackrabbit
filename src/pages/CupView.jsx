@@ -11,7 +11,7 @@ import HoleByHoleTable from "../components/HoleByHoleTable";
 import CourseSearch from "../components/CourseSearch";
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
-import { courseLabel } from "../utils/courses";
+import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
 import confetti from "canvas-confetti";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -264,6 +264,8 @@ function AdminCourses({ initDays, onSave, onBack }) {
   const round = days[selDay]?.rounds[selRound] || {};
   const course = round.course || {};
 
+  const updateCourse = patch => setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,...patch}})}));
+
   // Picking a tee sets the round's slope/rating (what RECALC HCPs works from)
   // and takes that tee's own par/stroke index/yardage.
   const applyTee = (c, tee) => updateCourse(courseFromTee(c, tee));
@@ -289,6 +291,11 @@ function AdminCourses({ initDays, onSave, onBack }) {
         <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>COURSE NAME</div>
         <CourseSearch key={`${selDay}-${selRound}`} query={course.name||""} onQueryChange={name=>updateCourse({name})}
           onTee={applyTee} selectedTee={course.teeName}/>
+        <select value="" onChange={e=>{const c=BUILT_IN_COURSES.find(x=>x.name===e.target.value); if(!c) return; if(c.tees?.length) applyTee(c,c.tees[0]); else updateCourse({...courseFromTee(c),slope:null,rating:null,teeName:null});}}
+          style={{width:"100%",marginTop:8,padding:"9px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:13,outline:"none",cursor:"pointer"}}>
+          <option value="">…or load a saved course</option>
+          {[...BUILT_IN_COURSES].sort((a,b)=>a.name.localeCompare(b.name)).map(c=><option key={c.name} value={c.name}>{c.name}</option>)}
+        </select>
         {course.teeName&&<div style={{fontSize:11,color:GOLD,marginTop:8,fontFamily:"monospace"}}>Playing the {course.teeName} tees · Rating {course.rating} · Slope {course.slope} — hit RECALC HCPs in Edit Matchups to update strokes.</div>}
       </div>
       <div style={{display:"flex",gap:10,marginBottom:12}}>

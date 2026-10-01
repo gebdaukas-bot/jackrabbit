@@ -41,12 +41,16 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
     if (pickTee && c.tees?.length === 1) onTee?.(c, c.tees[0]);
   };
 
-  const openCourse = async id => {
+  // GolfCourseAPI lists some courses (new ones especially) without any tee
+  // boxes — say so rather than spending a request to open an empty course.
+  const noTeesNotice = name => ({ kind: "none", text: `${name || "That course"} is listed, but GolfCourseAPI has no tee or scorecard data for it yet — estimate with AI, or enter it by hand.` });
+
+  const openCourse = async (id, name) => {
     setBusy("course"); setNotice(null);
     try {
       const c = await fetchCourse(id);
       if (c.unavailable) setNotice(unavailableNotice(c));
-      else if (!c.found) setNotice({ kind: "error", text: "Couldn't load that course's tees — try another result." });
+      else if (!c.found) setNotice(noTeesNotice(name));
       else loaded(c);
     } catch (e) { setNotice({ kind: "error", text: e.message || "Something went wrong — try again" }); }
     finally { setBusy(null); }
@@ -60,7 +64,11 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
       if (r.unavailable) { setNotice(unavailableNotice(r)); return; }
       if (!r.results.length) { setNotice({ kind: "none", text: `No courses matched "${q}".` }); return; }
       // A single hit needs no picking — go straight to its tees.
-      if (r.results.length === 1) { setBusy(null); await openCourse(r.results[0].id); return; }
+      if (r.results.length === 1) {
+        const [only] = r.results;
+        if (only.teeCount === 0) { setNotice(noTeesNotice(only.name)); return; }
+        setBusy(null); await openCourse(only.id, only.name); return;
+      }
       setResults(r.results);
     } catch (e) { setNotice({ kind: "error", text: e.message || "Something went wrong — try again" }); }
     finally { setBusy(null); }
@@ -119,12 +127,12 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
         <div style={{ marginTop: 10 }}>
           <div style={label}>{results.length} COURSES MATCH — PICK ONE</div>
           {results.map(r => (
-            <button key={r.id} onClick={() => openCourse(r.id)} disabled={!!busy} style={row}>
+            <button key={r.id} onClick={() => r.teeCount === 0 ? setNotice(noTeesNotice(r.name)) : openCourse(r.id, r.name)} disabled={!!busy} style={row}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{r.name}</div>
-                {(r.location || r.teeCount) && (
+                {(r.location || r.teeCount != null) && (
                   <div style={{ fontSize: 10, color: MUTED, marginTop: 2 }}>
-                    {[r.location, r.teeCount ? `${r.teeCount} tee${r.teeCount === 1 ? "" : "s"}` : null].filter(Boolean).join(" · ")}
+                    {[r.location, r.teeCount ? `${r.teeCount} tee${r.teeCount === 1 ? "" : "s"}` : r.teeCount === 0 ? "no tee data" : null].filter(Boolean).join(" · ")}
                   </div>
                 )}
               </div>

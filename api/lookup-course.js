@@ -42,7 +42,9 @@ async function searchCourses(query) {
       id: String(c.id),
       name: displayName(c),
       location: [loc.city, loc.state, loc.country !== "United States" ? loc.country : null].filter(Boolean).join(", "),
-      ...(teeCount ? { teeCount } : {}),
+      // Always present, so the client can tell "no tee data" (0) from an
+      // older cached result that never carried the count.
+      teeCount,
     };
   });
 }

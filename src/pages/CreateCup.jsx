@@ -469,6 +469,7 @@ function Step4({ data, setData, prevCourses }) {
             onChange={e => {
               const c = prevCourses.find(x => x.name === e.target.value);
               if (!c) return;
+              if (c.tees?.length) return applyTee(c, c.tees[0]);
               setData(d => {
                 const days = [...d.days];
                 const rounds = [...days[activeDay].rounds];
@@ -788,7 +789,8 @@ export default function CreateCup({ user }) {
           }
         }
       }));
-      const merged = { ...Object.fromEntries(BUILT_IN_COURSES.map(c => [c.name, c])), ...seen };
+      // Built-ins win: they can carry tees (slope/rating) that saved rounds don't.
+      const merged = { ...seen, ...Object.fromEntries(BUILT_IN_COURSES.map(c => [c.name, c])) };
       setPrevCourses(Object.values(merged).sort((a, b) => a.name.localeCompare(b.name)));
     };
     fetch();
