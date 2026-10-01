@@ -370,9 +370,19 @@ function AdminCourses({ initDays, onSave, onBack }) {
   );
 }
 
-function AdminRounds({ initDays, onSave, onBack }) {
-  const { CARD2, BORDER, MUTED } = useTheme();
-  const [days, setDays] = useState(initDays.map(d=>({...d,rounds:d.rounds.map(r=>({...r}))})));
+// Match ids encode the round in their hundreds digit, so a day tops out well below 10 rounds.
+const MAX_ROUNDS_PER_DAY = 4;
+
+// A new round starts on the same course as the round before it (most trips play
+// a course twice in a day); "Edit Courses" changes it.
+const newRoundAfter = prev => ({
+  format:"2v2 Best Ball",
+  course: prev?.course ? {...prev.course} : {name:"",par:Array(18).fill(4),hcp:Array.from({length:18},(_,i)=>i+1),slope:113,rating:72},
+});
+
+function AdminRounds({ initDays, cupPlayers, onSave, onBack }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  const [days, setDays] = useState(initDays.map(d=>({...d,rounds:d.rounds.map(r=>({...r,...(r.groups?{groups:r.groups.map(g=>({...g,players:[...(g.players||[])]}))}:{})}))})));
   const [saving, setSaving] = useState(false);
   const handleSave = async () => { setSaving(true); await onSave(days); setSaving(false); onBack(); };
 
@@ -394,6 +404,25 @@ function AdminRounds({ initDays, onSave, onBack }) {
     }));
   };
 
+  const setRound = (di, ri, fn) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,rounds:d.rounds.map((r,j)=>j!==ri?r:fn(r))}));
+
+  // New rounds go at the end of the day, so no existing match ids shift.
+  const addRound = (di, warmup) => setDays(ds=>ds.map((d,i)=>{
+    if (i!==di) return d;
+    const r = newRoundAfter(d.rounds[d.rounds.length-1]);
+    return {...d, rounds:[...d.rounds, warmup
+      ? {...r, format:"Warmup", pointValue:0, id:`w${Date.now().toString(36)}`, groups:[{teeTime:"",players:[]}]}
+      : r]};
+  }));
+
+  const addDay = () => setDays(ds=>[...ds, {label:`Day ${ds.length+1}`, rounds:[newRoundAfter(ds[ds.length-1]?.rounds?.[0])], matches:[]}]);
+
+  const setGroup = (di, ri, gi, fn) => setRound(di, ri, r=>({...r, groups:r.groups.map((g,k)=>k!==gi?g:fn(g))}));
+  const togglePlayer = (di, ri, gi, name) => setGroup(di, ri, gi, g=>({...g, players:g.players.includes(name)?g.players.filter(n=>n!==name):[...g.players,name]}));
+
+  const chip = on => ({padding:"5px 9px",background:on?GOLD:"none",border:`1px solid ${on?GOLD:BORDER}`,borderRadius:6,color:on?"#000":MUTED,fontSize:11,cursor:"pointer",fontWeight:on?800:400});
+  const dashed = {flex:1,padding:"8px",background:"none",border:`1px dashed ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"};
+
   return (
     <div>
       <AdminHeader title="Edit Rounds" onBack={onBack} onSave={handleSave} saving={saving}/>
@@ -408,7 +437,32 @@ function AdminRounds({ initDays, onSave, onBack }) {
                   <button onClick={()=>removeRound(di,ri)} title="Remove this round (deletes its matches and scores)"
                     style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
                 </div>}
-              {isWarmup(r) ? <div style={{fontSize:11,color:MUTED,fontFamily:"monospace"}}>WARMUP · no points · {(r.groups||[]).length} groups</div> :
+              {isWarmup(r) ? (
+                <div>
+                  <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",marginBottom:8}}>WARMUP · no points · tee-time groups</div>
+                  {(r.groups||[]).map((g,gi)=>{
+                    // A player can only be in one group per warmup.
+                    const taken = new Set((r.groups||[]).flatMap((x,k)=>k===gi?[]:x.players||[]));
+                    return (
+                      <div key={gi} style={{borderTop:`1px solid ${BORDER}`,padding:"8px 0"}}>
+                        <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
+                          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>GROUP {gi+1}</div>
+                          <input value={g.teeTime||""} placeholder="Tee time" onChange={e=>setGroup(di,ri,gi,x=>({...x,teeTime:e.target.value}))}
+                            style={{flex:1,padding:"5px 8px",background:"none",border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:12,outline:"none",minWidth:0}}/>
+                          <button onClick={()=>setRound(di,ri,x=>({...x,groups:(x.groups||[]).filter((_,k)=>k!==gi)}))} title="Remove group"
+                            style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
+                        </div>
+                        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                          {cupPlayers.filter(p=>!taken.has(p.name)).map(p=>(
+                            <button key={p.name} onClick={()=>togglePlayer(di,ri,gi,p.name)} style={chip(g.players.includes(p.name))}>{p.name}</button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <button onClick={()=>setRound(di,ri,x=>({...x,groups:[...(x.groups||[]),{teeTime:"",players:[]}]}))} style={{...dashed,width:"100%",marginTop:6}}>+ ADD GROUP</button>
+                </div>
+              ) :
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 {["2v2 Best Ball","Singles","Scramble","Shamble"].map(f=>(
                   <button key={f} onClick={()=>setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,rounds:d.rounds.map((x,j)=>j!==ri?x:{...x,format:f})}))}
@@ -419,8 +473,16 @@ function AdminRounds({ initDays, onSave, onBack }) {
               </div>}
             </div>
           ))}
+          {day.rounds.length<MAX_ROUNDS_PER_DAY&&(
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>addRound(di,false)} style={dashed}>+ ADD ROUND</button>
+              <button onClick={()=>addRound(di,true)} style={dashed}>+ ADD WARMUP</button>
+            </div>
+          )}
         </div>
       ))}
+      <button onClick={addDay} style={{...dashed,width:"100%",padding:"10px"}}>+ ADD DAY</button>
+      <div style={{fontSize:10,color:MUTED,marginTop:10,lineHeight:1.5}}>New rounds copy the previous round's course; change it in Edit Courses. Add matches in Edit Matchups.</div>
     </div>
   );
 }
@@ -1701,7 +1763,7 @@ export default function CupView({ user }) {
               <AdminCourses initDays={days} onSave={saveAdminDays} onBack={()=>setAdminSection(null)}/>
             )}
             {adminSection==="rounds"&&(
-              <AdminRounds initDays={days} onSave={saveAdminRounds} onBack={()=>setAdminSection(null)}/>
+              <AdminRounds initDays={days} cupPlayers={cupPlayers} onSave={saveAdminRounds} onBack={()=>setAdminSection(null)}/>
             )}
             {adminSection==="matchups"&&(
               <AdminMatchups initDays={days} cupPlayers={cupPlayers} teams={teams}
