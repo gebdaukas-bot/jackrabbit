@@ -1,0 +1,66 @@
+{
+  "rules": {
+    // Nothing is readable or writable unless a rule below allows it — that
+    // covers the old top-level "matches"/"pairings" nodes the current app
+    // no longer uses, and listing every cup or user.
+    ".read": false,
+    ".write": false,
+
+    "cups": {
+      "$cupId": {
+        // Cups are readable by anyone who has the id, so watch links work
+        // without an account. The ids are random, and /cups can't be listed.
+        ".read": true,
+
+        // Cup setup and its first write: only by the signed-in user creating
+        // it. After that, changes come from the cup's members (anyone who
+        // joined with its invite code) or its creator. createdBy and
+        // inviteCode can never change.
+        "meta": {
+          // (newData.exists(): a cup's meta can't be deleted — validation
+          // doesn't run on deletes, so that has to be ruled out here.)
+          ".write": "auth != null && newData.exists() && (data.exists() ? (root.child('users/' + auth.uid + '/cups/' + $cupId).exists() || data.child('createdBy').val() === auth.uid) : newData.child('createdBy').val() === auth.uid)",
+          ".validate": "newData.hasChildren(['createdBy', 'inviteCode']) && (!data.exists() || (newData.child('createdBy').val() === data.child('createdBy').val() && newData.child('inviteCode').val() === data.child('inviteCode').val()))"
+        },
+        "$section": {
+          ".write": "auth != null && $section !== 'meta' && (root.child('users/' + auth.uid + '/cups/' + $cupId).exists() || root.child('cups/' + $cupId + '/meta/createdBy').val() === auth.uid)"
+        }
+      }
+    },
+
+    "inviteCodes": {
+      "$code": {
+        // Looked up one code at a time when joining; the list can't be read.
+        ".read": true,
+        // A code is claimed once, by the creator of the cup it points to.
+        ".write": "auth != null && !data.exists() && root.child('cups/' + newData.val() + '/meta/createdBy').val() === auth.uid",
+        ".validate": "newData.isString()"
+      }
+    },
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "cups": {
+          "$cupId": {
+            // Joining a cup (adding it to your list) means knowing its invite
+            // code — or being its creator. Removing it from your list is fine.
+            ".validate": "root.child('cups/' + $cupId + '/meta/createdBy').val() === auth.uid || (newData.child('inviteCode').isString() && newData.child('inviteCode').val() === root.child('cups/' + $cupId + '/meta/inviteCode').val())"
+          }
+        }
+      }
+    },
+
+    // Shared course lookup cache (see src/utils/courseLookup.js).
+    "courseCache": {
+      ".read": "auth != null",
+      "$kind": {
+        "$key": {
+          ".write": "auth != null && ($kind === 'searches' || $kind === 'courses')",
+          ".validate": "newData.hasChildren(['data', 'fetchedAt'])"
+        }
+      }
+    }
+  }
+}

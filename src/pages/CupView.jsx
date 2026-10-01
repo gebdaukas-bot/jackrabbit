@@ -10,6 +10,7 @@ import GroupHoleEntry from "../components/GroupHoleEntry";
 import HoleByHoleTable from "../components/HoleByHoleTable";
 import CourseSearch from "../components/CourseSearch";
 import { isWarmup, warmupKey, WarmupRound, WarmupEntry } from "../components/Warmup";
+import { joinCup } from "../utils/joinCup";
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
@@ -748,6 +749,18 @@ export default function CupView({ user }) {
     return ()=>unsub();
   },[cupId]);
 
+  // Only a cup's members (and its creator) can change it, so someone who
+  // opens a cup link without having joined is asked for the invite code.
+  const [isMember, setIsMember] = useState(null);
+  const [joinCode, setJoinCode] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [joining, setJoining] = useState(false);
+  useEffect(()=>{
+    if (!user?.uid) return;
+    const unsub = onValue(ref(db,`users/${user.uid}/cups/${cupId}`),snap=>setIsMember(snap.exists()));
+    return ()=>unsub();
+  },[cupId,user?.uid]);
+
   useEffect(()=>{
     const unsub = onValue(ref(db,`cups/${cupId}/players`),snap=>{
       if (!snap.exists()) return;
@@ -1123,8 +1136,35 @@ export default function CupView({ user }) {
 
   useEffect(()=>{ if(meta?.eventType==="live_match") setTab("matches"); },[meta?.eventType]);
 
-  if (!meta||!loaded) {
+  if (!meta||!loaded||isMember===null) {
     return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><LiveBackground/><div style={{color:MUTED,fontFamily:"monospace"}}>Loading cup...</div></div>;
+  }
+
+  if (!isMember && meta.createdBy!==user?.uid) {
+    const submitJoin = async () => {
+      setJoining(true); setJoinError("");
+      try { await joinCup(user, joinCode, cupId); }
+      catch (e) { setJoinError(e.message || "Something went wrong. Try again."); }
+      finally { setJoining(false); }
+    };
+    return (
+      <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <LiveBackground/>
+        <div style={{width:"100%",maxWidth:360,background:CARD,border:`1px solid ${BORDER}`,borderRadius:18,padding:24,textAlign:"center"}}>
+          <div style={{fontSize:20,fontWeight:900,color:GOLD,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>{meta.name}</div>
+          <div style={{fontSize:12,color:MUTED,marginBottom:16}}>Enter the cup's invite code to join. The organiser can share it from the cup's admin page.</div>
+          <input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>{if(e.key==="Enter")submitJoin();}}
+            placeholder="INVITE CODE" autoCapitalize="characters"
+            style={{width:"100%",padding:"12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,color:TEXT,fontSize:16,fontFamily:"monospace",letterSpacing:3,textAlign:"center",outline:"none",boxSizing:"border-box"}}/>
+          {joinError&&<div style={{fontSize:11,color:"#e74c3c",marginTop:8}}>{joinError}</div>}
+          <button onClick={submitJoin} disabled={joining||!joinCode.trim()}
+            style={{width:"100%",marginTop:12,padding:"12px",background:GOLD,border:"none",borderRadius:10,color:"#000",fontWeight:900,fontSize:13,cursor:"pointer",fontFamily:"monospace",opacity:joining||!joinCode.trim()?0.5:1}}>
+            {joining?"JOINING…":"JOIN CUP"}
+          </button>
+          <button onClick={()=>nav("/")} style={{width:"100%",marginTop:10,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>← Back to home</button>
+        </div>
+      </div>
+    );
   }
 
   // Cup-wide chrome (gradients, tab accents) still needs a two-color bundle;

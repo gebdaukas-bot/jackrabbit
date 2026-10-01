@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { getTeams } from "../utils/teams";
-import { auth, signOut, db, ref, onValue, get, set } from "../firebase";
+import { joinCup } from "../utils/joinCup";
+import { auth, signOut, db, ref, onValue, set } from "../firebase";
 import { GOLD } from "../utils/scoring";
 import LiveBackground from "../components/LiveBackground";
 
@@ -39,21 +40,9 @@ export default function Home({ user }) {
     setJoining(true);
     setJoinError("");
     try {
-      const code = joinCode.trim().toUpperCase();
-      const codesSnap = await get(ref(db, `inviteCodes/${code}`));
-      if (!codesSnap.exists()) { setJoinError("Cup not found. Check the code and try again."); setJoining(false); return; }
-      const cupId = codesSnap.val();
-      const cupSnap = await get(ref(db, `cups/${cupId}/meta`));
-      if (!cupSnap.exists()) { setJoinError("Cup not found."); setJoining(false); return; }
-      const meta = cupSnap.val();
-      await set(ref(db, `users/${user.uid}/cups/${cupId}`), {
-        name: meta.name, teams: getTeams(meta).map(t=>({ id:t.id, name:t.name, short:t.short, color:t.color })),
-        teamAName: meta.teamAName || null, teamBName: meta.teamBName || null,
-        createdAt: meta.createdAt,
-      });
-      nav(`/cup/${cupId}`);
+      nav(`/cup/${await joinCup(user, joinCode)}`);
     } catch (e) {
-      setJoinError("Something went wrong. Try again.");
+      setJoinError(e.message || "Something went wrong. Try again.");
     } finally {
       setJoining(false);
     }
