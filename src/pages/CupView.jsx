@@ -9,6 +9,7 @@ import HoleEntry from "../components/HoleEntry";
 import GroupHoleEntry from "../components/GroupHoleEntry";
 import HoleByHoleTable from "../components/HoleByHoleTable";
 import CourseSearch from "../components/CourseSearch";
+import { isWarmup, warmupKey, WarmupRound, WarmupEntry } from "../components/Warmup";
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
@@ -149,7 +150,7 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels }) {
   );
 }
 
-function DayBlock({ day, teams, onOpen, canEdit }) {
+function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canScoreWarmup, onOpenWarmup }) {
   const { BORDER } = useTheme();
   // A cup-wide "team A vs team B" banner only makes sense when there are exactly
   // two teams. Past that, pairings vary per match, so each card names its own two
@@ -166,7 +167,7 @@ function DayBlock({ day, teams, onOpen, canEdit }) {
         <div style={{ fontSize:10, fontWeight:800, color:GOLD, letterSpacing:2, fontFamily:"monospace" }}>{day.label?.toUpperCase()}</div>
       </div>
       {/* Team name header — only show if single round (multi-round has its own per-round) */}
-      {!multiRound && (
+      {!multiRound && !isWarmup(rounds[0]) && (
         <div style={{ display:"flex", flexDirection:"column", background:"#080f20", borderBottom:`1px solid ${BORDER}` }}>
           <div style={{ display:"flex" }}>
             {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>}
@@ -179,7 +180,14 @@ function DayBlock({ day, teams, onOpen, canEdit }) {
         </div>
       )}
       {/* Rounds */}
-      {rounds.map((round, ri)=>{
+      {/* Warmups are played before the cup's matches, so they're listed first */}
+      {rounds.map((round, ri)=>({round, ri})).sort((a,b)=>isWarmup(b.round)-isWarmup(a.round)).map(({round, ri})=>{
+        if (isWarmup(round)) return (
+          <div key={ri} style={{ borderTop:ri>0||rounds.length===1?"none":`1px solid ${BORDER}` }}>
+            <WarmupRound round={round} scores={warmupScores?.[round.id]} teamColorOf={teamColorOf}
+              canScore={canScoreWarmup} onOpen={gi=>onOpenWarmup(ri,gi)}/>
+          </div>
+        );
         const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};
         const roundMatches = [...day.matches.filter(m=>(m.roundIdx??0)===ri)].sort((a,b)=>toMin(a.teeTime)-toMin(b.teeTime));
         return (
@@ -396,6 +404,7 @@ function AdminRounds({ initDays, onSave, onBack }) {
                   <button onClick={()=>removeRound(di,ri)} title="Remove this round (deletes its matches and scores)"
                     style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
                 </div>}
+              {isWarmup(r) ? <div style={{fontSize:11,color:MUTED,fontFamily:"monospace"}}>WARMUP · no points · {(r.groups||[]).length} groups</div> :
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 {["2v2 Best Ball","Singles","Scramble","Shamble"].map(f=>(
                   <button key={f} onClick={()=>setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,rounds:d.rounds.map((x,j)=>j!==ri?x:{...x,format:f})}))}
@@ -403,7 +412,7 @@ function AdminRounds({ initDays, onSave, onBack }) {
                     {f}
                   </button>
                 ))}
-              </div>
+              </div>}
             </div>
           ))}
         </div>
@@ -559,6 +568,9 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
         <div key={di} style={{marginBottom:16}}>
           <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
           {day.rounds.map((r,ri)=>{
+            if (isWarmup(r)) return (
+              <div key={ri} style={{marginBottom:10,fontSize:10,color:MUTED,fontFamily:"monospace"}}>ROUND {ri+1} · WARMUP — tee-time groups and scores only, no matches or points</div>
+            );
             const rMs=day.matches.filter(m=>(m.roundIdx??0)===ri);
             const isSingles=r.format==="Singles";
             const isScramble=r.format==="Scramble";
@@ -713,6 +725,8 @@ export default function CupView({ user }) {
   const [currentPlayer, setCurrentPlayer] = useState(()=>{ try{return localStorage.getItem(`jr_player_${cupId}`)||"";}catch{return "";} });
   const [activeMatch, setActiveMatch] = useState(null);
   const [activeGroup, setActiveGroup] = useState(null);
+  const [activeWarmup, setActiveWarmup] = useState(null); // { dayIdx, roundIdx, groupIdx }
+  const [warmupScores, setWarmupScores] = useState({});
   const [offlineQueue, setOfflineQueue] = useState(()=>{ try{return JSON.parse(localStorage.getItem(`jr_queue_${cupId}`))||[];}catch{return [];} });
   const [syncStatus, setSyncStatus] = useState(null);
   const [matchCelebration, setMatchCelebration] = useState(null);
@@ -835,6 +849,14 @@ export default function CupView({ user }) {
     return ()=>unsub();
   },[cupId]);
 
+  useEffect(()=>{
+    const unsub = onValue(ref(db,`cups/${cupId}/warmupScores`),snap=>setWarmupScores(snap.val()||{}));
+    return ()=>unsub();
+  },[cupId]);
+
+  const saveWarmupHole = (roundId, hole, vals) => update(ref(db,`cups/${cupId}/warmupScores/${roundId}`),
+    Object.fromEntries(Object.entries(vals).map(([name,v])=>[`${warmupKey(name)}/${hole}`, v])));
+
   const saveAdminPlayers = async (players) => {
     const obj = {};
     players.forEach(p=>{ if(p.name.trim()) obj[p.name.trim().toLowerCase().replace(/\s+/g,"_")]={name:p.name.trim(),team:p.team,hcp:p.hcp||0}; });
@@ -853,7 +875,8 @@ export default function CupView({ user }) {
           // read paths treat 0 the same as "no data" for this field.
           course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...((r.course?.teeName||r.course?.selectedTee?.name)?{teeName:r.course.teeName||r.course.selectedTee.name}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
-          ...(r.pointValue?{pointValue:r.pointValue}:{}),
+          ...(r.pointValue!=null&&r.pointValue!==1?{pointValue:r.pointValue}:{}),
+          ...(isWarmup(r)?{id:r.id,groups:r.groups||[]}:{}),
         })),
       });
     }
@@ -875,7 +898,8 @@ export default function CupView({ user }) {
           // read paths treat 0 the same as "no data" for this field.
           course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...((r.course?.teeName||r.course?.selectedTee?.name)?{teeName:r.course.teeName||r.course.selectedTee.name}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
-          ...(r.pointValue?{pointValue:r.pointValue}:{}),
+          ...(r.pointValue!=null&&r.pointValue!==1?{pointValue:r.pointValue}:{}),
+          ...(isWarmup(r)?{id:r.id,groups:r.groups||[]}:{}),
         })),
       });
     }
@@ -1130,6 +1154,11 @@ export default function CupView({ user }) {
   const playerMatch = currentPlayer?findPlayerMatch(days,currentPlayer,autoDayIdx):null;
   const canEdit = (dayIdx,matchId)=>{ if(isAdmin)return true; if(dayIdx!==autoDayIdx||!playerMatch)return false; return playerMatch.dayIdx===dayIdx&&playerMatch.matchId===matchId; };
 
+  // Warmup groups mix teams, so each player shows their own team's color, and
+  // anyone in the group (or an admin) can keep its scores.
+  const playerColorOf = name => teamColorOf(cupPlayers.find(p=>p.name===name)?.team);
+  const canScoreWarmup = group => isAdmin || (group?.players||[]).includes(currentPlayer);
+
   const openForScoring = (dayIdx,matchId)=>{
     const d=days[dayIdx]; const m=d?.matches.find(x=>x.id===matchId);
     if (m?.companionId) setActiveGroup({dayIdx,matchIds:[matchId,m.companionId]});
@@ -1179,6 +1208,12 @@ export default function CupView({ user }) {
   };
 
   // Score entry screens
+  if (activeWarmup){
+    const round=days[activeWarmup.dayIdx]?.rounds?.[activeWarmup.roundIdx];
+    const group=round?.groups?.[activeWarmup.groupIdx];
+    if (round&&group) return <WarmupEntry round={round} group={group} scores={warmupScores[round.id]} teamColorOf={playerColorOf}
+      onSaveHole={(hole,vals)=>saveWarmupHole(round.id,hole,vals)} onClose={()=>setActiveWarmup(null)}/>;
+  }
   if (activeGroup){
     const d=days[activeGroup.dayIdx];
     const groupMatches=activeGroup.matchIds.map(id=>d?.matches.find(x=>x.id===id)).filter(Boolean)
@@ -1352,7 +1387,9 @@ export default function CupView({ user }) {
             {boardDay&&(
               <DayBlock day={boardDay} teams={teams}
                 onOpen={mid=>{if(canEdit(boardDayIdx,mid))openForScoring(boardDayIdx,mid);}}
-                canEdit={mid=>canEdit(boardDayIdx,mid)}/>
+                canEdit={mid=>canEdit(boardDayIdx,mid)}
+                warmupScores={warmupScores} teamColorOf={playerColorOf} canScoreWarmup={canScoreWarmup}
+                onOpenWarmup={(ri,gi)=>setActiveWarmup({dayIdx:boardDayIdx,roundIdx:ri,groupIdx:gi})}/>
             )}
 
             {/* Hole-by-hole breakdown */}
