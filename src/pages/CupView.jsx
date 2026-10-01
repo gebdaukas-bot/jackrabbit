@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, onValue, set, update } from "../firebase";
-import { computeMatchStatus, standings, courseHcp, playingHcp, SHAMBLE_ALLOWANCE, GOLD } from "../utils/scoring";
+import { computeMatchStatus, standings, courseHcp, playingHcp, strokesOffLow, SHAMBLE_ALLOWANCE, GOLD } from "../utils/scoring";
 import { getTeams, cupSidesFor, matchTeams, teamsToMeta, autoShort, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import { contrastText } from "../utils/color";
 import HoleEntry from "../components/HoleEntry";
@@ -463,25 +463,28 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
     const round = days[di]?.rounds[ri];
     const course = round?.course;
     if (!course?.par?.length) return;
-    // Shamble plays off a share of each course handicap; other formats play off it in full.
-    const toCh = idx => playingHcp(courseHcp(idx, course, round.totalHoles || 18), round.format);
+    // As GHIN does it: each player's course handicap is rounded, then the
+    // format's allowance applied (Shamble plays off a share) and rounded again,
+    // and the low player in the match plays off zero.
+    const toPh = (idx, startHole) => playingHcp(courseHcp(idx, course, round.totalHoles || 18, startHole), round.format);
     const isSingles = round.format === "Singles";
     const isScramble = round.format === "Scramble";
     setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>{
       if ((m.roundIdx??0)!==ri) return m;
-      const p1a=cupPlayers.find(p=>p.name===m.player1a), p1b=cupPlayers.find(p=>p.name===m.player1b);
-      const p2a=cupPlayers.find(p=>p.name===m.player2a), p2b=cupPlayers.find(p=>p.name===m.player2b);
-      const ch1a=toCh(p1a?.hcp||0), ch1b=toCh(p1b?.hcp||0);
-      const ch2a=toCh(p2a?.hcp||0), ch2b=toCh(p2b?.hcp||0);
+      const hcpOf = name => cupPlayers.find(p=>p.name===name)?.hcp||0;
+      const [ph1a,ph1b,ph2a,ph2b] = [m.player1a,m.player1b,m.player2a,m.player2b].map(n=>toPh(hcpOf(n), m.startHole||0));
       if (isScramble && !isSingles) {
-        const tA=0.35*Math.min(ch1a,ch1b)+0.15*Math.max(ch1a,ch1b);
-        const tB=0.35*Math.min(ch2a,ch2b)+0.15*Math.max(ch2a,ch2b);
-        const adj=Math.min(tA,tB);
-        return {...m,hcp1a:Math.round(tA-adj),hcp1b:0,hcp2a:Math.round(tB-adj),hcp2b:0};
+        // Two-person scramble: 35% of the lower + 15% of the higher, rounded.
+        const team = (x,y) => Math.round(0.35*Math.min(x,y)+0.15*Math.max(x,y));
+        const [tA,tB] = strokesOffLow([team(ph1a,ph1b), team(ph2a,ph2b)]);
+        return {...m,hcp1a:tA,hcp1b:0,hcp2a:tB,hcp2b:0};
       }
-      const all=isSingles?[ch1a,ch2a]:[ch1a,ch1b,ch2a,ch2b];
-      const adj=Math.min(...all);
-      return {...m,hcp1a:Math.round(ch1a-adj),hcp1b:isSingles?0:Math.round(ch1b-adj),hcp2a:Math.round(ch2a-adj),hcp2b:isSingles?0:Math.round(ch2b-adj)};
+      if (isSingles) {
+        const [a,b] = strokesOffLow([ph1a,ph2a]);
+        return {...m,hcp1a:a,hcp1b:0,hcp2a:b,hcp2b:0};
+      }
+      const [a1,b1,a2,b2] = strokesOffLow([ph1a,ph1b,ph2a,ph2b]);
+      return {...m,hcp1a:a1,hcp1b:b1,hcp2a:a2,hcp2b:b2};
     })}));
   };
 

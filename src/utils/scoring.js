@@ -11,29 +11,52 @@ export function hcpAllowance(format) {
   return format === "Shamble" ? SHAMBLE_ALLOWANCE : 1;
 }
 
-// Course handicap from a handicap index: index × slope/113 + (rating − par),
-// unrounded. A course with no slope/rating on file plays as a neutral 113/par.
-// Partial (e.g. 9-hole) rounds don't have their own published rating/slope on
-// file, so they prorate the full course handicap — the common "half your
-// handicap for nine holes" convention.
-export function courseHcp(index, course, totalHoles = 18) {
-  const par = (course?.par || []).reduce((a, b) => a + b, 0) || 72;
+// Course handicap from a handicap index, as GHIN / the World Handicap System
+// works it out: index × slope/113 + (rating − par), rounded to a whole number.
+// A course with no slope/rating on file plays as a neutral 113/par.
+// A 9-hole round uses half the index and half the rating (a course's stored
+// rating for a nine is twice that nine's published rating) against the par of
+// the nine holes actually played, which needn't be half the course's par.
+export function courseHcp(index, course, totalHoles = 18, startHole = 0) {
+  const pars = course?.par || [];
+  const fullPar = pars.reduce((a, b) => a + b, 0) || 72;
+  const share = totalHoles / 18;
+  const par = totalHoles < 18 && pars.length === 18
+    ? Array.from({ length: totalHoles }, (_, k) => pars[(startHole + k) % 18]).reduce((a, b) => a + b, 0)
+    : fullPar * share;
   const slope = course?.slope || 113;
-  const rating = course?.rating || par;
-  return ((Number(index) || 0) * (slope / 113) + (rating - par)) * (totalHoles / 18);
+  const rating = course?.rating ? course.rating * share : par;
+  return Math.round((Number(index) || 0) * share * (slope / 113) + (rating - par));
 }
 
-// A player's handicap for this format. Reduced allowances are rounded to a whole
-// number, as the USGA does for playing handicaps (13 × 75% = 9.75 → 10); full
-// handicaps are passed through untouched.
+// A player's playing handicap: their (rounded) course handicap times the
+// format's allowance, rounded again (13 × 75% = 9.75 → 10).
 export function playingHcp(hcp, format) {
-  const a = hcpAllowance(format);
-  return a === 1 ? hcp : Math.round((Number(hcp) || 0) * a);
+  return Math.round((Number(hcp) || 0) * hcpAllowance(format));
 }
 
-export function netScore(gross, playerHcp, holeHcpIndex) {
-  return gross - (holeHcpIndex <= playerHcp ? 1 : 0)
-               - (playerHcp > 18 && holeHcpIndex <= playerHcp - 18 ? 1 : 0);
+// Match-play strokes: the lowest playing handicap plays off zero and everyone
+// else gets the difference. Takes and returns an array of playing handicaps.
+export function strokesOffLow(hcps) {
+  const low = Math.min(...hcps);
+  return hcps.map(h => h - low);
+}
+
+// Strokes a player receives on a hole. They go to the hardest of the holes
+// being played first, in stroke-index order, one per hole, then round again —
+// so in a 9-hole round the nine holes rank 1–9 between themselves, and a
+// 10-stroke player gets one on every hole plus a second on the hardest.
+export function strokesOnHole(strokes, hole, course, startHole = 0, totalHoles = 18) {
+  const n = Math.round(Number(strokes) || 0);
+  if (n <= 0) return 0;
+  const si = h => Number(course?.hcp?.[h]) || 99;
+  const played = Array.from({ length: totalHoles }, (_, k) => (startHole + k) % 18);
+  const rank = 1 + played.filter(h => si(h) < si(hole) || (si(h) === si(hole) && h < hole)).length;
+  return Math.floor(n / totalHoles) + (rank <= n % totalHoles ? 1 : 0);
+}
+
+export function netScore(gross, strokes) {
+  return gross - strokes;
 }
 
 export function computeMatchStatus(scores, teamAShort = "TEAM A", teamBShort = "TEAM B", startHole = 0, totalHoles = 18, pointValue = 1, allowExtraHoles = false, extraHoles = []) {

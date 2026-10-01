@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { netScore, computeMatchStatus, GOLD } from "../utils/scoring";
+import { netScore, strokesOnHole, computeMatchStatus, GOLD } from "../utils/scoring";
 import { contrastText } from "../utils/color";
 import ScoreInput from "./ScoreInput";
 import HcpModal from "./HcpModal";
@@ -48,10 +48,12 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
   // hcpA/hcpB: effective handicap per side (already normalized lowest=0 at data entry time)
   const hcpA = match.hcp1a || 0;
   const hcpB = match.hcp2a || 0;
-  const net1a = netScore(sc.p1a, hcpA, holeHcp);
-  const net1b = oneScorePerSide ? 99 : netScore(sc.p1b, match.hcp1b || 0, holeHcp);
-  const net2a = netScore(sc.p2a, hcpB, holeHcp);
-  const net2b = oneScorePerSide ? 99 : netScore(sc.p2b, match.hcp2b || 0, holeHcp);
+  // Strokes on this hole, allocated over the holes this match actually plays.
+  const str = hcp => strokesOnHole(hcp, hole, course, startHole, totalHoles);
+  const net1a = netScore(sc.p1a, str(hcpA));
+  const net1b = oneScorePerSide ? 99 : netScore(sc.p1b, str(match.hcp1b || 0));
+  const net2a = netScore(sc.p2a, str(hcpB));
+  const net2b = oneScorePerSide ? 99 : netScore(sc.p2b, str(match.hcp2b || 0));
   const teamANet = oneScorePerSide ? net1a : Math.min(net1a, net1b);
   const teamBNet = oneScorePerSide ? net2a : Math.min(net2a, net2b);
   const hw = teamANet < teamBNet ? "A" : teamBNet < teamANet ? "B" : "H";
@@ -107,15 +109,15 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
 
   const strokeEntries = isScramble
     ? [
-        ...((() => { let s = holeHcp <= hcpA ? 1 : 0; if (hcpA > 18 && holeHcp <= hcpA-18) s++; return s > 0 ? [{ name: match.player1b ? `${match.player1a} & ${match.player1b}` : match.player1a, hcp: hcpA, strokes: s }] : []; })()),
-        ...((() => { let s = holeHcp <= hcpB ? 1 : 0; if (hcpB > 18 && holeHcp <= hcpB-18) s++; return s > 0 ? [{ name: match.player2b ? `${match.player2a} & ${match.player2b}` : match.player2a, hcp: hcpB, strokes: s }] : []; })()),
+        ...((() => { const s = str(hcpA); return s > 0 ? [{ name: match.player1b ? `${match.player1a} & ${match.player1b}` : match.player1a, hcp: hcpA, strokes: s }] : []; })()),
+        ...((() => { const s = str(hcpB); return s > 0 ? [{ name: match.player2b ? `${match.player2a} & ${match.player2b}` : match.player2a, hcp: hcpB, strokes: s }] : []; })()),
       ]
     : [
         { name: match.player1a, hcp: match.hcp1a || 0 },
         ...(!isSingles ? [{ name: match.player1b, hcp: match.hcp1b || 0 }] : []),
         { name: match.player2a, hcp: match.hcp2a || 0 },
         ...(!isSingles ? [{ name: match.player2b, hcp: match.hcp2b || 0 }] : []),
-      ].map(p => { let s = holeHcp <= p.hcp ? 1 : 0; if (p.hcp > 18 && holeHcp <= p.hcp - 18) s++; return { ...p, strokes: s }; }).filter(e => e.strokes > 0);
+      ].map(p => ({ ...p, strokes: str(p.hcp) })).filter(e => e.strokes > 0);
 
   return (
     <div style={{ position: "fixed", inset: 0, background: BG, zIndex: 200, display: "flex", flexDirection: "column", overflowY: "auto" }}>
@@ -212,9 +214,10 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
       )}
       {cur.state === "extra" && (() => {
         const extraNum = (match.extra?.length || 0) + 1;
-        const pPar = course.par[0], pHcp = course.hcp[0];
-        const netA = netScore(extraGross.a, hcpA, pHcp);
-        const netB = netScore(extraGross.b, hcpB, pHcp);
+        const pPar = course.par[0];
+        // Playoff holes are played from hole 1, with strokes as over a full 18.
+        const netA = netScore(extraGross.a, strokesOnHole(hcpA, 0, course));
+        const netB = netScore(extraGross.b, strokesOnHole(hcpB, 0, course));
         const pw = netA < netB ? "A" : netB < netA ? "B" : "H";
         const pwColor = pw === "A" ? teamAColor : pw === "B" ? teamBColor : GOLD;
         const confirmExtra = () => {

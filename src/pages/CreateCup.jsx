@@ -536,7 +536,7 @@ function Step5({ data, setData }) {
   const rosterOf = t => data.players.filter(p=>p.team===t.id);
   // What a player plays off in this round: their course handicap from the tees
   // picked in Courses (the bare index if none were), reduced for Shamble.
-  const matchHcp = (p, fmt) => playingHcp(round.slope ? Math.round(courseHcp(p.hcp, round)) : p.hcp, fmt);
+  const matchHcp = (p, fmt) => playingHcp(round.slope ? courseHcp(p.hcp, round) : p.hcp, fmt);
 
   const mutateRound = (fn) => setData(d => {
     const days=[...d.days];
