@@ -79,7 +79,7 @@ export default function Home({ user }) {
       <LiveBackground/>
       {/* Top bar */}
       <div style={{ background: "var(--glass-85)", backdropFilter:"blur(8px)", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: 16, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 2 }}>⛳ DORMIE</div>
+        <div style={{ fontSize: 16, fontWeight: 900, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 2 }}>⛳ DORMIE</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={toggle} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
             {theme === "dark" ? "☀" : "☾"}

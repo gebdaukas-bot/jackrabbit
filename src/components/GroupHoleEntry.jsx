@@ -165,7 +165,7 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
       {showEndEarly && (
         <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 24, maxWidth: 320, width: "100%", textAlign: "center" }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: GOLD, marginBottom: 6, fontFamily: "monospace" }}>END BOTH MATCHES EARLY?</div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--gold-text)", marginBottom: 6, fontFamily: "monospace" }}>END BOTH MATCHES EARLY?</div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 20 }}>Remaining holes will be halved for both matches.</div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setShowEndEarly(false)} style={{ flex: 1, padding: "10px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: MUTED, fontSize: 12, cursor: "pointer" }}>Cancel</button>
@@ -181,7 +181,7 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
       <div style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, padding: "10px 12px", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <button onClick={onClose} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 7, color: "var(--muted2)", padding: "5px 10px", cursor: "pointer", fontSize: 11 }}>← Back</button>
-          <div style={{ fontSize: 9, color: GOLD, fontFamily: "monospace", letterSpacing: 1 }}>GROUP · {m0.teeTime}</div>
+          <div style={{ fontSize: 9, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 1 }}>GROUP · {m0.teeTime}</div>
         </div>
         <MatchBar m={m0} lead={runLead0} s={statuses[0]} mi={0} />
         <MatchBar m={m1} lead={runLead1} s={statuses[1]} mi={1} />
@@ -198,17 +198,17 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
 
       <div style={{ flex: 1, padding: "0 12px 0" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 12, padding: "10px", background: CARD, borderRadius: 12, border: `1px solid ${BORDER}` }}>
-          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>HOLE</div><div style={{ fontSize: 28, fontWeight: 900, color: GOLD, fontFamily: "monospace", lineHeight: 1 }}>{hole + 1}</div></div>
+          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>HOLE</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--gold-text)", fontFamily: "monospace", lineHeight: 1 }}>{hole + 1}</div></div>
           <div style={{ width: 1, background: BORDER }} />
           <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>PAR</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "monospace", lineHeight: 1 }}>{holePar}</div></div>
           <div style={{ width: 1, background: BORDER }} />
           <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>HCP IDX</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "monospace", lineHeight: 1 }}>{holeHcp}</div></div>
-          {strokeEntries.length > 0 && <><div style={{ width: 1, background: BORDER }} /><div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}><div style={{ fontSize: 8, color: GOLD, fontFamily: "monospace", letterSpacing: 1 }}>STROKE</div><div style={{ fontSize: 9, color: GOLD, marginTop: 1 }}>{strokeEntries.map(e => `${e.name}${e.strokes > 1 ? ` ×${e.strokes}` : ""}`).join(", ")}</div></div></>}
+          {strokeEntries.length > 0 && <><div style={{ width: 1, background: BORDER }} /><div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 1 }}>STROKE</div><div style={{ fontSize: 9, color: "var(--gold-text)", marginTop: 1 }}>{strokeEntries.map(e => `${e.name}${e.strokes > 1 ? ` ×${e.strokes}` : ""}`).join(", ")}</div></div></>}
         </div>
 
         {isComplete && (
           <div style={{ marginBottom: 10, background: `${GOLD}22`, border: `1px solid ${GOLD}55`, borderRadius: 12, padding: "12px 16px", textAlign: "center" }}>
-            <div style={{ fontSize: 14, fontWeight: 900, color: GOLD }}>BOTH MATCHES COMPLETE 🏆</div>
+            <div style={{ fontSize: 14, fontWeight: 900, color: "var(--gold-text)" }}>BOTH MATCHES COMPLETE 🏆</div>
           </div>
         )}
         {hasGap && (
@@ -246,7 +246,7 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
         </div>
 
         {!isComplete && (
-          <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${GOLD},${GOLD}aa)`, border: "none", borderRadius: 14, color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", boxShadow: `0 4px 18px ${GOLD}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
+          <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${GOLD},${GOLD}aa)`, border: "none", borderRadius: 14, color: "var(--on-gold)", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", boxShadow: `0 4px 18px ${GOLD}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
         )}
         {groupPosInRotation > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {((hole - 1 + 18) % 18) + 1}</button>}
         {!isComplete && <button onClick={() => setShowEndEarly(true)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid var(--faint)`, borderRadius: 10, color: "var(--muted)", fontSize: 10, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 20 }}>End Matches Early</button>}

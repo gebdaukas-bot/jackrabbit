@@ -14,7 +14,7 @@ export default function HcpModal({ match, isSingles, teamAColor, teamBColor, onS
       <div style={{fontSize:13,fontWeight:700,color}}>{label}</div>
       <div style={{display:"flex",alignItems:"center"}}>
         <button onClick={()=>setVals(v=>({...v,[field]:Math.round(Math.max(-10,v[field]-0.1)*10)/10}))} style={{width:32,height:34,fontSize:18,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:"var(--muted2-b)",cursor:"pointer"}}>−</button>
-        <div style={{width:56,height:34,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>{vals[field]<0?`+${Math.abs(vals[field]).toFixed(1)}`:Number(vals[field]).toFixed(1)}</div>
+        <div style={{width:56,height:34,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:900,color:"var(--gold-text)",fontFamily:"monospace"}}>{vals[field]<0?`+${Math.abs(vals[field]).toFixed(1)}`:Number(vals[field]).toFixed(1)}</div>
         <button onClick={()=>setVals(v=>({...v,[field]:Math.round(Math.min(36,v[field]+0.1)*10)/10}))} style={{width:32,height:34,fontSize:18,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:"var(--muted2-b)",cursor:"pointer"}}>+</button>
       </div>
     </div>
@@ -23,7 +23,7 @@ export default function HcpModal({ match, isSingles, teamAColor, teamBColor, onS
   return (
     <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:20,width:"100%",maxWidth:340}}>
-        <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:4,letterSpacing:1,fontFamily:"monospace"}}>SET HANDICAPS</div>
+        <div style={{fontSize:13,fontWeight:900,color:"var(--gold-text)",marginBottom:4,letterSpacing:1,fontFamily:"monospace"}}>SET HANDICAPS</div>
         <div style={{fontSize:11,color:"var(--muted)",marginBottom:14}}>Strokes given on lowest handicap index holes first</div>
         <Row label={match.player1a} field="hcp1a" color={teamAColor}/>
         {!isSingles && <Row label={match.player1b} field="hcp1b" color={teamAColor}/>}

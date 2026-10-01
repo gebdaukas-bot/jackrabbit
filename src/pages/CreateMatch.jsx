@@ -19,7 +19,7 @@ function HcpStepper({ value, onChange }) {
     <div style={{ display:"flex", alignItems:"center" }}>
       <button onClick={() => onChange(Math.max(-10, value - 1))}
         style={{ width:44, height:44, background:"none", border:`1px solid ${BORDER}`, borderRadius:"10px 0 0 10px", color:MUTED, cursor:"pointer", fontSize:20, lineHeight:1 }}>−</button>
-      <div style={{ width:56, height:44, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:800, color:GOLD, fontFamily:"monospace" }}>
+      <div style={{ width:56, height:44, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:800, color:"var(--gold-text)", fontFamily:"monospace" }}>
         {fmtHcp(value)}
       </div>
       <button onClick={() => onChange(Math.min(36, value + 1))}
@@ -272,7 +272,7 @@ export default function CreateMatch({ user }) {
           style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:8, padding:"5px 10px", color:MUTED, fontSize:11, cursor:"pointer" }}>
           ← Back
         </button>
-        <div style={{ flex:1, textAlign:"center", fontSize:13, fontWeight:900, color:GOLD, fontFamily:"monospace", letterSpacing:2 }}>
+        <div style={{ flex:1, textAlign:"center", fontSize:13, fontWeight:900, color:"var(--gold-text)", fontFamily:"monospace", letterSpacing:2 }}>
           {STEPS[step - 1].toUpperCase()}
         </div>
         <div style={{ display:"flex", gap:5 }}>

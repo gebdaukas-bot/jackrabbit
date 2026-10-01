@@ -78,7 +78,7 @@ export default function WatchPage() {
       <LiveBackground/>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "20px 14px 40px" }}>
         <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: GOLD, fontFamily: "monospace", letterSpacing: 2 }}>DORMIE · VIEW ONLY</div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 2 }}>DORMIE · VIEW ONLY</div>
           <div style={{ fontSize: 16, fontWeight: 900, marginTop: 4 }}>{meta.name}</div>
         </div>
 
@@ -89,9 +89,9 @@ export default function WatchPage() {
           <div style={{ background: "var(--panel-c)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "10px 14px", flexShrink: 0, minWidth: 100 }}>
             {st.state === "pending" && <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "monospace" }}>NOT STARTED</div>}
             {st.state === "live" && <><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace" }}>THRU {st.holesPlayed}</div><div style={{ fontSize: 22, fontWeight: 900, fontFamily: "monospace" }}>{!st.leader ? "AS" : `${st.up}UP`}</div></>}
-            {st.state === "extra" && <><div style={{ fontSize: 8, color: GOLD, fontFamily: "monospace" }}>PLAYOFF</div><div style={{ fontSize: 14, fontWeight: 900, fontFamily: "monospace" }}>{st.sublabel}</div></>}
+            {st.state === "extra" && <><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "monospace" }}>PLAYOFF</div><div style={{ fontSize: 14, fontWeight: 900, fontFamily: "monospace" }}>{st.sublabel}</div></>}
             {st.state === "halved" && <div style={{ fontSize: 12, fontWeight: 900, color: "var(--muted-b)", fontFamily: "monospace" }}>HALVED</div>}
-            {st.state === "complete" && <><div style={{ fontSize: 8, color: GOLD, fontFamily: "monospace", fontWeight: 700 }}>FINAL</div><div style={{ fontSize: 16, fontWeight: 900, fontFamily: "monospace" }}>{st.sublabel}</div></>}
+            {st.state === "complete" && <><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "monospace", fontWeight: 700 }}>FINAL</div><div style={{ fontSize: 16, fontWeight: 900, fontFamily: "monospace" }}>{st.sublabel}</div></>}
             {st.state === "gap" && <div style={{ fontSize: 9, color: "#e67e22", fontFamily: "monospace" }}>⚠ MISSING</div>}
           </div>
           <div style={{ flex: 1, background: sides.teamBColor, padding: "12px 14px", minWidth: 0, textAlign: "right" }}>
@@ -105,7 +105,7 @@ export default function WatchPage() {
         </div>
 
         {/* Hole by hole */}
-        <div style={{ fontSize: 9, color: GOLD, fontFamily: "monospace", letterSpacing: 2, opacity: 0.7, marginBottom: 6 }}>HOLE BY HOLE</div>
+        <div style={{ fontSize: 9, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 2, opacity: 0.7, marginBottom: 6 }}>HOLE BY HOLE</div>
         <HoleByHoleTable match={match} course={course} totalHoles={round.totalHoles || 18}
           teamAColor={sides.teamAColor} teamBColor={sides.teamBColorDisp}/>
         <div style={{ textAlign: "center", fontSize: 10, color: "var(--muted)", marginTop: 16, fontFamily: "monospace" }}>Updates live · view only</div>

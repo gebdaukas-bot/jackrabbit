@@ -42,7 +42,7 @@ export function WarmupRound({ round, scores, teamColorOf, canScore, onOpen }) {
 
   return (
     <div>
-      <div style={{ background: "var(--panel-d)", borderBottom: `1px solid ${BORDER}`, padding: "5px 10px", fontSize: 7, color: GOLD, fontFamily: "monospace", fontWeight: 700, textAlign: "center" }}>
+      <div style={{ background: "var(--panel-d)", borderBottom: `1px solid ${BORDER}`, padding: "5px 10px", fontSize: 7, color: "var(--gold-text)", fontFamily: "monospace", fontWeight: 700, textAlign: "center" }}>
         WARMUP · NO POINTS{round.course?.name ? ` · ${courseLabel(round.course).toUpperCase()}` : ""}
       </div>
       {groups.map((g, gi) => {
@@ -114,7 +114,7 @@ export function WarmupEntry({ round, group, scores, teamColorOf, onSaveHole, onC
       <div style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, padding: "10px 12px", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <button onClick={onClose} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 7, color: "var(--muted2)", padding: "5px 10px", cursor: "pointer", fontSize: 11 }}>← Back</button>
-          <div style={{ fontSize: 10, color: GOLD, fontFamily: "monospace", fontWeight: 800, letterSpacing: 1 }}>WARMUP{group.teeTime ? ` · ${group.teeTime}` : ""}</div>
+          <div style={{ fontSize: 10, color: "var(--gold-text)", fontFamily: "monospace", fontWeight: 800, letterSpacing: 1 }}>WARMUP{group.teeTime ? ` · ${group.teeTime}` : ""}</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
           {players.map(n => {

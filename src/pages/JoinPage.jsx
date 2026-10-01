@@ -36,7 +36,7 @@ export default function JoinPage({ user }) {
         {status === "joining" && (
           <>
             <div style={{ fontSize:36, marginBottom:12 }}>⛳</div>
-            <div style={{ fontSize:16, fontWeight:800, color:GOLD, fontFamily:"monospace", letterSpacing:2, marginBottom:8 }}>DORMIE</div>
+            <div style={{ fontSize:16, fontWeight:800, color:"var(--gold-text)", fontFamily:"monospace", letterSpacing:2, marginBottom:8 }}>DORMIE</div>
             <div style={{ fontSize:13, color:MUTED }}>Joining cup…</div>
           </>
         )}

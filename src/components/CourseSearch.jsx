@@ -116,7 +116,7 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
           <div>{notice.text}</div>
           {q && (
             <button onClick={estimate} disabled={!!busy}
-              style={{ marginTop: 8, padding: "6px 10px", background: "none", border: `1px solid ${GOLD}`, borderRadius: 6, color: GOLD, fontSize: 10, fontWeight: 800, cursor: "pointer", fontFamily: "monospace" }}>
+              style={{ marginTop: 8, padding: "6px 10px", background: "none", border: `1px solid ${GOLD}`, borderRadius: 6, color: "var(--gold-text)", fontSize: 10, fontWeight: 800, cursor: "pointer", fontFamily: "monospace" }}>
               ESTIMATE WITH AI
             </button>
           )}

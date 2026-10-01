@@ -3,7 +3,7 @@ import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 
 const DARK  = { BG:"#040d1c", CARD:"#08142b", CARD2:"#0b1a35", BORDER:"#0e2448", TEXT:"#ccd", MUTED:"#446", MUTED2:"#668" };
-const LIGHT = { BG:"#f4f6f9", CARD:"#ffffff", CARD2:"#eef1f7", BORDER:"#d8e0ed", TEXT:"#1a2a44", MUTED:"#7a8fa8", MUTED2:"#5a6e82" };
+const LIGHT = { BG:"#f4f6f9", CARD:"#ffffff", CARD2:"#eef1f7", BORDER:"#d8e0ed", TEXT:"#1a2a44", MUTED:"#5f6f86", MUTED2:"#4a5a70" };
 
 const ThemeContext = createContext(null);
 

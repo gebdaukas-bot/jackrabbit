@@ -34,16 +34,16 @@ export default function SeedPage({ user }) {
   return (
     <div style={{minHeight:"100vh",background:BG,color:TEXT,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{width:"100%",maxWidth:440}}>
-        <div style={{fontSize:20,fontWeight:900,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:4}}>CBS CUP MIGRATION</div>
+        <div style={{fontSize:20,fontWeight:900,color:"var(--gold-text)",fontFamily:"monospace",letterSpacing:2,marginBottom:4}}>CBS CUP MIGRATION</div>
         <div style={{fontSize:12,color:MUTED,marginBottom:24}}>One-time seed of CBS Ryder Cup 2026 data into the new platform structure. Run once as admin, then never again.</div>
 
         <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:20,marginBottom:16}}>
           <div style={{fontSize:11,color:MUTED,marginBottom:12}}>This will:</div>
           <ul style={{fontSize:11,color:TEXT,paddingLeft:18,lineHeight:2}}>
-            <li>Create <code style={{color:GOLD}}>cups/cbs-ryder-cup-2026/</code> with all metadata</li>
+            <li>Create <code style={{color:"var(--gold-text)"}}>cups/cbs-ryder-cup-2026/</code> with all metadata</li>
             <li>Copy players, matches, days, and course data</li>
-            <li>Migrate scores from old <code style={{color:GOLD}}>matches/m*</code> paths</li>
-            <li>Set invite code <code style={{color:GOLD}}>RYDERC26</code></li>
+            <li>Migrate scores from old <code style={{color:"var(--gold-text)"}}>matches/m*</code> paths</li>
+            <li>Set invite code <code style={{color:"var(--gold-text)"}}>RYDERC26</code></li>
             <li>Add the cup to your account</li>
           </ul>
         </div>
