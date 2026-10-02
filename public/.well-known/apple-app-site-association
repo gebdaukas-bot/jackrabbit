@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["5KK5SDB7A4.com.gebdaukas.dormie"],
+        "components": [
+          { "/": "/join/*", "comment": "Invite links open the app's join screen" },
+          { "/": "/watch/*", "comment": "View-only links open the cup's watch page" }
+        ]
+      }
+    ]
+  }
+}

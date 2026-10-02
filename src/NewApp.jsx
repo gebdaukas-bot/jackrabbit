@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { App as NativeApp } from "@capacitor/app";
 import { ThemeProvider } from "./context/ThemeContext";
 import { auth, onAuthStateChanged, isNative } from "./firebase";
 import { getRedirectResult } from "firebase/auth";
@@ -51,7 +52,21 @@ function AuthGate() {
   );
 }
 
+// Invite (/join/…) and watch (/watch/…) links on dormie-golf.vercel.app open the iOS
+// app when it's installed (Universal Links); route them to the same screen in-app.
+function useOpenedLinks() {
+  const nav = useNavigate();
+  useEffect(() => {
+    if (!isNative) return;
+    const sub = NativeApp.addListener("appUrlOpen", ({ url }) => {
+      try { const u = new URL(url); nav(u.pathname + u.search); } catch {}
+    });
+    return () => { sub.then(h => h.remove()); };
+  }, [nav]);
+}
+
 export default function NewApp() {
+  useOpenedLinks();
   return (
     <ThemeProvider>
       <AuthGate />
