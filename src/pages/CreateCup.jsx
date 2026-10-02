@@ -7,6 +7,7 @@ import { BUILT_IN_COURSES } from "../utils/courses";
 import { teamsToMeta, matchTeams, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import LiveBackground from "../components/LiveBackground";
 import CourseSearch from "../components/CourseSearch";
+import { isWarmup } from "../components/Warmup";
 import { courseFromTee } from "../utils/courseLookup";
 
 const FORMATS   = ["2v2 Best Ball", "Singles", "Scramble", "Shamble"];
@@ -17,6 +18,12 @@ const DAY_NAMES   = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturda
 function mkRound() {
   return { format:"2v2 Best Ball", courseName:"", par:[...DEFAULT_PAR], hcp:[...DEFAULT_HCP], matches:[] };
 }
+// A warmup has tee-time groups instead of matches and never scores points.
+function mkWarmup() {
+  return { ...mkRound(), format:"Warmup", id:`w${Date.now().toString(36)}`, groups:[{ teeTime:"", players:[] }] };
+}
+// Match ids encode the round in their hundreds digit; keep days well under that.
+const MAX_ROUNDS_PER_DAY = 4;
 function mkDay(n) {
   return { label:`Day ${n}`, rounds:[mkRound()] };
 }
@@ -249,9 +256,9 @@ function Step3({ data, setData }) {
     return {...d,days};
   });
 
-  const addRound = (di) => setData(d => {
+  const addRound = (di, warmup) => setData(d => {
     const days=[...d.days];
-    days[di]={...days[di], rounds:[...days[di].rounds, mkRound()]};
+    days[di]={...days[di], rounds:[...days[di].rounds, warmup ? mkWarmup() : mkRound()]};
     return {...d,days};
   });
 
@@ -298,13 +305,13 @@ function Step3({ data, setData }) {
             <div key={ri} style={{ background:"var(--panel-b)", border:`1px solid ${BORDER}`, borderRadius:10, padding:12, marginBottom:8 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:10, color:"var(--gold-text)", fontFamily:"monospace", letterSpacing:1 }}>
-                  {day.rounds.length > 1 ? `ROUND ${ri+1}` : "ROUND"}
+                  {day.rounds.length > 1 ? `ROUND ${ri+1}` : "ROUND"}{isWarmup(round) ? " · WARMUP · NO POINTS" : ""}
                 </div>
                 {day.rounds.length > 1 && (
                   <button onClick={()=>removeRound(di,ri)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:14, lineHeight:1 }}>×</button>
                 )}
               </div>
-              <div style={{ marginBottom:8 }}>
+              {!isWarmup(round) && <div style={{ marginBottom:8 }}>
                 <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"monospace" }}>FORMAT</div>
                 <div style={{ display:"flex", gap:6 }}>
                   {FORMATS.map(f=>(
@@ -314,7 +321,7 @@ function Step3({ data, setData }) {
                     </button>
                   ))}
                 </div>
-              </div>
+              </div>}
               <div>
                 <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"monospace" }}>COURSE NAME</div>
                 <input value={round.courseName} onChange={e=>updateRound(di,ri,"courseName",e.target.value)} placeholder="e.g. Pebble Beach Golf Links"
@@ -323,11 +330,15 @@ function Step3({ data, setData }) {
             </div>
           ))}
 
-          {day.rounds.length < 2 && (
-            <button onClick={()=>addRound(di)}
-              style={{ width:"100%", padding:"8px", background:"none", border:`1px dashed ${BORDER}`, borderRadius:8, color:MUTED, fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
-              + ADD ROUND
-            </button>
+          {day.rounds.length < MAX_ROUNDS_PER_DAY && (
+            <div style={{ display:"flex", gap:8 }}>
+              {[["+ ADD ROUND",false],["+ ADD WARMUP",true]].map(([label,warmup])=>(
+                <button key={label} onClick={()=>addRound(di,warmup)}
+                  style={{ flex:1, padding:"8px", background:"none", border:`1px dashed ${BORDER}`, borderRadius:8, color:MUTED, fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
+                  {label}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       ))}
@@ -635,7 +646,11 @@ function Step5({ data, setData }) {
           ))}
         </div>
       )}
-      {round.matches.map((m,mi)=>{
+      {isWarmup(round) && (
+        <WarmupGroups round={round} players={data.players} teams={data.teams}
+          onChange={groups=>mutateRound(r=>({...r, groups}))}/>
+      )}
+      {!isWarmup(round) && round.matches.map((m,mi)=>{
         const fmt=m.format||round.format;
         const isSingles=fmt==="Singles";
         return (
@@ -682,8 +697,51 @@ function Step5({ data, setData }) {
           </div>
         );
       })}
-      <button onClick={addMatch} style={{ width:"100%", padding:"10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:10, color:MUTED, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
+      {!isWarmup(round) && <button onClick={addMatch} style={{ width:"100%", padding:"10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:10, color:MUTED, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
         + ADD MATCH
+      </button>}
+    </div>
+  );
+}
+
+// Tee-time groups for a warmup round: any mix of teams, each player in one group.
+function WarmupGroups({ round, players, teams, onChange }) {
+  const { CARD2, BORDER, TEXT, MUTED } = useTheme();
+  const groups = round.groups || [];
+  const colorOf = name => teams.find(t=>t.id===players.find(p=>p.name===name)?.team)?.color || MUTED;
+  const setGroup = (gi, patch) => onChange(groups.map((g,k)=>k!==gi?g:{...g,...patch}));
+  return (
+    <div>
+      <div style={{ fontSize:11, color:MUTED, marginBottom:10, lineHeight:1.5 }}>Warmup rounds have no matches or points: set up tee-time groups and everyone keeps their own score.</div>
+      {groups.map((g,gi)=>{
+        const taken = new Set(groups.flatMap((x,k)=>k===gi?[]:x.players||[]));
+        const toggle = name => setGroup(gi, { players: g.players.includes(name) ? g.players.filter(n=>n!==name) : [...g.players, name] });
+        return (
+          <div key={gi} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:10, padding:10, marginBottom:8 }}>
+            <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:8 }}>
+              <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace" }}>GROUP {gi+1}</div>
+              <input value={g.teeTime} placeholder="Tee time" onChange={e=>setGroup(gi,{teeTime:e.target.value})}
+                style={{ flex:1, minWidth:0, padding:"6px 8px", background:"none", border:`1px solid ${BORDER}`, borderRadius:7, color:TEXT, fontSize:12, outline:"none" }}/>
+              {groups.length>1 && <button onClick={()=>onChange(groups.filter((_,k)=>k!==gi))}
+                style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:14, lineHeight:1 }}>×</button>}
+            </div>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+              {players.filter(p=>!taken.has(p.name)).map(p=>{
+                const on = g.players.includes(p.name);
+                return (
+                  <button key={p.name} onClick={()=>toggle(p.name)}
+                    style={{ padding:"5px 9px", background:on?GOLD:"none", border:`1px solid ${on?GOLD:BORDER}`, borderRadius:6, color:on?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:on?800:400, display:"flex", alignItems:"center", gap:5 }}>
+                    <span style={{ width:6, height:6, borderRadius:"50%", background:colorOf(p.name) }}/>{p.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+      <button onClick={()=>onChange([...groups,{teeTime:"",players:[]}])}
+        style={{ width:"100%", padding:"10px", background:"none", border:`1px dashed ${BORDER}`, borderRadius:10, color:MUTED, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
+        + ADD GROUP
       </button>
     </div>
   );
@@ -826,7 +884,9 @@ export default function CreateCup({ user }) {
       // Build Firebase days (rounds structure, no matches embedded)
       const daysMeta = data.days.map(day => ({
         label: day.label,
-        rounds: day.rounds.map(r => ({ format:r.format, course:{
+        rounds: day.rounds.map(r => ({ format:r.format,
+          ...(isWarmup(r) ? { id:r.id, pointValue:0, groups:(r.groups||[]).filter(g=>g.players.length) } : {}),
+          course:{
           name:r.courseName, par:r.par, hcp:r.hcp,
           ...(r.slope ? { slope:r.slope, rating:r.rating } : {}),
           ...(r.teeName ? { teeName:r.teeName } : {}),
