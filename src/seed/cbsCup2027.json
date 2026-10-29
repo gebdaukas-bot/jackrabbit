@@ -1,0 +1,142 @@
+{
+  "event": "CBS Ryder Cup 2027",
+  "location": "Sea Pines, Hilton Head, SC",
+  "dates": { "arrive": "2027-02-25", "rounds": ["2027-02-26", "2027-02-27", "2027-02-28"] },
+  "draft_rules": {
+    "teams": 4,
+    "players_per_team": 12,
+    "includes_captain": true,
+    "picks_total": 44,
+    "order": "snake",
+    "order_note": "pick order placeholder: White, Blue, Grey, Black (commissioner can change)",
+    "thirty_six_hole_rule": "20 players play 36 holes Saturday (4 captains + 16 others); each captain drafts exactly 4 of the 16 non-captain 36-hole players"
+  },
+  "handicap_notes": "handicap_value: plus handicaps are negative (+0.3 is -0.3). handicap_system GHIN = official index; other values (18Birdies, Grint, Italian Fed, Survey) are app-based or estimates.",
+  "teams": [
+    { "id": "white", "name": "Team White", "color": "#E8D9B0", "captain": "Geb Daukas" },
+    { "id": "blue", "name": "Team Blue", "color": "#1E4FA8", "captain": "Tyler Tam" },
+    { "id": "grey", "name": "Team Grey", "color": "#7F7F7F", "captain": "Tim Marino" },
+    { "id": "black", "name": "Team Black", "color": "#000000", "captain": "Christophe Strunc" }
+  ],
+  "rounds": [
+    {
+      "id": "friday", "day": "Fri 2/26", "course": "Heron Point", "format": "2v2_best_ball",
+      "description": "2v2 best ball, 4-player groups: players 1+2 (team A) vs players 3+4 (team B)",
+      "groups": [
+        { "group": 1, "tee_time": "10:03 AM", "matchup_label": "Team Blue vs Team Grey", "slot_teams": ["blue", "blue", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": { "player1": "Tyler Tam" } },
+        { "group": 2, "tee_time": "10:12 AM", "matchup_label": "Team Blue vs Team Grey", "slot_teams": ["blue", "blue", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 3, "tee_time": "10:21 AM", "matchup_label": "Team Blue vs Team Grey", "slot_teams": ["blue", "blue", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 4, "tee_time": "10:30 AM", "matchup_label": "Team Blue vs Team Grey", "slot_teams": ["blue", "blue", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 5, "tee_time": "10:39 AM", "matchup_label": "Team Blue vs Team Grey", "slot_teams": ["blue", "blue", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 6, "tee_time": "10:48 AM", "matchup_label": "Team Blue vs Team Grey", "slot_teams": ["blue", "blue", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 7, "tee_time": "10:57 AM", "matchup_label": "Team White vs Team Black", "slot_teams": ["white", "white", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": { "player1": "Geb Daukas" } },
+        { "group": 8, "tee_time": "11:06 AM", "matchup_label": "Team White vs Team Black", "slot_teams": ["white", "white", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 9, "tee_time": "11:15 AM", "matchup_label": "Team White vs Team Black", "slot_teams": ["white", "white", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 10, "tee_time": "11:24 AM", "matchup_label": "Team White vs Team Black", "slot_teams": ["white", "white", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 11, "tee_time": "11:33 AM", "matchup_label": "Team White vs Team Black", "slot_teams": ["white", "white", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 12, "tee_time": "11:42 AM", "matchup_label": "Team White vs Team Black", "slot_teams": ["white", "white", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} }
+      ]
+    },
+    {
+      "id": "saturday_am", "day": "Sat 2/27", "course": "Atlantic Dunes", "format": "36_hole_group_morning",
+      "description": "Groups 1-4 are 2v2 best ball; group 5 is two 1v1 matches (player 1 vs 2, player 3 vs 4), one player per team. Only the 20 Saturday 36-hole players play this round.",
+      "groups": [
+        { "group": 1, "tee_time": "7:30 AM", "matchup_label": "Team White vs Team Blue", "slot_teams": ["white", "white", "blue", "blue"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 2, "tee_time": "7:39 AM", "matchup_label": "Team White vs Team Grey", "slot_teams": ["white", "white", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 3, "tee_time": "7:48 AM", "matchup_label": "Team Grey vs Team Black", "slot_teams": ["grey", "grey", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 4, "tee_time": "7:57 AM", "matchup_label": "Team Blue vs Team Black", "slot_teams": ["blue", "blue", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 5, "tee_time": "8:06 AM", "matchup_label": "1v1: White, Blue, Grey, Black", "slot_teams": ["white", "blue", "grey", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} }
+      ]
+    },
+    {
+      "id": "saturday_pm", "day": "Sat 2/27", "course": "Atlantic Dunes", "format": "2v2_best_ball",
+      "description": "2v2 best ball, players 1+2 vs players 3+4. Groups continue numbering from the morning (6-17).",
+      "groups": [
+        { "group": 6, "tee_time": "12:09 PM", "matchup_label": "Team White vs Team Grey", "slot_teams": ["white", "white", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 7, "tee_time": "12:18 PM", "matchup_label": "Team White vs Team Grey", "slot_teams": ["white", "white", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 8, "tee_time": "12:27 PM", "matchup_label": "Team White vs Team Grey", "slot_teams": ["white", "white", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 9, "tee_time": "12:36 PM", "matchup_label": "Team White vs Team Grey", "slot_teams": ["white", "white", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 10, "tee_time": "12:45 PM", "matchup_label": "Team White vs Team Grey", "slot_teams": ["white", "white", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 11, "tee_time": "12:54 PM", "matchup_label": "Team White vs Team Grey", "slot_teams": ["white", "white", "grey", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": { "player1": "Geb Daukas" } },
+        { "group": 12, "tee_time": "1:03 PM", "matchup_label": "Team Blue vs Team Black", "slot_teams": ["blue", "blue", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": { "player1": "Tyler Tam" } },
+        { "group": 13, "tee_time": "1:12 PM", "matchup_label": "Team Blue vs Team Black", "slot_teams": ["blue", "blue", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 14, "tee_time": "1:21 PM", "matchup_label": "Team Blue vs Team Black", "slot_teams": ["blue", "blue", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 15, "tee_time": "1:30 PM", "matchup_label": "Team Blue vs Team Black", "slot_teams": ["blue", "blue", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 16, "tee_time": "1:39 PM", "matchup_label": "Team Blue vs Team Black", "slot_teams": ["blue", "blue", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 17, "tee_time": "1:48 PM", "matchup_label": "Team Blue vs Team Black", "slot_teams": ["blue", "blue", "black", "black"], "players": [null, null, null, null], "prefilled_in_tracker": {} }
+      ]
+    },
+    {
+      "id": "sunday", "day": "Sun 2/28", "course": "Harbour Town", "format": "1v1_singles",
+      "description": "Two 1v1 matches per group: player 1 vs player 2, player 3 vs player 4. Team colors alternate by slot.",
+      "groups": [
+        { "group": 1, "tee_time": "9:18 AM", "matchup_label": "Team Black vs Team Grey", "slot_teams": ["black", "grey", "black", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 2, "tee_time": "9:27 AM", "matchup_label": "Team Black vs Team Grey", "slot_teams": ["black", "grey", "black", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 3, "tee_time": "9:36 AM", "matchup_label": "Team Black vs Team Grey", "slot_teams": ["black", "grey", "black", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 4, "tee_time": "9:45 AM", "matchup_label": "Team Black vs Team Grey", "slot_teams": ["black", "grey", "black", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 5, "tee_time": "9:54 AM", "matchup_label": "Team Black vs Team Grey", "slot_teams": ["black", "grey", "black", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 6, "tee_time": "10:03 AM", "matchup_label": "Team Black vs Team Grey", "slot_teams": ["black", "grey", "black", "grey"], "players": [null, null, null, null], "prefilled_in_tracker": { "player1": "Christophe Strunc" } },
+        { "group": 7, "tee_time": "10:12 AM", "matchup_label": "Team White vs Team Blue", "slot_teams": ["white", "blue", "white", "blue"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 8, "tee_time": "10:21 AM", "matchup_label": "Team White vs Team Blue", "slot_teams": ["white", "blue", "white", "blue"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 9, "tee_time": "10:30 AM", "matchup_label": "Team White vs Team Blue", "slot_teams": ["white", "blue", "white", "blue"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 10, "tee_time": "10:39 AM", "matchup_label": "Team White vs Team Blue", "slot_teams": ["white", "blue", "white", "blue"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 11, "tee_time": "10:48 AM", "matchup_label": "Team White vs Team Blue", "slot_teams": ["white", "blue", "white", "blue"], "players": [null, null, null, null], "prefilled_in_tracker": {} },
+        { "group": 12, "tee_time": "10:57 AM", "matchup_label": "Team White vs Team Blue", "slot_teams": ["white", "blue", "white", "blue"], "players": [null, null, null, null], "prefilled_in_tracker": { "player1": "Geb Daukas" } }
+      ]
+    }
+  ],
+  "guests": [
+    { "name": "Henry Hartmann", "note": "2Y", "status": "Paid", "handicap": 0.3, "handicap_value": 0.3, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "George Crawford", "note": "J-Term", "status": "Paid", "handicap": 3.1, "handicap_value": 3.1, "handicap_system": "GHIN", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Spencer Hunt", "note": "2Y", "status": "Paid", "handicap": 4.5, "handicap_value": 4.5, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Tyler Tam", "note": "2Y", "status": "Paid", "handicap": 7.4, "handicap_value": 7.4, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": true },
+    { "name": "Geb Daukas", "note": "2Y", "status": "Paid", "handicap": 10.3, "handicap_value": 10.3, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": true },
+    { "name": "Christophe Strunc", "note": "2Y", "status": "Paid", "handicap": 10.7, "handicap_value": 10.7, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": true },
+    { "name": "Hunter Roggekamp", "note": "2Y", "status": "Paid", "handicap": 11.5, "handicap_value": 11.5, "handicap_system": "Grint", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Alex Jacobs", "note": "2Y", "status": "Paid", "handicap": 11.9, "handicap_value": 11.9, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Scott Rubinger", "note": "2Y", "status": "Paid", "handicap": 12.5, "handicap_value": 12.5, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Jake Kritzer", "note": "2Y", "status": "Paid", "handicap": 12.7, "handicap_value": 12.7, "handicap_system": "GHIN", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Ian Oprendek", "note": "+1", "status": "Paid", "handicap": 13.7, "handicap_value": 13.7, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Jason Hunter", "note": "J-Term", "status": "Paid", "handicap": 13.8, "handicap_value": 13.8, "handicap_system": "18Birdies", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Sushil Bhandaru", "note": "2Y", "status": "Paid", "handicap": 17.2, "handicap_value": 17.2, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Patrick Zhao", "note": "J-Term", "status": "Paid", "handicap": 18.4, "handicap_value": 18.4, "handicap_system": "18Birdies", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Destin Cassier", "note": "2Y", "status": "Paid", "handicap": 19.5, "handicap_value": 19.5, "handicap_system": "Grint", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Tyler Soutendijk", "note": "2Y", "status": "Paid", "handicap": 21.5, "handicap_value": 21.5, "handicap_system": "Grint", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Tom Dreher", "note": "2Y", "status": "Paid", "handicap": 22, "handicap_value": 22.0, "handicap_system": "18Birdies", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Phil Zanfagna", "note": "2Y", "status": "Paid", "handicap": 23.3, "handicap_value": 23.3, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Austin Laukoter", "note": "2Y", "status": "Paid", "handicap": 23.6, "handicap_value": 23.6, "handicap_system": "18Birdies", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Conor Mullins", "note": "2Y", "status": "Paid", "handicap": 23.9, "handicap_value": 23.9, "handicap_system": "GHIN", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Leopold Stroebel", "note": "J-Term", "status": "Paid", "handicap": 24.7, "handicap_value": 24.7, "handicap_system": "18Birdies", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Frank Anello", "note": "2Y", "status": "Paid", "handicap": 26, "handicap_value": 26.0, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Jonathan Mattos", "note": "J-Term", "status": "Paid", "handicap": 26.5, "handicap_value": 26.5, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Anthony Capobianco", "note": "2Y", "status": "Paid", "handicap": 36, "handicap_value": 36.0, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Ben Litt", "note": "2Y", "status": "Paid", "handicap": "+0.3", "handicap_value": -0.3, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Jamie Lombardi", "note": "CLS", "status": "Paid", "handicap": 6.6, "handicap_value": 6.6, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Peter Brandli", "note": "+1", "status": "Paid", "handicap": 10.2, "handicap_value": 10.2, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Jake Coran", "note": "2Y", "status": "Paid", "handicap": 13.7, "handicap_value": 13.7, "handicap_system": "GHIN", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Ryan Kimball", "note": "2Y", "status": "Paid", "handicap": 15, "handicap_value": 15.0, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Trent Wong", "note": "2Y", "status": "Paid", "handicap": 15, "handicap_value": 15.0, "handicap_system": "18Birdies", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Connor Ward", "note": "+1", "status": "Paid", "handicap": 16.1, "handicap_value": 16.1, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Tim Marino", "note": "2Y", "status": "Paid", "handicap": 18, "handicap_value": 18.0, "handicap_system": "Survey", "plays_36_saturday": true, "is_captain": true },
+    { "name": "Zach Townsend", "note": "2Y", "status": "Paid", "handicap": 19.1, "handicap_value": 19.1, "handicap_system": "18Birdies", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Sam Merson", "note": "1Y", "status": "Paid", "handicap": 26, "handicap_value": 26.0, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Raman Ananthanpillai", "note": "2Y", "status": "Paid", "handicap": 26.2, "handicap_value": 26.2, "handicap_system": "18Birdies", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Clark Sammartino", "note": "2Y", "status": "Paid", "handicap": 27.5, "handicap_value": 27.5, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Andy Cotter", "note": "1Y", "status": "Paid", "handicap": 28.2, "handicap_value": 28.2, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Colby Wagner", "note": "1Y", "status": "Paid", "handicap": 30.5, "handicap_value": 30.5, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Ford Thompson", "note": "J-Term", "status": "Paid", "handicap": 30.5, "handicap_value": 30.5, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Aaron Yong", "note": "2Y", "status": "Paid", "handicap": 35, "handicap_value": 35.0, "handicap_system": "Survey", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Robbie Hugin", "note": "2Y", "status": "Paid", "handicap": 36, "handicap_value": 36.0, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Stefano Watchi", "note": "2Y", "status": "Paid", "handicap": "36*", "handicap_value": 36.0, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Russell Seeger", "note": "2Y", "status": "Paid", "handicap": 36, "handicap_value": 36.0, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Blake Grote", "note": "2Y", "status": "Requested", "handicap": 32, "handicap_value": 32.0, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Naman Shah", "note": "2Y", "status": "Requested", "handicap": 3.1, "handicap_value": 3.1, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Gabe Tishman", "note": "2Y", "status": "Requested", "handicap": 4.9, "handicap_value": 4.9, "handicap_system": "GHIN", "plays_36_saturday": true, "is_captain": false },
+    { "name": "Gian Fedele Ferrari", "note": "J-Term", "status": "Requested", "handicap": 5.6, "handicap_value": 5.6, "handicap_system": "Italian Fed", "plays_36_saturday": false, "is_captain": false },
+    { "name": "Chris Uribe", "note": "2Y", "status": "Requested", "handicap": 7, "handicap_value": 7.0, "handicap_system": "Survey", "plays_36_saturday": false, "is_captain": false }
+  ],
+  "saturday_36_hole_players": [
+    "Christophe Strunc", "Tyler Tam", "Geb Daukas", "Tim Marino", "Ben Litt", "Henry Hartmann", "Naman Shah", "Spencer Hunt", "Gabe Tishman", "Jamie Lombardi",
+    "Peter Brandli", "Alex Jacobs", "Scott Rubinger", "Ian Oprendek", "Ryan Kimball", "Connor Ward", "Sushil Bhandaru", "Tom Dreher", "Austin Laukoter", "Aaron Yong"
+  ]
+}
