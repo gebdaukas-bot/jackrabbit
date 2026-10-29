@@ -6,7 +6,7 @@ Everything below goes into App Store Connect → your app. Character limits are 
 
 | Field | Value | Notes |
 |---|---|---|
-| Name (30) | **Dormie** | If taken, use **Dormie: Golf Match Play** (23) |
+| Name (30) | **Dormie: Golf Match Play** (23) | "Dormie" was taken. Home-screen name is still "Dormie" |
 | Subtitle (30) | **Match play scoring for trips** (28) | Avoid "Ryder Cup" — it's a trademark |
 | Bundle ID | `com.gebdaukas.dormie` | |
 | SKU | `dormie-ios-1` | Internal only, anything unique |

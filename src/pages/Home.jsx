@@ -4,7 +4,7 @@ import { useTheme } from "../context/ThemeContext";
 import { getTeams } from "../utils/teams";
 import { joinCup } from "../utils/joinCup";
 import { auth, signOut, db, ref, onValue, set, isNative } from "../firebase";
-import { deleteUser } from "firebase/auth";
+import { deleteUser, OAuthProvider, reauthenticateWithCredential, revokeAccessToken } from "firebase/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { GOLD } from "../utils/scoring";
 import LiveBackground from "../components/LiveBackground";
@@ -49,6 +49,14 @@ export default function Home({ user }) {
   const handleDeleteAccount = async () => {
     setAccountError("");
     try {
+      // Apple also requires revoking Sign in with Apple on deletion. A fresh Apple
+      // sign-in gives the authorization code to revoke with, and doubles as the
+      // recent login deleteUser() needs.
+      if (isNative && user.providerData.some(p => p.providerId === "apple.com")) {
+        const { credential } = await FirebaseAuthentication.signInWithApple();
+        await reauthenticateWithCredential(user, new OAuthProvider("apple.com").credential({ idToken: credential?.idToken, rawNonce: credential?.nonce }));
+        if (credential?.authorizationCode) await revokeAccessToken(auth, credential.authorizationCode);
+      }
       await set(ref(db, `users/${user.uid}`), null);
       await deleteUser(user);
       if (isNative) await FirebaseAuthentication.signOut().catch(() => {});
