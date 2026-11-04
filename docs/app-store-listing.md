@@ -78,13 +78,12 @@ golf,match play,golf trip,scorecard,best ball,scramble,handicap,team golf,leader
 
 ## App Review information
 
-- **Sign-in required: Yes.** Apple's reviewer must be able to get in without your Google or Apple account. Create a demo login:
-  1. Sign up in the app with the **Email** tab, e.g. `dormie.review@gmail.com` + a password (a real inbox you control).
-  2. Create a demo cup with made-up player names, a couple of matches and some scores entered, so the reviewer sees the live board.
-  3. Put the email + password in **Sign-in information**.
+- **Sign-in required: Yes.** Demo login (email sign-in, owns the demo cup):
+  - Username: `gebdaukas+dormiereview@gmail.com`
+  - Password: in `~/Desktop/Dormie App Store/scripts/demo-cred.json`
 - **Notes for the reviewer** (paste):
 
-> Dormie scores golf match play for groups. Sign in with the demo account above, then open "Demo Cup" from the home screen. The Board tab shows live matches; tap a match to enter hole-by-hole scores. "Delete account" is at the bottom of the home screen. Scorecard scanning (Create Cup → Courses → scan) uses the camera or photo library to read a printed scorecard.
+> Dormie scores golf match play for groups. Tap "Email" on the sign-in screen and use the demo account above. Open "Lakeside Cup" from the home screen; it's a demo trip with made-up players. The Board tab shows live matches. "My Match" → "Enter Scores" opens hole-by-hole score entry for the demo player's match. "Delete account" is at the bottom of the home screen; please don't delete the demo account, since it owns the demo cup. Scorecard scanning (Create Cup → course step → scan) uses the camera or photo library to read a printed scorecard.
 
 - Contact: your name, phone, and gebdaukas@gmail.com.
 
@@ -105,16 +104,16 @@ Everything else: **Not collected**. Tracking: **No**.
 
 ## Screenshots
 
-Required: **6.9" iPhone** set (1320 × 2868), 3–10 images. Apple scales these for smaller iPhones.
+Required: **iPhone with Dynamic Island (medium display)**, 1206 × 2622 (or 1179 × 2556), 3–10 images. Apple changed this in 2026; 1320 × 2868 is rejected there.
 
-Use the demo cup (made-up names), not a real one. Real friends' names shouldn't go in the store. Suggested order:
+Taken from the demo cup (made-up names), in `~/Desktop/Dormie App Store/screenshots-1206x2622`. Upload order:
 
-1. Board: live matches with team points
-2. Score entry: a match mid-round
-3. Hole-by-hole scorecard
-4. Scores tab: individual leaderboard
-5. Cup setup: course search / pairings
-6. Light mode version of the board
+1. `1-board-live.png`: live board with team points
+2. `6-score-entry.png`: entering a hole
+3. `3-my-match.png`
+4. `2-friday-results.png`
+5. `4-scores.png`: individual scores
+6. `5-home.png`
 
 ## Build settings already done in the project
 
@@ -122,12 +121,11 @@ Use the demo cup (made-up names), not a real one. Real friends' names shouldn't 
 - Camera and photo library usage strings
 - `ITSAppUsesNonExemptEncryption = NO` (skips the export compliance question)
 - Sign in with Apple, Associated Domains (invite links) entitlements
-- Version 1.0, build 1
+- Version 1.0, build 2 (adds Apple token revocation on account deletion)
 
 ## Still to do before submitting
 
-- [ ] Developer Program approval → set the real Team in Xcode
-- [ ] Replace the Team ID in `public/.well-known/apple-app-site-association` if the paid team's ID differs from `5KK5SDB7A4`
-- [ ] Create the app record in App Store Connect (My Apps → +), using the bundle ID above
-- [ ] Demo account + demo cup, then screenshots from it
-- [ ] Archive in Xcode → upload → TestFlight test on your phone → submit
+- [x] Developer Program, Team ID confirmed (`5KK5SDB7A4`)
+- [x] App record created, builds 1 and 2 uploaded, tested via TestFlight
+- [x] Demo account + demo cup + screenshots
+- [ ] Fill in the listing, App Privacy and review info, select build 2, submit
