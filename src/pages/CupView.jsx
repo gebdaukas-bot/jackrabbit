@@ -1476,6 +1476,10 @@ export default function CupView({ user }) {
                   <div style={{fontSize:9,fontWeight:900,color:`${txt}88`,fontFamily:"monospace",width:14,flexShrink:0}}>{rank}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontSize:11,fontWeight:900,color:txt,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.team.name}</div>
+                    {/* What this team needs to be sure of the cup — no fixed
+                        target exists with 3+ teams, so each gets its own. */}
+                    {!winner&&(r.out||r.toWin!=null)&&
+                      <div style={{fontSize:8,color:`${txt}99`,fontFamily:"monospace",letterSpacing:1,marginTop:2}}>{r.out?"ELIMINATED":`WIN: ${fmt(r.toWin)}`}</div>}
                   </div>
                   <div style={{fontSize:9,color:`${txt}99`,fontFamily:"monospace",whiteSpace:"nowrap",flexShrink:0}}>proj {fmt(r.proj)}</div>
                   <div style={{fontSize:24,fontWeight:900,color:txt,fontFamily:"monospace",lineHeight:1,minWidth:40,textAlign:"right",flexShrink:0}}>{fmt(r.actual)}</div>

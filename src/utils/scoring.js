@@ -137,6 +137,8 @@ export function computeAllPoints(days, teams) {
   // Points still on the table for each team — what it could add if it won every
   // one of its matches that hasn't finished yet.
   const remaining = Object.fromEntries(ids.map(id => [id, 0]));
+  // The same, split by opponent: remainingVs[a][b] is what's left between a and b.
+  const remainingVs = Object.fromEntries(ids.map(id => [id, Object.fromEntries(ids.map(o => [o, 0]))]));
   let totalPoints = 0;
 
   for (const day of days) for (const m of day.matches) {
@@ -160,6 +162,7 @@ export function computeAllPoints(days, teams) {
       credit(proj,   aId, pv/2); credit(proj,   bId, pv/2);
     } else {
       credit(remaining, aId, pv); credit(remaining, bId, pv);
+      if (aId !== bId) { remainingVs[aId][bId] += pv; remainingVs[bId][aId] += pv; }
       if (s.state === "live" || s.state === "gap") {
         if (s.leader === "A")      credit(proj, aId, pv);
         else if (s.leader === "B") credit(proj, bId, pv);
@@ -167,13 +170,13 @@ export function computeAllPoints(days, teams) {
       }
     }
   }
-  return { actual, proj, remaining, totalPoints };
+  return { actual, proj, remaining, remainingVs, totalPoints };
 }
 
 // Teams ordered for the standings board: most points first, then projected, then
 // cup order so the list never jitters between equal teams.
 export function standings(days, teams) {
-  const { actual, proj, remaining, totalPoints } = computeAllPoints(days, teams);
+  const { actual, proj, remaining, remainingVs, totalPoints } = computeAllPoints(days, teams);
   const rows = teams.map((t, i) => ({
     team: t, actual: actual[t.id] || 0, proj: proj[t.id] || 0,
     // The most this team can still finish on.
@@ -192,11 +195,32 @@ export function standings(days, teams) {
   const projWinner = winner ? null
     : byProj.length > 1 && byProj[0].proj > byProj[1].proj ? byProj[0].team : null;
 
-  // The classic "WIN: 14.5" target is only meaningful head-to-head, where half
-  // the points plus a half wins it. With three or four teams what it takes to
-  // clinch depends on who still plays whom, so the board just omits the target
-  // and relies on `winner` above.
+  // The classic "WIN: 14.5" target: half the points plus a half wins it head-to-head.
   const winTarget = teams.length === 2 ? totalPoints / 2 + 0.5 : null;
 
+  // With three or four teams there is no fixed number, so each team gets its own:
+  // `toWin` is the total that guarantees the cup however the rest goes, and
+  // `out` means it can no longer finish level with the leader.
+  for (const r of rows) {
+    r.toWin = clinchTarget(r, rows, remaining[r.team.id] || 0, remainingVs[r.team.id] || {});
+    r.out = rows.some(o => o !== r && o.actual > r.ceiling);
+  }
+
   return { rows, totalPoints, winner, projWinner, winTarget };
+}
+
+// The fewest points team `r` must add to be sure of the cup, as a total, or null
+// if no haul of its own is enough (it also needs other results to go its way).
+//
+// Against each rival the worst case is that r's points come from matches against
+// other teams, leaving that rival's ceiling untouched; only once those run out do
+// r's points (from beating the rival head-to-head) also come off the rival's best.
+// Two teams reduce to the familiar half-plus-a-half.
+function clinchTarget(r, rows, left, leftVs) {
+  for (let x = 0; x <= left; x += 0.5) {
+    const safe = rows.every(o => o === r ||
+      r.actual + x > o.ceiling - Math.max(0, x - (left - (leftVs[o.team.id] || 0))));
+    if (safe) return r.actual + x;
+  }
+  return null;
 }
