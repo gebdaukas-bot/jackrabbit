@@ -12,7 +12,27 @@
     },
     "FirebaseAuthentication": {
       "skipNativeAuth": true,
-      "providers": ["google.com", "apple.com"]
+      "providers": [
+        "google.com",
+        "apple.com"
+      ]
+    },
+    "FirebaseMessaging": {
+      "presentationOptions": [
+        "alert",
+        "sound"
+      ]
+    }
+  },
+  "experimental": {
+    "ios": {
+      "spm": {
+        "packageOptions": {
+          "@capacitor-firebase/messaging": {
+            "symlink": true
+          }
+        }
+      }
     }
   }
 }

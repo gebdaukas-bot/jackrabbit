@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { getTeams } from "../utils/teams";
 import { joinCup } from "../utils/joinCup";
-import { auth, signOut, db, ref, onValue, set, isNative } from "../firebase";
+import { auth, signOut, db, ref, onValue, set, get, isNative } from "../firebase";
 import { deleteUser, OAuthProvider, reauthenticateWithCredential, revokeAccessToken } from "firebase/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { GOLD } from "../utils/scoring";
@@ -57,6 +57,9 @@ export default function Home({ user }) {
         await reauthenticateWithCredential(user, new OAuthProvider("apple.com").credential({ idToken: credential?.idToken, rawNonce: credential?.nonce }));
         if (credential?.authorizationCode) await revokeAccessToken(auth, credential.authorizationCode);
       }
+      // Drop this account's notification sign-ups along with its cup list.
+      const cups = (await get(ref(db, `users/${user.uid}/cups`))).val() || {};
+      await Promise.all(Object.keys(cups).map(id => set(ref(db, `pushSubs/${id}/${user.uid}`), null).catch(() => {})));
       await set(ref(db, `users/${user.uid}`), null);
       await deleteUser(user);
       if (isNative) await FirebaseAuthentication.signOut().catch(() => {});

@@ -52,6 +52,22 @@
       }
     },
 
+    // Push notification sign-ups: the phones (FCM tokens) each member wants a
+    // cup's notifications on. Only you can see or change your own, and only for
+    // a cup you belong to. api/notify.js reads them with admin access.
+    "pushSubs": {
+      "$cupId": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && (!newData.exists() || root.child('users/' + auth.uid + '/cups/' + $cupId).exists() || root.child('cups/' + $cupId + '/meta/createdBy').val() === auth.uid)",
+          "$token": { ".validate": "newData.val() === true" }
+        }
+      }
+    },
+
+    // What api/notify.js has already sent, per cup. Server-only.
+    "pushSent": { ".read": false, ".write": false },
+
     // Shared course lookup cache (see src/utils/courseLookup.js).
     "courseCache": {
       ".read": "auth != null",

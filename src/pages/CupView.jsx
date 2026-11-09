@@ -11,6 +11,7 @@ import HoleByHoleTable from "../components/HoleByHoleTable";
 import CourseSearch from "../components/CourseSearch";
 import { isWarmup, warmupKey, WarmupRound, WarmupEntry } from "../components/Warmup";
 import { joinCup } from "../utils/joinCup";
+import { pushSupported, pushPref, enablePush, disablePush, refreshPush, notifyCup } from "../utils/push";
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
@@ -1180,6 +1181,7 @@ export default function CupView({ user }) {
 
   useEffect(()=>{
     if (!meta) return;
+    let finishedNow=false;
     for (const day of days) for (const m of day.matches){
       const sides=cupSidesFor(getTeams(meta),m);
       const s=computeMatchStatus(m.scores,sides.teamAName,sides.teamBName,m.startHole||0,day.rounds?.[m.roundIdx??0]?.totalHoles||18);
@@ -1190,9 +1192,30 @@ export default function CupView({ user }) {
         if (celebTimer.current) clearTimeout(celebTimer.current);
         celebTimer.current=setTimeout(()=>setMatchCelebration(null),1500);
       }
+      const done=st=>st==="complete"||st==="halved";
+      if (prev!==undefined&&!done(prev)&&done(s.state)) finishedNow=true;
       prevMatchStates.current[m.id]=s.state;
     }
+    // A match just finished: have the server send its notifications (and the
+    // day's or cup's, if this was the one that decided them).
+    if (finishedNow) notifyCup(cupId);
   },[days,meta]);
+
+  // This phone's notification sign-up for the cup: "on", "off", or null (not asked yet).
+  const [pushState,setPushState]=useState(()=>pushSupported?pushPref(cupId):"off");
+  const togglePush=async on=>{
+    if (on) setPushState(await enablePush(user.uid,cupId).catch(()=>false)?"on":"off");
+    else { await disablePush(user.uid,cupId); setPushState("off"); }
+  };
+
+  // On opening the cup, catch up on any notifications missed while every
+  // scorer's phone was offline, and keep this phone's sign-up current.
+  const canNotify = loaded&&!!meta&&(isMember||meta?.createdBy===user?.uid);
+  useEffect(()=>{
+    if (!canNotify) return;
+    notifyCup(cupId);
+    refreshPush(user.uid,cupId);
+  },[canNotify,cupId]);
 
   useEffect(()=>{ try{if(currentPlayer)localStorage.setItem(`jr_player_${cupId}`,currentPlayer);else localStorage.removeItem(`jr_player_${cupId}`);}catch{} },[currentPlayer,cupId]);
 
@@ -1376,6 +1399,8 @@ export default function CupView({ user }) {
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
               {offlineQueue.length>0&&<div style={{fontSize:8,color:"#f39c12",fontFamily:"monospace",fontWeight:700}}>⚡{offlineQueue.length}</div>}
               {syncStatus==="synced"&&<div style={{fontSize:8,color:"#4caf50",fontFamily:"monospace"}}>✓</div>}
+              {pushSupported&&<button onClick={()=>togglePush(pushState!=="on")} aria-label={pushState==="on"?"Turn off notifications":"Turn on notifications"}
+                style={{fontSize:14,background:"none",border:"none",cursor:"pointer",padding:"1px 4px",lineHeight:1,opacity:pushState==="on"?1:0.45}}>{pushState==="on"?"🔔":"🔕"}</button>}
               <button onClick={toggle} style={{fontSize:14,background:"none",border:"none",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>{theme==="dark"?"☀️":"🌙"}</button>
               <button onClick={()=>setCurrentPlayer("")} style={{fontSize:9,padding:"3px 8px",background:`${playerTeamColor}22`,border:`1px solid ${playerTeamColor}55`,borderRadius:5,color:TEXT,cursor:"pointer",fontFamily:"monospace",whiteSpace:"nowrap"}}>
                 👤 {currentPlayer} ✕
@@ -1385,6 +1410,17 @@ export default function CupView({ user }) {
         </div>
 
         {winner&&<div style={{background:`${GOLD}22`,borderTop:`1px solid ${GOLD}44`,borderBottom:`1px solid ${GOLD}44`,padding:"7px",textAlign:"center"}}><div style={{fontSize:14,fontWeight:900,color:"var(--gold-text)",letterSpacing:2}}>🏆 {winner} {meta.eventType==="live_match"?"WINS THE MATCH!":"WINS THE CUP!"}</div></div>}
+
+        {/* One-time offer of notifications, until this phone says yes or no
+            (the bell in the header changes it later). */}
+        {pushSupported&&pushState===null&&(
+          <div style={{display:"flex",alignItems:"center",gap:8,background:"var(--panel-c)",borderBottom:`1px solid ${BORDER}`,padding:"8px 10px"}}>
+            <div style={{fontSize:16}}>🔔</div>
+            <div style={{flex:1,fontSize:11,color:TEXT,lineHeight:1.35}}>Get notified as each match finishes, with standings at the end of every day.</div>
+            <button onClick={()=>togglePush(true)} style={{fontSize:10,fontWeight:900,padding:"6px 10px",background:GOLD,border:"none",borderRadius:6,color:"#000",cursor:"pointer",fontFamily:"monospace",whiteSpace:"nowrap"}}>TURN ON</button>
+            <button onClick={()=>togglePush(false)} aria-label="No thanks" style={{fontSize:12,background:"none",border:"none",color:MUTED,cursor:"pointer",padding:"4px"}}>✕</button>
+          </div>
+        )}
 
         {/* Big scoreboard — cups only */}
         {meta.eventType!=="live_match"&&twoTeam&&(()=>{

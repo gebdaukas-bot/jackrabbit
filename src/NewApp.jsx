@@ -13,6 +13,7 @@ import SeedPage from "./pages/SeedPage";
 import JoinPage from "./pages/JoinPage";
 import WatchPage from "./pages/WatchPage";
 import Privacy from "./pages/Privacy";
+import { onPushTapped } from "./utils/push";
 
 function AuthGate() {
   const [user, setUser] = useState(undefined); // undefined = loading
@@ -54,6 +55,7 @@ function AuthGate() {
 
 // Invite (/join/…) and watch (/watch/…) links on dormie-golf.vercel.app open the iOS
 // app when it's installed (Universal Links); route them to the same screen in-app.
+// Tapping a notification opens its cup the same way.
 function useOpenedLinks() {
   const nav = useNavigate();
   useEffect(() => {
@@ -61,7 +63,8 @@ function useOpenedLinks() {
     const sub = NativeApp.addListener("appUrlOpen", ({ url }) => {
       try { const u = new URL(url); nav(u.pathname + u.search); } catch {}
     });
-    return () => { sub.then(h => h.remove()); };
+    const unsubPush = onPushTapped(nav);
+    return () => { sub.then(h => h.remove()); unsubPush(); };
   }, [nav]);
 }
 

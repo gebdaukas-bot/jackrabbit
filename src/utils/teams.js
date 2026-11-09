@@ -11,7 +11,7 @@
 // getTeams() synthesizes the array from those, so old cups read correctly with
 // no migration and no re-seeding.
 
-import { inkOnLight } from "./color";
+import { inkOnLight } from "./color.js";
 
 export const MAX_TEAMS = 4;
 export const TEAM_IDS = ["A", "B", "C", "D"];
