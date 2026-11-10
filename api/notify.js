@@ -10,6 +10,9 @@ import { assembleDays, cupEvents } from "../src/utils/cupEvents.js";
 // is worked out here from the database, never taken from the caller, and
 // pushSent/{cupId} records what's gone out so each one is sent exactly once.
 
+// Cups created from here on announce everything from their first result.
+const PUSH_LAUNCH = Date.UTC(2026, 10, 9);
+
 function admin() {
   if (!getApps().length) initializeApp({
     credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
@@ -37,9 +40,9 @@ export default async function handler(req, res) {
     const events = cupEvents(cup.meta, assembleDays(cup.days, cup.matches, cup.scores));
     const sentRef = db.ref(`pushSent/${cupId}`);
 
-    // The first call for a cup only records what has already happened, so
-    // turning this on doesn't replay a cup's whole history.
-    if (!(await sentRef.get()).exists()) {
+    // The first call for a cup that predates notifications only records what
+    // has already happened, so turning this on doesn't replay its history.
+    if (!(cup.meta.createdAt >= PUSH_LAUNCH) && !(await sentRef.get()).exists()) {
       await sentRef.set({ _start: Date.now(), ...Object.fromEntries(events.map(e => [e.key, true])) });
       return res.status(200).json({ sent: 0 });
     }
