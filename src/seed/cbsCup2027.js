@@ -4,17 +4,17 @@
  * Builds the cup from cbsCup2027.json (the trip sheet export), as a four-team cup:
  * White / Blue / Grey / Black. Run from /seed as the admin.
  *
- * The draft hasn't happened yet, so only the captains are on a team and every
- * group's player slots come from the sheet (null → empty slot). After the draft,
- * fill in `players` (and team on each guest) in the JSON and run the seed again:
- * a re-run rewrites players + matches only, keeping meta and days (so course
- * edits made in the app survive), and refuses once any score has been entered.
+ * The draft hasn't happened yet, so only the captains are on a team and most
+ * player slots are empty. After the draft, fill in the players (and `team` on
+ * each guest) in the JSON and run the seed again: a re-run rewrites players +
+ * matches only, keeping meta and days (so course edits made in the app
+ * survive), and refuses once any score has been entered.
  *
  * Match IDs follow the app scheme m${(dayIdx+1)*1000 + (roundIdx+1)*100 + n}:
- *   Fri          m1101–m1112  (best ball)
- *   Sat AM       m2101–m2104  (best ball) + m2105/m2106 (group 5: two singles)
- *   Sat PM       m2201–m2212  (best ball)
- *   Sun          m3101–m3124  (two singles per group, paired as companions)
+ *   Fri          m1101–m1112  (best ball, sheet matches 1–12)
+ *   Sat AM       m2101–m2106  (best ball, 13–18: every team plays each other once)
+ *   Sat PM       m2201–m2212  (best ball, 19–30)
+ *   Sun          m3101–m3124  (singles, 31–54; each tee time's two share a group)
  */
 
 import { db, ref, set, get } from "../firebase";
@@ -28,7 +28,7 @@ export const CBS_2027_INVITE_CODE = "RYDERC27";
 const placeholderCourse = name => ({ name, par: Array(18).fill(4), hcp: Array.from({ length: 18 }, (_, i) => i + 1) });
 
 const roundById = id => sheet.rounds.find(r => r.id === id);
-const fri = roundById("friday"), satAm = roundById("saturday_am"), satPm = roundById("saturday_pm"), sun = roundById("sunday");
+const fri = roundById("fri"), satAm = roundById("sat_am"), satPm = roundById("sat_pm"), sun = roundById("sun");
 
 const days = [
   { label: "Friday — Fourballs", rounds: [{ format: "2v2 Best Ball", course: placeholderCourse(fri.course) }] },
@@ -42,30 +42,35 @@ const days = [
 const captainTeam = Object.fromEntries(sheet.teams.map(t => [t.captain, t.id]));
 const hcpOf = name => sheet.guests.find(g => g.name === name)?.handicap_value ?? 0;
 
-// Slot i of a group: the drafted player, else the tracker's prefill (slot 0 only).
-const slot = (g, i) => g.players[i] || (i === 0 ? g.prefilled_in_tracker?.player1 : null) || null;
+// "2027-02-26T13:03" → "1:03 PM"; a TBD tee time stays blank.
+function teeTime(iso) {
+  if (!iso) return "";
+  const [h, m] = iso.slice(11, 16).split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+}
+
+const slot = name => ({ name: name || "", hcp: name ? hcpOf(name) : 0 });
 
 function bestBall(g) {
-  const [p1a, p1b, p2a, p2b] = [0, 1, 2, 3].map(i => slot(g, i));
+  const m = g.matches[0];
+  const [a1, a2] = [0, 1].map(i => slot(m.team1_players[i]));
+  const [b1, b2] = [0, 1].map(i => slot(m.team2_players[i]));
   return {
-    teeTime: g.tee_time, format: "2v2 Best Ball",
-    teamA: g.slot_teams[0], teamB: g.slot_teams[2],
-    player1a: p1a || "", hcp1a: p1a ? hcpOf(p1a) : 0,
-    player1b: p1b || "", hcp1b: p1b ? hcpOf(p1b) : 0,
-    player2a: p2a || "", hcp2a: p2a ? hcpOf(p2a) : 0,
-    player2b: p2b || "", hcp2b: p2b ? hcpOf(p2b) : 0,
+    teeTime: teeTime(g.tee_time), format: "2v2 Best Ball",
+    teamA: m.team1, teamB: m.team2,
+    player1a: a1.name, hcp1a: a1.hcp, player1b: a2.name, hcp1b: a2.hcp,
+    player2a: b1.name, hcp2a: b1.hcp, player2b: b2.name, hcp2b: b2.hcp,
     companionId: null,
   };
 }
 
-// Slots i and i+1 of a group as one singles match.
-function single(g, i, companionId) {
-  const a = slot(g, i), b = slot(g, i + 1);
+function single(g, m, companionId) {
+  const a = slot(m.player1), b = slot(m.player2);
   return {
-    teeTime: g.tee_time, format: "Singles",
-    teamA: g.slot_teams[i], teamB: g.slot_teams[i + 1],
-    player1a: a || "", hcp1a: a ? hcpOf(a) : 0, player1b: null, hcp1b: 0,
-    player2a: b || "", hcp2a: b ? hcpOf(b) : 0, player2b: null, hcp2b: 0,
+    teeTime: teeTime(g.tee_time), format: "Singles",
+    teamA: m.team1, teamB: m.team2,
+    player1a: a.name, hcp1a: a.hcp, player1b: null, hcp1b: 0,
+    player2a: b.name, hcp2a: b.hcp, player2b: null, hcp2b: 0,
     companionId,
   };
 }
@@ -73,19 +78,12 @@ function single(g, i, companionId) {
 function buildMatches() {
   const matches = {};
   fri.groups.forEach((g, i) => { matches[`m${1101 + i}`] = bestBall(g); });
-  satAm.groups.forEach((g, i) => {
-    if (g.slot_teams[0] === g.slot_teams[1]) matches[`m${2101 + i}`] = bestBall(g);
-    else { // the 1v1 group: two singles sharing a tee time
-      const id = 2101 + i;
-      matches[`m${id}`] = single(g, 0, id + 1);
-      matches[`m${id + 1}`] = single(g, 2, id);
-    }
-  });
+  satAm.groups.forEach((g, i) => { matches[`m${2101 + i}`] = bestBall(g); });
   satPm.groups.forEach((g, i) => { matches[`m${2201 + i}`] = bestBall(g); });
   sun.groups.forEach((g, i) => {
     const id = 3101 + i * 2;
-    matches[`m${id}`] = single(g, 0, id + 1);
-    matches[`m${id + 1}`] = single(g, 2, id);
+    matches[`m${id}`] = single(g, g.matches[0], id + 1);
+    matches[`m${id + 1}`] = single(g, g.matches[1], id);
   });
   return matches;
 }

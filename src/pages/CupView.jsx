@@ -16,6 +16,15 @@ import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
 import confetti from "canvas-confetti";
+
+// Minutes after midnight for sorting tee times: "11:10", "1:03 PM", "7:30am".
+// Blank (TBD) sorts last.
+function teeMinutes(t) {
+  const m = /(\d{1,2}):(\d{2})\s*([ap])?/i.exec(t || "");
+  if (!m) return Infinity;
+  const h = Number(m[1]) % (m[3] ? 12 : 24) + (/p/i.test(m[3] || "") ? 12 : 0);
+  return h * 60 + Number(m[2]);
+}
 import { QRCodeSVG } from "qrcode.react";
 
 const fmtHcp = v => { const n = Number(v) || 0; return n < 0 ? `+${Math.abs(n).toFixed(1)}` : n.toFixed(1); };
@@ -192,7 +201,7 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
               canScore={canScoreWarmup} onOpen={gi=>onOpenWarmup(ri,gi)}/>
           </div>
         );
-        const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};
+        const toMin=teeMinutes;
         const roundMatches = [...day.matches.filter(m=>(m.roundIdx??0)===ri)].sort((a,b)=>toMin(a.teeTime)-toMin(b.teeTime));
         return (
           <div key={ri}>
@@ -1539,7 +1548,7 @@ export default function CupView({ user }) {
             {boardDay&&boardDay.matches.length>0&&(
               <div>
                 <div style={{marginTop:16,marginBottom:4,fontSize:9,color:"var(--gold-dim)",fontFamily:"monospace",letterSpacing:2,}}>HOLE BY HOLE</div>
-                {[...boardDay.matches].sort((a,b)=>{const toMin=t=>{if(!t)return Infinity;const[h,mm]=(t||"").split(":").map(Number);return h*60+(mm||0);};return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
+                {[...boardDay.matches].sort((a,b)=>{const toMin=teeMinutes;return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
                   const mRound=boardDay.rounds?.[m.roundIdx??0];
                   const course=getCourse(boardDay,m);
                   const sides=cupSidesOf(m);
