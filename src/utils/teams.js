@@ -11,7 +11,7 @@
 // getTeams() synthesizes the array from those, so old cups read correctly with
 // no migration and no re-seeding.
 
-import { inkOnLight } from "./color.js";
+import { inkOnLight, inkOnDark } from "./color.js";
 
 export const MAX_TEAMS = 4;
 export const TEAM_IDS = ["A", "B", "C", "D"];
@@ -36,6 +36,11 @@ export function autoShort(name, fallback = "") {
 // threading the theme through every getTeams() caller.
 const lightTheme = () => typeof document !== "undefined" && document.documentElement.dataset.theme === "light";
 
+// A team color as text on the current theme: deepened on light, lifted on dark.
+export function teamInk(hex) {
+  return lightTheme() ? inkOnLight(hex) : inkOnDark(hex);
+}
+
 function normalizeTeam(t, i) {
   const id = t?.id || TEAM_IDS[i] || `T${i + 1}`;
   const name = t?.name || DEFAULT_TEAM_NAMES[i] || `Team ${i + 1}`;
@@ -48,11 +53,12 @@ function normalizeTeam(t, i) {
     // adjusted on a collision, a name the organiser typed never does.
     autoShort: !t?.short,
     color,
-    // colorDisp is the color used for text/accents. It only differs from color
-    // when the team is on a default (see DEFAULT_DISP_COLORS).
+    // colorDisp is the color used for text/accents: adjusted to stay readable on
+    // the current theme's background (and a brighter shade for the defaults, see
+    // DEFAULT_DISP_COLORS).
     colorDisp: lightTheme()
       ? inkOnLight(t?.color || DEFAULT_TEAM_COLORS[i] || color)
-      : t?.color || DEFAULT_DISP_COLORS[i] || color,
+      : t?.color ? inkOnDark(t.color) : DEFAULT_DISP_COLORS[i] || inkOnDark(color),
   };
 }
 

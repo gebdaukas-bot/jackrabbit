@@ -78,7 +78,7 @@ export function cupEvents(meta, days) {
       } else {
         const [w, l] = s.leader === "A" ? [a, b] : [b, a];
         const [wn, ln] = s.leader === "A" ? [names.A, names.B] : [names.B, names.A];
-        title = live ? `${w.name} wins` : `${w.name} secures ${pv === 1 ? "a point" : `${fmt(pv)} points`}`;
+        title = live ? `${w.name} wins` : `${w.name} secured ${pv === 1 ? "a point" : `${fmt(pv)} points`}`;
         body = `${wn || w.name} beat ${ln || l.name} ${s.sublabel.replace("&", " & ")}`;
       }
       // Head-to-head the running score fits on the end; with more teams it

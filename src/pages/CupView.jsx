@@ -1442,7 +1442,7 @@ export default function CupView({ user }) {
               </div>
               <div style={{background:"var(--panel-c)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:76}}>
                 <div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
-                <div style={{fontSize:10,fontWeight:700,fontFamily:"monospace",color:pa.proj>pb.proj?a.color:pb.proj>pa.proj?b.colorDisp:"var(--muted-b)",whiteSpace:"nowrap"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
+                <div style={{fontSize:10,fontWeight:700,fontFamily:"monospace",color:pa.proj>pb.proj?a.colorDisp:pb.proj>pa.proj?b.colorDisp:"var(--muted-b)",whiteSpace:"nowrap"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
                 {projWinner&&<div style={{fontSize:7,color:"var(--gold-text)",fontFamily:"monospace",marginTop:2,whiteSpace:"nowrap"}}>→ {projWinner}</div>}
                 <div style={{fontSize:7,color:"var(--faint-b)",marginTop:3,fontFamily:"monospace",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget)}</div>
               </div>
@@ -1590,7 +1590,7 @@ export default function CupView({ user }) {
                     <MatchCard match={m} teams={teams} onOpen={()=>{}} canEdit={false} round={round} showTeamLabels={!twoTeam}/>
                     {companion&&(
                       <div style={{background:CARD2,borderRadius:8,padding:"8px 10px",marginBottom:10,fontSize:11,color:MUTED}}>
-                        Playing with: <span style={{color:cSides.teamAColor,fontWeight:700}}>{companion.player1a}</span> vs <span style={{color:cSides.teamBColorDisp,fontWeight:700}}>{companion.player2a}</span>
+                        Playing with: <span style={{color:cSides.teamAColorDisp,fontWeight:700}}>{companion.player1a}</span> vs <span style={{color:cSides.teamBColorDisp,fontWeight:700}}>{companion.player2a}</span>
                       </div>
                     )}
                     <button onClick={()=>{

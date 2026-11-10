@@ -1,5 +1,6 @@
 import { useTheme } from "../context/ThemeContext";
 import { GOLD } from "../utils/scoring";
+import { teamInk } from "../utils/teams";
 
 // Full hole-by-hole scorecard for a single match: PAR + YARDAGE header rows,
 // one row per player with birdie/par/bogey-styled gross scores plus OUT/IN/TOT
@@ -160,7 +161,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
           <tbody>
             {rowLabels.map((label, ri) => {
               const isScoreRow = label === "SCORE";
-              const nameColor = rowColors[ri];
+              const nameColor = rowColors[ri] && teamInk(rowColors[ri]);
               return (
                 <tr key={ri} style={{ borderBottom: `1px solid ${BORDER}22`, background: isScoreRow ? "var(--panel-b)" : ri % 2 === 0 ? CARD : CARD2 }}>
                   <td style={{ padding: "6px 10px", fontSize: isScoreRow ? 8 : 11, fontWeight: 700, color: isScoreRow ? "var(--muted)" : nameColor, whiteSpace: "nowrap", position: "sticky", left: 0, background: isScoreRow ? "var(--panel-b)" : ri % 2 === 0 ? CARD : CARD2, zIndex: 1, fontFamily: isScoreRow ? "monospace" : "inherit", letterSpacing: isScoreRow ? 1 : 0 }}>{label}</td>
