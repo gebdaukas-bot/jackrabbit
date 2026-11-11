@@ -797,6 +797,8 @@ export default function CupView({ user }) {
   const [cupPlayers, setCupPlayers] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState("scoreboard");
+  // Scores tab: which slice of the card to show (a full 18 doesn't fit a phone).
+  const [scoreView, setScoreView] = useState("front");
   const [boardDayOverride, setBoardDayOverride] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState(()=>{ try{return localStorage.getItem(`jr_player_${cupId}`)||"";}catch{return "";} });
   const [activeMatch, setActiveMatch] = useState(null);
@@ -1891,52 +1893,70 @@ export default function CupView({ user }) {
                 <div style={{textAlign:"center",padding:"40px 20px",color:"var(--muted)"}}><div style={{fontSize:24,marginBottom:8}}>⛳</div><div style={{fontSize:12}}>No scores entered yet</div></div>
               ):(
                 <div>
-                  {started.length>0&&<div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
-                    <table style={{borderCollapse:"collapse",width:"100%",minWidth:640,background:CARD,borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`}}>
-                      <thead>
-                        <tr style={{background:"var(--panel-b)"}}>
-                          <td style={{width:28,padding:"5px 6px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>POS</td>
-                          <td style={{padding:"5px 8px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PLAYER</td>
-                          {Array.from({length:9},(_,i)=><td key={i} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+1}</td>)}
-                          <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>OUT</td>
-                          {Array.from({length:9},(_,i)=><td key={i+9} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+10}</td>)}
-                          <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>IN</td>
-                          <td style={{width:36,textAlign:"center",padding:"3px 4px",fontSize:8,color:"var(--gold-text)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>TOT</td>
-                          <td style={{width:40,textAlign:"center",padding:"3px 4px",fontSize:8,color:"var(--gold-text)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>TO PAR</td>
-                        </tr>
-                        <tr style={{background:"var(--panel-a)"}}>
-                          <td style={{padding:"3px 6px",fontSize:7,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}></td>
-                          <td style={{padding:"3px 8px",fontSize:7,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PAR</td>
-                          {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i]}</td>)}
-                          <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(0,9).reduce((a,b)=>a+b,0)}</td>
-                          {Array.from({length:9},(_,i)=><td key={i+9} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i+9]}</td>)}
-                          <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(9).reduce((a,b)=>a+b,0)}</td>
-                          <td style={{textAlign:"center",padding:"3px 4px",fontSize:8,color:"var(--muted2)",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.reduce((a,b)=>a+b,0)}</td>
-                          <td style={{borderBottom:`1px solid ${BORDER}`}}></td>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {started.map((row,ri)=>{
-                          const outTotal=row.gross.slice(0,9).some(g=>g!==null)?row.gross.slice(0,9).reduce((a,g)=>a+(g||0),0):null;
-                          const inTotal=row.gross.slice(9).some(g=>g!==null)?row.gross.slice(9).reduce((a,g)=>a+(g||0),0):null;
-                          const outPlayed=row.gross.slice(0,9).filter(g=>g!==null).length;
-                          const inPlayed=row.gross.slice(9).filter(g=>g!==null).length;
-                          return (
-                            <tr key={row.key} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
-                              <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"var(--muted)",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
-                              <td style={{padding:"8px 8px",minWidth:80}}><div style={{fontSize:12,fontWeight:700,color:teamColorOf(row.team),whiteSpace:"nowrap"}}>{row.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",marginLeft:5}}>R{row.roundIdx+1}</span>}</div></td>
-                              {Array.from({length:9},(_,i)=><td key={i} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i]} par={row.course.par?.[i]||4}/></td>)}
-                              <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?parColor(row.gross.slice(0,9).filter(g=>g!==null).reduce((a,g)=>a+g,0)-row.course.par.slice(0,9).reduce((a,b,i)=>row.gross[i]!==null?a+b:a,0),outPlayed):MUTED,fontFamily:"monospace"}}>{outPlayed>0?outTotal:"—"}</td>
-                              {Array.from({length:9},(_,i)=><td key={i+9} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i+9]} par={row.course.par?.[i+9]||4}/></td>)}
-                              <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:inPlayed>0?parColor(row.gross.slice(9).filter(g=>g!==null).reduce((a,g)=>a+g,0)-row.course.par.slice(9,9+inPlayed).reduce((a,b)=>a+b,0),inPlayed):MUTED,fontFamily:"monospace"}}>{inPlayed>0?inTotal:"—"}</td>
-                              <td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:800,color:parColor(row.toPar,row.holesPlayed),fontFamily:"monospace"}}>{row.holesPlayed>0?row.gross.filter(g=>g!==null).reduce((a,b)=>a+b,0):"—"}</td>
-                              <td style={{textAlign:"center",padding:"4px 4px",fontSize:12,fontWeight:900,color:parColor(row.toPar,row.holesPlayed),fontFamily:"monospace"}}>{fmtPar(row.toPar,row.holesPlayed)}{row.holesPlayed<18&&row.holesPlayed>0?<span style={{fontSize:8,color:MUTED}}> ({row.holesPlayed})</span>:null}</td>
+                  {started.length>0&&(()=>{
+                    // Front 9 / Back 9 / Total: a full 18-hole row doesn't fit a phone, and the
+                    // back nine used to hide behind the OUT column. ±PAR lives on Total, so a
+                    // nine's holes fit across a phone without scrolling.
+                    const holes=scoreView==="front"?[0,1,2,3,4,5,6,7,8]:scoreView==="back"?[9,10,11,12,13,14,15,16,17]:[];
+                    const showOut=scoreView!=="back", showIn=scoreView!=="front", showTot=scoreView==="total";
+                    const sumPar=(a,b)=>course.par.slice(a,b).reduce((x,y)=>x+y,0);
+                    const half=(row,a,b)=>{const g=row.gross.slice(a,b),n=g.filter(x=>x!==null).length;if(!n)return{n,v:null,d:0};const v=g.reduce((x,y)=>x+(y||0),0);return{n,v,d:v-row.course.par.slice(a,b).reduce((x,y,i)=>g[i]!==null?x+y:x,0)};};
+                    const th={textAlign:"center",padding:"5px 1px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`};
+                    const sumTh={...th,padding:"5px 3px",color:"var(--muted2)",borderLeft:`1px solid ${BORDER}`};
+                    // The POS + PLAYER cells stay put while the holes scroll under them.
+                    const pin=(bg,left)=>({position:"sticky",left,zIndex:1,background:bg});
+                    return (
+                      <>
+                        <div style={{display:"flex",background:CARD2,borderRadius:8,padding:3,marginBottom:8,gap:3}}>
+                          {[["front","FRONT 9"],["back","BACK 9"],["total","TOTAL"]].map(([v,l])=>(
+                            <button key={v} onClick={()=>setScoreView(v)} style={{flex:1,padding:"7px 0",border:"none",borderRadius:6,background:scoreView===v?`${GOLD}33`:"transparent",color:scoreView===v?"var(--gold-text)":"var(--muted2)",fontWeight:800,fontSize:10,fontFamily:"monospace",letterSpacing:1,cursor:"pointer"}}>{l}</button>
+                          ))}
+                        </div>
+                        <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch",borderRadius:10,border:`1px solid ${BORDER}`}}>
+                        <table style={{borderCollapse:"collapse",width:"100%",background:CARD,fontVariantNumeric:"tabular-nums"}}>
+                          <thead>
+                            <tr style={{background:"var(--panel-b)"}}>
+                              <td style={{...th,...pin("var(--panel-b)",0),width:24,textAlign:"left",padding:"5px 6px"}}>POS</td>
+                              <td style={{...th,...pin("var(--panel-b)",24),textAlign:"left",padding:"5px 6px"}}>PLAYER</td>
+                              {holes.map(i=><td key={i} style={{...th,width:24}}>{i+1}</td>)}
+                              {showOut&&<td style={sumTh}>OUT</td>}
+                              {showIn&&<td style={sumTh}>IN</td>}
+                              {showTot&&<td style={{...sumTh,color:"var(--gold-text)"}}>TOT</td>}
+                              {showTot&&<td style={{...sumTh,color:"var(--gold-text)"}}>±PAR</td>}
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>}
+                            <tr style={{background:"var(--panel-a)"}}>
+                              <td style={{...th,...pin("var(--panel-a)",0),fontSize:7}}></td>
+                              <td style={{...th,...pin("var(--panel-a)",24),fontSize:7,textAlign:"left",padding:"3px 6px"}}>PAR</td>
+                              {holes.map(i=><td key={i} style={{...th,color:"var(--muted2)",padding:"3px 1px"}}>{course.par[i]}</td>)}
+                              {showOut&&<td style={{...sumTh,padding:"3px",fontWeight:700}}>{sumPar(0,9)}</td>}
+                              {showIn&&<td style={{...sumTh,padding:"3px",fontWeight:700}}>{sumPar(9,18)}</td>}
+                              {showTot&&<td style={{...sumTh,padding:"3px",fontWeight:700}}>{sumPar(0,18)}</td>}
+                              {showTot&&<td style={{...sumTh,padding:"3px"}}></td>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {started.map((row,ri)=>{
+                              const bg=ri%2===0?CARD:CARD2;
+                              const out=half(row,0,9), inn=half(row,9,18);
+                              const sumCell=(h)=><td style={{textAlign:"center",padding:"4px 3px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:h.n>0?parColor(h.d,h.n):MUTED,fontFamily:"monospace"}}>{h.n>0?h.v:"—"}</td>;
+                              return (
+                                <tr key={row.key} style={{background:bg,borderBottom:`1px solid ${BORDER}33`}}>
+                                  <td style={{...pin(bg,0),padding:"8px 6px",fontSize:10,fontWeight:800,color:"var(--muted2)",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
+                                  <td style={{...pin(bg,24),padding:"8px 4px 8px 6px",maxWidth:holes.length?92:150}}><div style={{fontSize:12,fontWeight:700,color:teamColorOf(row.team),whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{row.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",marginLeft:5}}>R{row.roundIdx+1}</span>}</div></td>
+                                  {holes.map(i=><td key={i} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i]} par={row.course.par?.[i]||4}/></td>)}
+                                  {showOut&&sumCell(out)}
+                                  {showIn&&sumCell(inn)}
+                                  {showTot&&<td style={{textAlign:"center",padding:"4px 3px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:800,color:parColor(row.toPar,row.holesPlayed),fontFamily:"monospace"}}>{row.holesPlayed>0?row.gross.filter(g=>g!==null).reduce((a,b)=>a+b,0):"—"}</td>}
+                                  {showTot&&<td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:12,fontWeight:900,color:parColor(row.toPar,row.holesPlayed),fontFamily:"monospace",whiteSpace:"nowrap"}}>{fmtPar(row.toPar,row.holesPlayed)}{row.holesPlayed<18&&row.holesPlayed>0?<span style={{fontSize:8,color:MUTED}}> ({row.holesPlayed})</span>:null}</td>}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                        </div>
+                      </>
+                    );
+                  })()}
                   {notStarted.length>0&&<div style={{marginTop:12}}>
                     <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>NOT STARTED</div>
                     {notStarted.map(r=>(
