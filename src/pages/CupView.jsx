@@ -15,6 +15,8 @@ import { pushSupported, pushPref, enablePush, disablePush, refreshPush, notifyCu
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import TeamChip from "../components/TeamChip";
+import ContestPrompt from "../components/ContestPrompt";
+import { CONTEST_LABEL, contestKey, contestsOnHole, fmtFeet } from "../utils/contests";
 import Icon, { DormieMark } from "../components/Icon";
 import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
 import confetti from "canvas-confetti";
@@ -188,7 +190,7 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   );
 }
 
-function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canScoreWarmup, onOpenWarmup }) {
+function DayBlock({ day, dayIdx, contests = {}, teams, onOpen, canEdit, warmupScores, teamColorOf, canScoreWarmup, onOpenWarmup }) {
   const { BORDER } = useTheme();
   // A cup-wide "team A vs team B" banner only makes sense when there are exactly
   // two teams. Past that, pairings vary per match, so each card names its own two
@@ -244,6 +246,24 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
                 sameTeeAsAbove={!!m.teeTime&&i>0&&roundMatches[i-1].teeTime===m.teeTime}
                 teeBetween={!!m.teeTime&&roundMatches[i+1]?.teeTime===m.teeTime&&(i===0||roundMatches[i-1].teeTime!==m.teeTime)&&[m,roundMatches[i+1]].every(x=>!(x.scores||[]).some(v=>v!=null))}/>
             ))}
+            {/* Side contests for this round and who leads them. */}
+            {["ld","ctp"].some(t=>round.contests?.[t]!=null)&&(
+              <div style={{ display:"flex", gap:6, padding:"8px", borderTop:`1px solid ${BORDER}`, background:"var(--panel-d)" }}>
+                {["ld","ctp"].filter(t=>round.contests?.[t]!=null).map(t=>{
+                  const c = contests[contestKey(dayIdx, ri, t)];
+                  const team = c && teams.find(x=>x.id===c.team);
+                  return (
+                    <div key={t} style={{ flex:1, minWidth:0, padding:"7px 9px", borderRadius:8, background:"var(--panel-e)", border:`1px solid ${BORDER}` }}>
+                      <div style={{ fontSize:8, fontWeight:800, color:"var(--gold-text)", fontFamily:"var(--mono)", letterSpacing:0.5 }}>{t==="ld"?"🏌️ LONGEST DRIVE":"🎯 CLOSEST TO PIN"} · #{round.contests[t]+1}</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:4, fontSize:12, fontWeight:800, color:c?"var(--text-b)":"var(--muted)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                        {team&&<TeamChip color={team.color}/>}{c ? c.name : "Up for grabs"}
+                        {c&&t==="ctp"&&<span style={{ marginLeft:"auto", fontFamily:"var(--mono)", color:"var(--gold-text)" }}>{fmtFeet(c.inches)}</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
@@ -344,7 +364,20 @@ function AdminCourses({ initDays, onSave, onBack }) {
           <option value="">…or load a saved course</option>
           {[...BUILT_IN_COURSES].sort((a,b)=>a.name.localeCompare(b.name)).map(c=><option key={c.name} value={c.name}>{c.name}</option>)}
         </select>
-        {course.teeName&&<div style={{fontSize:11,color:"var(--gold-text)",marginTop:8,fontFamily:"var(--mono)"}}>Playing the {course.teeName} tees · Rating {course.rating} · Slope {course.slope} — hit RECALC HCPs in Edit Matchups to update strokes.</div>}
+        {course.teeName&&<div style={{fontSize:11,color:"var(--gold-text)",marginTop:8,fontFamily:"var(--mono)"}}>Playing the {course.teeName} tees · Rating {course.rating} · Slope {course.slope} — strokes for matches not yet started update automatically when you save.</div>}
+      </div>
+      {/* Side contests for this round: the hole for each, or none. */}
+      <div style={{display:"flex",gap:10,marginBottom:12}}>
+        {[["ld","LONGEST DRIVE HOLE"],["ctp","CLOSEST TO THE PIN HOLE"]].map(([t,label])=>(
+          <div key={t} style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:4}}>{label}</div>
+            <select value={round.contests?.[t]??""} onChange={e=>updateRoundField("contests",{...(round.contests||{}),[t]:e.target.value===""?null:Number(e.target.value)})}
+              style={{width:"100%",padding:"9px 8px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",cursor:"pointer"}}>
+              <option value="">None</option>
+              {(course.par||[]).map((p,i)=>(t!=="ctp"||p===3)&&<option key={i} value={i}>Hole {i+1} · par {p}</option>)}
+            </select>
+          </div>
+        ))}
       </div>
       <div style={{display:"flex",gap:10,marginBottom:12}}>
         <div style={{flex:1}}>
@@ -804,6 +837,14 @@ export default function CupView({ user }) {
   const [days, setDays] = useState([]);
   const [cupPlayers, setCupPlayers] = useState([]);
   const [loaded, setLoaded] = useState(false);
+  // Longest drive / closest to the pin: current leaders, and the prompt a group
+  // gets after confirming one of those holes.
+  const [contests, setContests] = useState({});
+  const [contestAsk, setContestAsk] = useState(null);
+  useEffect(()=>{
+    const unsub = onValue(ref(db,`cups/${cupId}/contests`),snap=>setContests(snap.val()||{}));
+    return ()=>unsub();
+  },[cupId]);
   // When scores last came in, shown as "updated 20s ago" while matches are live.
   const [lastUpdate, setLastUpdate] = useState(null);
   const [, setNowTick] = useState(0);
@@ -996,6 +1037,7 @@ export default function CupView({ user }) {
           // read paths treat 0 the same as "no data" for this field.
           course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...((r.course?.teeName||r.course?.selectedTee?.name)?{teeName:r.course.teeName||r.course.selectedTee.name}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
+          ...(r.contests&&(r.contests.ld!=null||r.contests.ctp!=null)?{contests:{...(r.contests.ld!=null?{ld:r.contests.ld}:{}),...(r.contests.ctp!=null?{ctp:r.contests.ctp}:{})}}:{}),
           ...(r.pointValue!=null&&r.pointValue!==1?{pointValue:r.pointValue}:{}),
           ...(isWarmup(r)?{id:r.id,groups:r.groups||[]}:{}),
         })),
@@ -1020,6 +1062,7 @@ export default function CupView({ user }) {
           // read paths treat 0 the same as "no data" for this field.
           course:{name:r.course?.name||"",par:r.course?.par||[],hcp:r.course?.hcp||[],slope:r.course?.slope||113,rating:r.course?.rating||(r.course?.par?.reduce((a,b)=>a+b,0)||72),...(r.course?.yardage?.some(y=>y)?{yardage:r.course.yardage.map(y=>y||0)}:{}),...((r.course?.teeName||r.course?.selectedTee?.name)?{teeName:r.course.teeName||r.course.selectedTee.name}:{})},
           ...(r.totalHoles?{totalHoles:r.totalHoles}:{}),
+          ...(r.contests&&(r.contests.ld!=null||r.contests.ctp!=null)?{contests:{...(r.contests.ld!=null?{ld:r.contests.ld}:{}),...(r.contests.ctp!=null?{ctp:r.contests.ctp}:{})}}:{}),
           ...(r.pointValue!=null&&r.pointValue!==1?{pointValue:r.pointValue}:{}),
           ...(isWarmup(r)?{id:r.id,groups:r.groups||[]}:{}),
         })),
@@ -1394,20 +1437,44 @@ export default function CupView({ user }) {
     if (round&&group) return <WarmupEntry round={round} group={group} scores={warmupScores[round.id]} teamColorOf={playerColorOf}
       onSaveHole={(hole,vals)=>saveWarmupHole(round.id,hole,vals)} onClose={()=>setActiveWarmup(null)}/>;
   }
+  // After a group confirms a hole: if it's a contest hole in this round, ask
+  // whether anyone in the group took the lead.
+  const askContests = (dayIdx, ms, hole) => {
+    const roundIdx = ms[0]?.roundIdx ?? 0;
+    const types = contestsOnHole(days[dayIdx]?.rounds?.[roundIdx], hole);
+    if (!types.length) return;
+    const players = ms.flatMap(m => {
+      const sides = cupSidesFor(teams, m);
+      return [[m.player1a,sides.teamAId,sides.teamAColor],[m.player1b,sides.teamAId,sides.teamAColor],[m.player2a,sides.teamBId,sides.teamBColor],[m.player2b,sides.teamBId,sides.teamBColor]]
+        .filter(([n])=>n).map(([name,team,color])=>({name,team,color}));
+    });
+    setContestAsk({ dayIdx, roundIdx, hole, types, players });
+  };
+  const submitContest = async (type, entry) => {
+    const { dayIdx, roundIdx, hole } = contestAsk;
+    await set(ref(db,`cups/${cupId}/contests/${contestKey(dayIdx,roundIdx,type)}`),{ type, dayIdx, roundIdx, hole, ...entry, at:Date.now() });
+    notifyCup(cupId);
+  };
+  const contestPrompt = contestAsk && (
+    <ContestPrompt key={`${contestAsk.dayIdx}-${contestAsk.roundIdx}-${contestAsk.hole}`} hole={contestAsk.hole} types={contestAsk.types} players={contestAsk.players}
+      current={Object.fromEntries(contestAsk.types.map(t=>[t,contests[contestKey(contestAsk.dayIdx,contestAsk.roundIdx,t)]]))}
+      onSubmit={submitContest} onDone={()=>setContestAsk(null)}/>
+  );
+
   if (activeGroup){
     const d=days[activeGroup.dayIdx];
     const groupMatches=activeGroup.matchIds.map(id=>d?.matches.find(x=>x.id===id)).filter(Boolean)
       .map(m=>({...m,totalHoles:d?.rounds?.[m.roundIdx??0]?.totalHoles||18}));
     if (groupMatches.length===2)
-      return <GroupHoleEntry matches={groupMatches} course={getCourse(d,groupMatches[0])} cups={groupMatches.map(cupSidesOf)} onSave={(mi,upd)=>updateMatch(activeGroup.dayIdx,upd)} onClose={()=>setActiveGroup(null)}/>;
+      return <><GroupHoleEntry matches={groupMatches} course={getCourse(d,groupMatches[0])} cups={groupMatches.map(cupSidesOf)} onSave={(mi,upd)=>updateMatch(activeGroup.dayIdx,upd)} onClose={()=>setActiveGroup(null)} onHoleConfirmed={h=>askContests(activeGroup.dayIdx,groupMatches,h)}/>{contestPrompt}</>;
   }
   if (activeMatch){
     const d=days[activeMatch.dayIdx]; const m=d?.matches.find(x=>x.id===activeMatch.matchId);
     if (m?.companionId){const companion=d.matches.find(x=>x.id===m.companionId);if(companion){
       const withHoles=[m,companion].map(x=>({...x,totalHoles:d?.rounds?.[x.roundIdx??0]?.totalHoles||18}));
-      return <GroupHoleEntry matches={withHoles} course={getCourse(d,m)} cups={withHoles.map(cupSidesOf)} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>;
+      return <><GroupHoleEntry matches={withHoles} course={getCourse(d,m)} cups={withHoles.map(cupSidesOf)} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)} onHoleConfirmed={h=>askContests(activeMatch.dayIdx,withHoles,h)}/>{contestPrompt}</>;
     }}
-    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <HoleEntry match={{...m,format:mRound?.format||"",totalHoles:mRound?.totalHoles||18,allowExtraHoles:mRound?.allowExtraHoles||false}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cupSidesOf(m)} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)}/>; }
+    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <><HoleEntry match={{...m,format:mRound?.format||"",totalHoles:mRound?.totalHoles||18,allowExtraHoles:mRound?.allowExtraHoles||false}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cupSidesOf(m)} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)} onHoleConfirmed={h=>askContests(activeMatch.dayIdx,[m],h)}/>{contestPrompt}</>; }
   }
 
   const playerTeamColor=(()=>{
@@ -1583,7 +1650,7 @@ export default function CupView({ user }) {
               ))}
             </div>}
             {boardDay&&(
-              <DayBlock day={boardDay} teams={teams}
+              <DayBlock day={boardDay} dayIdx={boardDayIdx} contests={contests} teams={teams}
                 onOpen={mid=>{if(canEdit(boardDayIdx,mid))openForScoring(boardDayIdx,mid);}}
                 canEdit={mid=>canEdit(boardDayIdx,mid)}
                 warmupScores={warmupScores} teamColorOf={playerColorOf} canScoreWarmup={canScoreWarmup}

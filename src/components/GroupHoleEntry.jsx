@@ -5,7 +5,7 @@ import { contrastText } from "../utils/color";
 import ScoreInput from "./ScoreInput";
 import { confirmTap } from "../utils/haptics";
 
-export default function GroupHoleEntry({ matches, course, cups, onSave, onClose }) {
+export default function GroupHoleEntry({ matches, course, cups, onSave, onClose, onHoleConfirmed }) {
   const { BG, CARD, CARD2, BORDER, MUTED } = useTheme();
   // One color/name bundle per match in the group — companion matches in a cup
   // with more than two teams can be different pairings, so each half of the
@@ -67,6 +67,9 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
 
   const handleConfirm = () => {
     confirmTap();
+    // Lets the cup ask about a longest-drive / closest-to-the-pin hole once it's scored.
+    const confirmedHole = hole;
+    setTimeout(() => onHoleConfirmed?.(confirmedHole), 0);
     matches.forEach((m, mi) => {
       const hw = holeWinner(mi);
       const ns = [...m.scores]; ns[hole] = hw;

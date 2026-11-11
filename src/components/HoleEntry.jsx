@@ -10,7 +10,7 @@ import { confirmTap } from "../utils/haptics";
 import TeamChip from "./TeamChip";
 import HcpModal from "./HcpModal";
 
-export default function HoleEntry({ match, isSingles, course, cup, onSave, onClose }) {
+export default function HoleEntry({ match, isSingles, course, cup, onSave, onClose, onHoleConfirmed }) {
   const { BG, CARD, CARD2, BORDER, TEXT, MUTED } = useTheme();
   const { teamAColor, teamAColorDisp, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cup;
 
@@ -74,6 +74,9 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
 
   const handleConfirm = () => {
     confirmTap();
+    // Lets the cup ask about a longest-drive / closest-to-the-pin hole once it's scored.
+    const confirmedHole = hole;
+    setTimeout(() => onHoleConfirmed?.(confirmedHole), 0);
     const ns = [...match.scores]; ns[hole] = hw;
     const toArr = (existing, newVal) => {
       const arr = Array.isArray(existing) ? [...existing] : Array(18).fill(null);

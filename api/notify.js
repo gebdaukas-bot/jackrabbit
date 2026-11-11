@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     if (!cup?.meta) return res.status(404).json({ error: "No such cup" });
     if (!memberSnap.exists() && cup.meta.createdBy !== uid) return res.status(403).json({ error: "Not a member" });
 
-    const events = cupEvents(cup.meta, assembleDays(cup.days, cup.matches, cup.scores));
+    const events = cupEvents(cup.meta, assembleDays(cup.days, cup.matches, cup.scores), cup.contests);
     const sentRef = db.ref(`pushSent/${cupId}`);
 
     // The first call for a cup that predates notifications only records what

@@ -3,6 +3,7 @@
 // sections, shared by api/notify.js (which sends them) and the tests.
 import { computeMatchStatus, standings } from "./scoring.js";
 import { getTeams, matchTeams } from "./teams.js";
+import { fmtFeet } from "./contests.js";
 
 // The cup's days with their matches and scores attached — the same shape
 // CupView builds from its listeners, from cups/{id}/days, /matches and /scores.
@@ -57,7 +58,8 @@ function standingsLine(rows) {
 // Every announcement the cup's current state calls for, each with a stable key
 // so the sender can make sure it only ever goes out once:
 //   m####  a match finished    day#  a day's last match finished    clinch  the cup is won
-export function cupEvents(meta, days) {
+//   c-…    a new longest-drive / closest-to-the-pin leader
+export function cupEvents(meta, days, contests = {}) {
   const teams = getTeams(meta);
   const live = meta?.eventType === "live_match";
   const { rows, winner } = standings(days, teams);
@@ -95,6 +97,17 @@ export function cupEvents(meta, days) {
       body: standingsLine(standingsAfter(days, teams, di)),
     });
   });
+
+  // A new longest drive or closest to the pin: keyed by when it was set, so each
+  // new leader is announced once.
+  for (const [k, c] of Object.entries(contests || {})) {
+    if (!c?.name || !c.at) continue;
+    const team = teams.find(t => t.id === c.team)?.name;
+    const who = team ? `${c.name} (${team.replace(/^team\s+/i, "")})` : c.name;
+    events.push(c.type === "ctp"
+      ? { key: `c-${k}-${c.at}`, title: `🎯 Closest to the pin on ${c.hole + 1}`, body: `${who} takes the lead at ${fmtFeet(c.inches)}` }
+      : { key: `c-${k}-${c.at}`, title: `🏌️ New longest drive on ${c.hole + 1}`, body: `${who} takes the lead` });
+  }
 
   if (!live && winner) events.push({
     key: "clinch",
