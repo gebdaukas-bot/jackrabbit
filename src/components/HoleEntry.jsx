@@ -6,6 +6,7 @@ import { contrastText } from "../utils/color";
 // Text on a button filled with a team color or gold, readable in either theme.
 const onFill = c => c === GOLD ? "var(--on-gold)" : contrastText(c);
 import ScoreInput from "./ScoreInput";
+import { confirmTap } from "../utils/haptics";
 import HcpModal from "./HcpModal";
 
 export default function HoleEntry({ match, isSingles, course, cup, onSave, onClose }) {
@@ -66,6 +67,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
                   `Halved · both net ${teamANet}`;
 
   const handleConfirm = () => {
+    confirmTap();
     const ns = [...match.scores]; ns[hole] = hw;
     const toArr = (existing, newVal) => {
       const arr = Array.isArray(existing) ? [...existing] : Array(18).fill(null);
@@ -176,19 +178,23 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
         </div>
       </div>
 
-      {/* Hole strip */}
-      <div style={{ padding: "8px 10px 14px", display: "flex", gap: 2 }}>
+      {/* Hole strip: two rows of nine so each hole is a real tap target. A played
+          hole is filled with the winning side's color (grey if halved) and ticked. */}
+      <div style={{ padding: "8px 10px 16px", display: "grid", gridTemplateColumns: `repeat(${Math.min(9, playHoles.length)}, 1fr)`, gap: "12px 4px" }}>
         {playHoles.map((i) => {
           const s = match.scores[i];
           const isDisputed = (match.disputes || []).includes(i);
-          const bg = s === "A" ? teamAColor : s === "B" ? teamBColor : s === "H" ? "var(--faint)" : CARD2;
+          const bg = s === "A" ? teamAColor : s === "B" ? teamBColor : s === "H" ? "#556677" : CARD2;
           const isAct = i === hole;
           return (
-            <div key={i} style={{ flex: 1, position: "relative" }}>
-              <div onClick={() => setHole(i)} style={{ height: isAct ? 26 : 20, background: bg, borderRadius: 3, cursor: "pointer", border: isAct ? `2px solid ${GOLD}` : "2px solid transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isAct ? 8 : 7, color: s === "A" || s === "B" ? contrastText(bg) : isAct ? "var(--strong)" : "var(--strong-dim)", fontFamily: "monospace", fontWeight: 700 }}>{i + 1}</div>
+            <div key={i} style={{ position: "relative" }}>
+              <div onClick={() => setHole(i)} style={{ height: 34, boxSizing: "border-box", background: bg, borderRadius: 6, cursor: "pointer", border: isAct ? `2px solid ${GOLD}` : s == null ? `1px solid ${BORDER}` : "2px solid transparent", boxShadow: isAct ? `0 0 0 2px ${GOLD}44` : "none", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 12, lineHeight: 1, color: s != null ? contrastText(s === "H" ? "#556677" : bg) : isAct ? "var(--strong)" : "var(--muted2)", fontFamily: "monospace", fontWeight: 800 }}>
+                {i + 1}
+                {s != null && <span style={{ fontSize: 8, marginTop: 1, opacity: 0.85 }}>✓</span>}
+              </div>
               {s != null && (
                 <div onClick={e => { e.stopPropagation(); const cur = match.disputes || []; const nd = cur.includes(i) ? cur.filter(h => h !== i) : [...cur, i]; onSave({ ...match, disputes: nd }); }}
-                  style={{ position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)", fontSize: 9, cursor: "pointer", opacity: isDisputed ? 1 : 0.15, lineHeight: 1, userSelect: "none" }}>🚩</div>
+                  style={{ position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)", fontSize: 9, cursor: "pointer", opacity: isDisputed ? 1 : 0.15, lineHeight: 1, userSelect: "none" }}>🚩</div>
               )}
             </div>
           );

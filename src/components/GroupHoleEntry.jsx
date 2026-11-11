@@ -3,6 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import { netScore, strokesOnHole, computeMatchStatus, GOLD } from "../utils/scoring";
 import { contrastText } from "../utils/color";
 import ScoreInput from "./ScoreInput";
+import { confirmTap } from "../utils/haptics";
 
 export default function GroupHoleEntry({ matches, course, cups, onSave, onClose }) {
   const { BG, CARD, CARD2, BORDER, MUTED } = useTheme();
@@ -59,6 +60,7 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
   };
 
   const handleConfirm = () => {
+    confirmTap();
     matches.forEach((m, mi) => {
       const hw = holeWinner(mi);
       const ns = [...m.scores]; ns[hole] = hw;

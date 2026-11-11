@@ -30,9 +30,15 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
         </div>
         <button onClick={()=>onChange(Math.min(12,value+1))} style={{width:48,height:52,fontSize:22,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 7px 7px 0",color:"var(--muted2-b)",cursor:"pointer"}}>+</button>
       </div>
-      {par && diff !== 0 && (
-        <div style={{fontSize:9,color:diff<0?"#4caf50":diff===1?"var(--bogey-ink)":"#e55",fontFamily:"monospace",fontWeight:700}}>
-          {diff > 0 ? `+${diff}` : diff}
+      {/* One-tap picks for the common scores; the stepper covers everything else. */}
+      {par && (
+        <div style={{display:"flex",gap:4,marginTop:2}}>
+          {[["BIRDIE",-1,"#4caf50"],["PAR",0,"var(--text)"],["BOGEY",1,"var(--bogey-ink)"]].map(([l,d,c])=>{
+            const on = diff === d;
+            return (
+              <button key={l} onClick={()=>onChange(par + d)} style={{minWidth:44,height:30,padding:"0 6px",borderRadius:6,border:`1px solid ${on?c:BORDER}`,background:on?"var(--panel-a)":"transparent",color:on?c:"var(--muted2)",fontSize:9,fontWeight:800,fontFamily:"monospace",letterSpacing:0.3,cursor:"pointer"}}>{l}</button>
+            );
+          })}
         </div>
       )}
     </div>
