@@ -1437,7 +1437,7 @@ export default function CupView({ user }) {
             <button onClick={()=>nav("/")} aria-label="All cups" style={{background:"none",border:"none",color:MUTED,fontSize:22,lineHeight:1,cursor:"pointer",padding:"0 4px 2px 0"}}>‹</button>
             {meta.logoUrl
               ? <img src={meta.logoUrl} alt="logo" style={{height:32,width:32,objectFit:"contain",borderRadius:4}}/>
-              : <DormieMark size={26}/>}
+              : <DormieMark size={36}/>}
             <div style={{minWidth:0}}>
               <div style={{fontSize:13,fontWeight:900,letterSpacing:1,color:TEXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:160}}>{meta.name}</div>
             </div>

@@ -1,13 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <defs>
-    <radialGradient id="bg" cx="50%" cy="30%" r="80%"><stop offset="0" stop-color="#173263"/><stop offset="0.55" stop-color="#0a1830"/><stop offset="1" stop-color="#050c19"/></radialGradient>
-    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0D888"/><stop offset="1" stop-color="#B8913A"/></linearGradient>
-  </defs>
-  <rect width="1024" height="1024" fill="url(#bg)"/>
-  <g transform="translate(192 192) scale(6.4)">
-    <path fill="url(#g)" fill-rule="evenodd" d="M14 10 H46 A40 40 0 0 1 46 90 H14 Z M30 25 H45 A25 25 0 0 1 45 75 H30 Z"/>
-    <rect x="41.5" y="34" width="3.6" height="33" rx="1.8" fill="url(#g)"/>
-    <path d="M45 34.5 L60 40.5 L45 46.5 Z" fill="url(#g)"/>
-    <ellipse cx="43.3" cy="67.5" rx="7.5" ry="2" fill="url(#g)" opacity="0.55"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <rect width="240" height="240" fill="#0B1530"/>
+  <path d="M96 178h48l-8 22h-32z" fill="#C9A24B"/>
+  <rect x="114" y="170" width="12" height="12" fill="#C9A24B"/>
+  <circle cx="120" cy="118" r="62" fill="#F6F1E3"/>
+  <path d="M92 120q10 10 20 0M130 120q10 10 20 0" stroke="#0B1530" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M122 138q6 5 12 0" stroke="#0B1530" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <g fill="#C9A24B" font-family="Georgia, serif" font-weight="700">
+    <text x="172" y="62" font-size="30">z</text>
+    <text x="192" y="40" font-size="22">z</text>
   </g>
 </svg>

@@ -15,16 +15,21 @@ export default function Icon({ name, size = 16, strokeWidth = 2, style }) {
   );
 }
 
-// The Dormie mark: a bold D with a pin flag standing in its counter — the same
-// art as the app icon (assets/icon.svg).
+// The Dormie mark: a golf ball asleep on its tee (dormie, dormir), on a navy
+// badge — the same art as the app icon (assets/icon.svg).
 export function DormieMark({ size = 22 }) {
   return (
-    <svg aria-hidden width={size} height={size} viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
-      <defs><linearGradient id="dormie-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#F0D888" /><stop offset="1" stopColor="#B8913A" /></linearGradient></defs>
-      <path fill="url(#dormie-gold)" fillRule="evenodd" d="M14 10 H46 A40 40 0 0 1 46 90 H14 Z M30 25 H45 A25 25 0 0 1 45 75 H30 Z" />
-      <rect x="41.5" y="34" width="3.6" height="33" rx="1.8" fill="url(#dormie-gold)" />
-      <path d="M45 34.5 L60 40.5 L45 46.5 Z" fill="url(#dormie-gold)" />
-      <ellipse cx="43.3" cy="67.5" rx="7.5" ry="2" fill="url(#dormie-gold)" opacity="0.55" />
+    <svg aria-hidden width={size} height={size} viewBox="0 0 240 240" style={{ flexShrink: 0 }}>
+      <rect width="240" height="240" rx="54" fill="#0B1530" />
+      <path d="M96 178h48l-8 22h-32z" fill="#C9A24B" />
+      <rect x="114" y="170" width="12" height="12" fill="#C9A24B" />
+      <circle cx="120" cy="118" r="62" fill="#F6F1E3" />
+      <path d="M92 120q10 10 20 0M130 120q10 10 20 0" stroke="#0B1530" strokeWidth="5" fill="none" strokeLinecap="round" />
+      <path d="M122 138q6 5 12 0" stroke="#0B1530" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <g fill="#C9A24B" fontFamily="Georgia, serif" fontWeight="700">
+        <text x="172" y="62" fontSize="30">z</text>
+        <text x="192" y="40" fontSize="22">z</text>
+      </g>
     </svg>
   );
 }
