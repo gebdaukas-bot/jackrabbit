@@ -14,6 +14,7 @@ import { joinCup } from "../utils/joinCup";
 import { pushSupported, pushPref, enablePush, disablePush, refreshPush, notifyCup } from "../utils/push";
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
+import TeamChip from "../components/TeamChip";
 import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
 import confetti from "canvas-confetti";
 
@@ -183,9 +184,9 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
       {!multiRound && !isWarmup(rounds[0]) && (
         <div style={{ display:"flex", flexDirection:"column", background:"var(--panel-a)", borderBottom:`1px solid ${BORDER}` }}>
           <div style={{ display:"flex" }}>
-            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"var(--mono)" }}>{teamAShort}</div>}
+            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"var(--mono)" }}><TeamChip color={teamAColor} style={{marginRight:5}}/>{teamAShort}</div>}
             <div style={{ flex:twoTeam?undefined:1, width:twoTeam?64:undefined, textAlign:"center", padding:"5px 0", fontSize:7, color:"var(--muted)", fontFamily:"var(--mono)" }}>{rounds[0].format?.toUpperCase()}</div>
-            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}</div>}
+            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}<TeamChip color={teamBColorDisp} style={{marginLeft:5}}/></div>}
           </div>
           {rounds[0].course?.name && (
             <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:7, color:"var(--gold-text)", fontFamily:"var(--mono)", fontWeight:700 }}>{courseLabel(rounds[0].course)}</div>
@@ -207,11 +208,11 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
           <div key={ri}>
             {multiRound && (
               <div style={{ display:"flex", background:"var(--panel-d)", borderBottom:`1px solid ${BORDER}`, borderTop:ri>0?`1px solid ${BORDER}`:"none" }}>
-                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"var(--mono)" }}>{teamAShort}</div>}
+                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"var(--mono)" }}><TeamChip color={teamAColor} style={{marginRight:5}}/>{teamAShort}</div>}
                 <div style={{ flex:twoTeam?undefined:1, textAlign:twoTeam?undefined:"center", padding:"5px 10px", fontSize:7, color:"var(--gold-text)", fontFamily:"var(--mono)", fontWeight:700 }}>
                   {round.format?.toUpperCase()}{round.course?.name?` · ${courseLabel(round.course)}`:""}
                 </div>
-                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}</div>}
+                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}<TeamChip color={teamBColorDisp} style={{marginLeft:5}}/></div>}
               </div>
             )}
             {roundMatches.map((m,i)=>(

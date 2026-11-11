@@ -7,6 +7,7 @@ import { contrastText } from "../utils/color";
 const onFill = c => c === GOLD ? "var(--on-gold)" : contrastText(c);
 import ScoreInput from "./ScoreInput";
 import { confirmTap } from "../utils/haptics";
+import TeamChip from "./TeamChip";
 import HcpModal from "./HcpModal";
 
 export default function HoleEntry({ match, isSingles, course, cup, onSave, onClose }) {
@@ -276,7 +277,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
         </div>
 
         <div style={{ background: `${teamAColor}18`, border: `1px solid ${teamAColor}44`, borderRadius: 12, padding: "12px", marginBottom: 8 }}>
-          <div style={{ fontSize: 9, color: teamAColorDisp, fontWeight: 800, letterSpacing:1, fontFamily: "var(--mono)", marginBottom: 10 }}>{teamAShort}</div>
+          <div style={{ fontSize: 10, color: teamAColorDisp, fontWeight: 800, letterSpacing:1, fontFamily: "var(--mono)", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}><TeamChip color={teamAColor} />{teamAShort}</div>
           <div style={{ display: "flex", justifyContent: oneScorePerSide ? "center" : "space-around" }}>
             <ScoreInput label={isScramble && match.player1b ? `${match.player1a} / ${match.player1b}` : match.player1a} hcp={hcpA} value={sc.p1a} onChange={v => setSc(s => ({ ...s, p1a: v }))} color={teamAColorDisp} labelColor={strokeEntries.find(e => e.name?.startsWith(match.player1a))?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name?.startsWith(match.player1a))?.strokes || 1} par={holePar} />
             {!oneScorePerSide && <ScoreInput label={match.player1b} hcp={match.hcp1b || 0} value={sc.p1b} onChange={v => setSc(s => ({ ...s, p1b: v }))} color={teamAColorDisp} labelColor={strokeEntries.find(e => e.name === match.player1b)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player1b)?.strokes || 1} par={holePar} />}
@@ -285,7 +286,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
         </div>
 
         <div style={{ background: `${teamBColor}33`, border: `1px solid ${teamBColor}66`, borderRadius: 12, padding: "12px", marginBottom: 10 }}>
-          <div style={{ fontSize: 9, color: teamBColorDisp, fontWeight: 800, letterSpacing:1, fontFamily: "var(--mono)", marginBottom: 10 }}>{teamBShort}</div>
+          <div style={{ fontSize: 10, color: teamBColorDisp, fontWeight: 800, letterSpacing:1, fontFamily: "var(--mono)", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}><TeamChip color={teamBColor} />{teamBShort}</div>
           <div style={{ display: "flex", justifyContent: oneScorePerSide ? "center" : "space-around" }}>
             <ScoreInput label={isScramble && match.player2b ? `${match.player2a} / ${match.player2b}` : match.player2a} hcp={hcpB} value={sc.p2a} onChange={v => setSc(s => ({ ...s, p2a: v }))} color={teamBColorDisp} labelColor={strokeEntries.find(e => e.name?.startsWith(match.player2a))?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name?.startsWith(match.player2a))?.strokes || 1} par={holePar} />
             {!oneScorePerSide && <ScoreInput label={match.player2b} hcp={match.hcp2b || 0} value={sc.p2b} onChange={v => setSc(s => ({ ...s, p2b: v }))} color={teamBColorDisp} labelColor={strokeEntries.find(e => e.name === match.player2b)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player2b)?.strokes || 1} par={holePar} />}
