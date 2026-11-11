@@ -45,7 +45,7 @@ export default function SeedPage({ user }) {
             <li>Write Friday, Saturday (36 holes) and Sunday with every tee time and matchup</li>
             <li>Set invite code <code style={{color:"var(--gold-text)"}}>{CBS_2027_INVITE_CODE}</code></li>
             <li>Add the cup to your account</li>
-            <li>If the cup already exists: only rewrite players and matches</li>
+            <li>If the cup already exists: update team colors, players and matches (courses are kept)</li>
           </ul>
         </div>
 

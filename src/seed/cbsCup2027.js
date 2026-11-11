@@ -17,7 +17,7 @@
  *   Sun          m3101–m3124  (singles, 31–54; each tee time's two share a group)
  */
 
-import { db, ref, set, get } from "../firebase";
+import { db, ref, set, get, update } from "../firebase";
 import { teamsToMeta } from "../utils/teams";
 import { matchStrokes } from "../utils/scoring";
 import sheet from "./cbsCup2027.json";
@@ -128,7 +128,10 @@ export async function seedCBSCup2027(adminUid) {
   if (existing.exists()) {
     const scores = await get(ref(db, `${base}/scores`));
     if (scores.exists()) throw new Error("Scores already entered — refusing to overwrite matches.");
-    console.log("Cup exists — updating players and matches only...");
+    console.log("Cup exists — updating teams, players and matches...");
+    // Team names and colors follow the sheet too (Team White is white).
+    const t = teamsToMeta(sheet.teams.map(({ id, name, color }) => ({ id, name, color, short: id.toUpperCase() })));
+    await update(ref(db, `${base}/meta`), t);
     await set(ref(db, `${base}/players`), players);
     await set(ref(db, `${base}/matches`), matches);
     console.log(`Updated ${Object.keys(players).length} players, ${Object.keys(matches).length} matches.`);
