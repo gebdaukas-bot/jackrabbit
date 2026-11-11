@@ -292,10 +292,14 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           <div style={{ fontSize: 13, fontWeight: 800, color: hw === "A" ? teamAColorDisp : hw === "B" ? teamBColorDisp : "var(--gold-text)" }}>{hwLabel}</div>
         </div>
 
+        {/* Confirm stays pinned to the bottom of the screen until you scroll down to it,
+            so it's never hidden below the fold on a short phone. */}
+        <div style={{ position: "sticky", bottom: 0, zIndex: 5, padding: "12px 0 4px", margin: "0 -4px", paddingLeft: 4, paddingRight: 4, background: `linear-gradient(to bottom, transparent, ${BG} 18px)` }}>
         {cur.state === "gap" && hole !== nextNeededHole
           ? <div style={{ width: "100%", padding: "15px", background: "#e67e2222", border: "1px solid #e67e2266", borderRadius: 14, color: "#e67e22", fontWeight: 900, fontSize: 13, textAlign: "center", fontFamily: "monospace", marginBottom: 8, letterSpacing: 1 }}>⚠ ENTER HOLE {nextNeededHole + 1} FIRST</div>
           : <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${hwColor},${hwColor}aa)`, border: "none", borderRadius: 14, color: onFill(hwColor), fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", boxShadow: `0 4px 18px ${hwColor}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
         }
+        </div>
         {posInRotation > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {prevHole + 1}</button>}
         {!isComplete && <button onClick={() => setShowEndEarly(true)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid var(--faint)`, borderRadius: 10, color: "var(--muted)", fontSize: 10, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 20 }}>End Match Early</button>}
       </div>

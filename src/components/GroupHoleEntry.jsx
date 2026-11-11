@@ -245,8 +245,11 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
           ))}
         </div>
 
+        {/* Pinned to the bottom of the screen until scrolled to (see HoleEntry). */}
         {!isComplete && (
+          <div style={{ position: "sticky", bottom: 0, zIndex: 5, padding: "12px 4px 4px", margin: "0 -4px", background: `linear-gradient(to bottom, transparent, ${BG} 18px)` }}>
           <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${GOLD},${GOLD}aa)`, border: "none", borderRadius: 14, color: "var(--on-gold)", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", boxShadow: `0 4px 18px ${GOLD}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
+          </div>
         )}
         {groupPosInRotation > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {((hole - 1 + 18) % 18) + 1}</button>}
         {!isComplete && <button onClick={() => setShowEndEarly(true)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid var(--faint)`, borderRadius: 10, color: "var(--muted)", fontSize: 10, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 20 }}>End Matches Early</button>}
