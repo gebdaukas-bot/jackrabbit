@@ -22,7 +22,7 @@
     <meta name="twitter:title" content="Dormie | Live Golf Scoring" />
     <meta name="twitter:description" content="Match play scoring for your crew" />
     <meta name="twitter:image" content="https://dormie-golf.vercel.app/og.png" />
-    <meta name="theme-color" content="#020c18" />
+    <meta name="theme-color" content="#060e1c" />
     <style>
       /* In the iOS app (and home-screen web app) the page runs under the status bar and home
          indicator; these insets are 0 in a normal browser tab. The ::before strip keeps
@@ -30,9 +30,10 @@
       /* Theme colors for the shades screens hard-code. Dark values are the app's original
          colors; [data-theme="light"] (set by ThemeContext) swaps in light equivalents. */
       :root {
-        --bg: #020c18; --bg-b: #040d1c;
-        --panel-a: #080f20; --panel-b: #060f22; --panel-c: #060d1e; --panel-d: #0a1428; --panel-e: #0d1929; --panel-f: #111a2e;
-        --glass-80: rgba(8,20,43,0.8); --glass-85: rgba(8,20,43,0.85); --glass-90: rgba(8,20,43,0.9); --glass-95: rgba(8,20,43,0.95);
+        /* Three surface levels: page (--bg), card, and raised (headers, insets, controls). */
+        --bg: #060e1c; --bg-b: #060e1c; --glow: rgba(46,92,170,0.22);
+        --panel-a: #12213f; --panel-b: #12213f; --panel-c: #12213f; --panel-d: #12213f; --panel-e: #0c1830; --panel-f: #12213f;
+        --glass-80: rgba(12,24,48,0.88); --glass-85: rgba(12,24,48,0.9); --glass-90: rgba(12,24,48,0.94); --glass-95: rgba(12,24,48,0.97);
         --text: #ccd; --text-b: #dde;
         /* Secondary text meets WCAG AA (4.5:1) on the dark cards; --faint is for dots and dividers only. */
         --muted: #7d89a6; --muted-b: #8792ad; --muted2: #95a1bb; --muted2-b: #a9b6c9;
@@ -42,7 +43,7 @@
         --bg-grad: linear-gradient(135deg,#020c18 0%,#0a1f1a 25%,#071428 50%,#0d1f10 75%,#020c18 100%);
       }
       :root[data-theme="light"] {
-        --bg: #f4f6f9; --bg-b: #f4f6f9;
+        --bg: #f4f6f9; --bg-b: #f4f6f9; --glow: rgba(196,164,74,0.12);
         --panel-a: #eef1f7; --panel-b: #e8edf5; --panel-c: #e8edf5; --panel-d: #eef1f7; --panel-e: #e3e9f2; --panel-f: #e3e9f2;
         --glass-80: rgba(255,255,255,0.85); --glass-85: rgba(255,255,255,0.88); --glass-90: rgba(255,255,255,0.92); --glass-95: rgba(255,255,255,0.96);
         --text: #1a2a44; --text-b: #1a2a44;

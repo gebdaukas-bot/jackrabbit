@@ -14,16 +14,6 @@ import {
 
 const GOLD = "#C4A44A";
 
-const FLOATERS = Array.from({ length: 18 }, (_, i) => ({
-  id: i,
-  emoji: ["⛳","🏌️","🏌️‍♀️","🏅","🏆","⛳","🏌️","⛳"][i % 8],
-  left: `${(i * 17 + 5) % 95}%`,
-  size: 16 + (i * 7) % 24,
-  duration: 12 + (i * 3) % 14,
-  delay: -(i * 2.1),
-  drift: (i % 2 === 0 ? 1 : -1) * (20 + (i * 11) % 40),
-}));
-
 export default function Login() {
   const [mode, setMode] = useState("google"); // "google" | "email" | "phone"
   const [isCreating, setIsCreating] = useState(false);
@@ -156,10 +146,8 @@ export default function Login() {
   });
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden", background:"#020c18" }}>
+    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden", background:"#060e1c" }}>
       <style>{`
-        @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-        @keyframes floatUp { 0%{transform:translateY(110vh) translateX(0px) rotate(0deg);opacity:0} 5%{opacity:1} 95%{opacity:0.6} 100%{transform:translateY(-10vh) translateX(var(--drift)) rotate(360deg);opacity:0} }
         @keyframes titleGlow { 0%,100%{text-shadow:0 0 20px ${GOLD}44,0 0 40px ${GOLD}22} 50%{text-shadow:0 0 30px ${GOLD}88,0 0 60px ${GOLD}44,0 0 80px ${GOLD}22} }
         @keyframes cardFloat { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-6px)} }
         .login-card { animation: cardFloat 6s ease-in-out infinite; }
@@ -167,17 +155,8 @@ export default function Login() {
         input::placeholder { color: #3a5a4a; }
       `}</style>
 
-      <div style={{ position:"absolute", inset:0, zIndex:0, background:"linear-gradient(135deg,#020c18 0%,#0a1f1a 25%,#071428 50%,#0d1f10 75%,#020c18 100%)", backgroundSize:"400% 400%", animation:"gradientShift 12s ease infinite" }}/>
-      <div style={{ position:"absolute", inset:0, zIndex:1, opacity:0.04, backgroundImage:"linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)", backgroundSize:"40px 40px" }}/>
-
-      {FLOATERS.map(f=>(
-        <div key={f.id} style={{ position:"absolute", left:f.left, bottom:"-10vh", zIndex:2, fontSize:f.size, userSelect:"none", pointerEvents:"none", "--drift":`${f.drift}px`, animation:`floatUp ${f.duration}s linear ${f.delay}s infinite`, filter:"blur(0.5px)", opacity:0.5 }}>
-          {f.emoji}
-        </div>
-      ))}
-
-      <div style={{ position:"absolute", top:"15%", left:"10%", width:300, height:300, borderRadius:"50%", background:`radial-gradient(circle,${GOLD}18 0%,transparent 70%)`, zIndex:1, filter:"blur(20px)" }}/>
-      <div style={{ position:"absolute", bottom:"20%", right:"5%", width:250, height:250, borderRadius:"50%", background:"radial-gradient(circle,#1a4a2a44 0%,transparent 70%)", zIndex:1, filter:"blur(20px)" }}/>
+      {/* Same quiet backdrop as the rest of the app: flat navy, a soft glow up top. */}
+      <div style={{ position:"absolute", inset:0, zIndex:0, background:`radial-gradient(120% 60% at 50% -10%, rgba(46,92,170,0.22) 0%, transparent 60%), radial-gradient(60% 40% at 50% 30%, ${GOLD}14 0%, transparent 70%)` }}/>
 
       <div style={{ position:"relative", zIndex:10, width:"100%", maxWidth:400 }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>

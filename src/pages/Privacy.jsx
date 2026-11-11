@@ -10,7 +10,7 @@ export default function Privacy() {
   const p = { fontSize: 14, lineHeight: 1.6, color: "#c8d2dc", margin: "0 0 10px" };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#020c18", padding: "24px 16px 48px" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", padding: "24px 16px 48px" }}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         <button onClick={() => nav("/")} style={{ background: "none", border: "none", color: "#6a8a7a", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "var(--mono)" }}>← Dormie</button>
         <h1 style={{ fontSize: 26, fontWeight: 900, color: GOLD, fontFamily: "var(--mono)", letterSpacing:1.5, margin: "16px 0 4px" }}>PRIVACY POLICY</h1>
