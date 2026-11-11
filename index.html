@@ -55,6 +55,12 @@
       /* Two type families: the system sans for names and text, a monospace for
          labels and numbers. Buttons and inputs don't inherit fonts by default. */
       :root { --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; }
+      /* Shared animations: live dots, tab content, a changed score, loading placeholders. */
+      @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+      @keyframes flash { 0% { box-shadow: 0 0 0 2px #C4A44Acc, 0 0 18px #C4A44A88; } 100% { box-shadow: 0 0 0 0 transparent; } }
+      @keyframes shimmer { 0%,100% { opacity: .45; } 50% { opacity: .85; } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
       body { background: var(--bg); padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
       button, input, select, textarea { font-family: inherit; }
       body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--bg); z-index: 2000; }

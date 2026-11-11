@@ -61,6 +61,17 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   const isShamble = format === "Shamble";
   const pointValue = round?.pointValue ?? 1;
   const st = computeMatchStatus(match.scores, teamAShort, teamBShort, match.startHole || 0, round?.totalHoles || 18, pointValue, round?.allowExtraHoles || false, match.extra || []);
+  // A brief gold glow when this match's score changes while you're watching.
+  const sig = `${st.state}|${st.shortLabel}|${st.holesPlayed}`;
+  const prevSig = useRef(sig);
+  const [flashing, setFlashing] = useState(false);
+  useEffect(() => {
+    if (prevSig.current === sig) return;
+    prevSig.current = sig;
+    setFlashing(true);
+    const t = setTimeout(() => setFlashing(false), 1200);
+    return () => clearTimeout(t);
+  }, [sig]);
 
   const aWin     = st.state==="complete" && st.leader==="A";
   const bWin     = st.state==="complete" && st.leader==="B";
@@ -97,7 +108,7 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
     else if (sameTeeAsAbove){ badgeBot=""; }
     else if (match.teeTime){ badgeTop="TEE"; badgeBot=match.teeTime; }
     return (
-      <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:"1px solid var(--sep)", opacity:canEdit?1:0.85 }}>
+      <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:"1px solid var(--sep)", opacity:canEdit?1:0.85, position:"relative", animation:flashing?"flash 1.2s ease-out":"none" }}>
         <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
           {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
           <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
@@ -797,6 +808,10 @@ export default function CupView({ user }) {
   const [days, setDays] = useState([]);
   const [cupPlayers, setCupPlayers] = useState([]);
   const [loaded, setLoaded] = useState(false);
+  // When scores last came in, shown as "updated 20s ago" while matches are live.
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [, setNowTick] = useState(0);
+  useEffect(()=>{ const t=setInterval(()=>setNowTick(n=>n+1),15000); return ()=>clearInterval(t); },[]);
   const [tab, setTab] = useState("scoreboard");
   // Scores tab: which slice of the card to show (a full 18 doesn't fit a phone).
   const [scoreView, setScoreView] = useState("front");
@@ -911,6 +926,7 @@ export default function CupView({ user }) {
   useEffect(()=>{
     const unsub = onValue(ref(db,`cups/${cupId}/scores`),snap=>{
       const data = snap.val();
+      setLastUpdate(Date.now());
       setDays(prev=>prev.map(day=>({
         ...day,
         matches:day.matches.map(m=>{
@@ -1234,7 +1250,16 @@ export default function CupView({ user }) {
   useEffect(()=>{ if(meta?.eventType==="live_match") setTab("matches"); },[meta?.eventType]);
 
   if (!meta||!loaded||isMember===null) {
-    return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><LiveBackground/><div style={{color:MUTED,fontFamily:"var(--mono)"}}>Loading cup...</div></div>;
+    // Placeholder shapes of the header, tabs and match cards while the cup loads.
+    const bone=(h,extra)=>({height:h,borderRadius:10,background:"var(--panel-f)",animation:"shimmer 1.4s ease-in-out infinite",...extra});
+    return (
+      <div style={{minHeight:"100vh"}}><LiveBackground/>
+        <div style={{padding:"16px 14px",display:"flex",alignItems:"center",gap:10}}><div style={bone(24,{width:24,borderRadius:6})}/><div style={bone(18,{width:160})}/></div>
+        <div style={bone(92,{borderRadius:0})}/>
+        <div style={{display:"flex",gap:6,padding:"8px"}}>{[0,1,2,3].map(i=><div key={i} style={bone(34,{flex:1})}/>)}</div>
+        <div style={{padding:"8px 10px",display:"flex",flexDirection:"column",gap:8}}>{[0,1,2,3,4].map(i=><div key={i} style={bone(64)}/>)}</div>
+      </div>
+    );
   }
 
   if (!isMember && meta.createdBy!==user?.uid) {
@@ -1407,7 +1432,7 @@ export default function CupView({ user }) {
             </div>
           </div>
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
-            {liveCount>0&&<div style={{fontSize:9,color:"#4caf50",fontWeight:700,animation:"pulse 2s infinite",letterSpacing:1}}>● {liveCount} LIVE</div>}
+            {liveCount>0&&<div style={{fontSize:9,color:"#4caf50",fontWeight:700,letterSpacing:1,display:"flex",alignItems:"center",gap:6}}><span style={{animation:"pulse 2s infinite"}}>● {liveCount} LIVE</span>{lastUpdate&&<span style={{color:MUTED,fontWeight:600,letterSpacing:0}}>· updated {(()=>{const sec=Math.round((Date.now()-lastUpdate)/1000);return sec<45?"just now":sec<3600?`${Math.round(sec/60)}m ago`:`${Math.round(sec/3600)}h ago`;})()}</span>}</div>}
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
               {offlineQueue.length>0&&<div style={{fontSize:8,color:"#f39c12",fontFamily:"var(--mono)",fontWeight:700}}>⚡{offlineQueue.length}</div>}
               {syncStatus==="synced"&&<div style={{fontSize:8,color:"#4caf50",fontFamily:"var(--mono)"}}>✓</div>}
@@ -1516,21 +1541,20 @@ export default function CupView({ user }) {
             </div>
           );
         })()}
+        {/* Tabs: a segmented control, inside the pinned header so it stays reachable while you scroll. */}
+        <div style={{display:"flex",gap:4,padding:"6px 8px",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
+          {[
+            ["scoreboard","📊 BOARD"],
+            ["matches","⛳ MY MATCH"],
+            ...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),
+            ...(meta.eventType!=="live_match"?[["leaderboard","🏌️ SCORES"]]:[]),
+          ].map(([key,label])=>(
+            <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"10px 2px",minHeight:40,background:tab===key?`${GOLD}26`:"none",border:"none",borderRadius:8,boxShadow:tab===key?`inset 0 -2px 0 ${GOLD}`:"none",color:tab===key?"var(--gold-text)":MUTED,fontWeight:tab===key?900:700,fontSize:9,letterSpacing:0.5,cursor:"pointer",fontFamily:"var(--mono)",transition:"background .15s, color .15s"}}>{label}</button>
+          ))}
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{display:"flex",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
-        {[
-          ["scoreboard","📊 BOARD"],
-          ["matches","⛳ MY MATCH"],
-          ...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),
-          ...(meta.eventType!=="live_match"?[["leaderboard","🏌️ SCORES"]]:[]),
-        ].map(([key,label])=>(
-          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:MUTED,fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"var(--mono)"}}>{label}</button>
-        ))}
-      </div>
-
-      <div style={{padding:"12px 10px 0"}}>
+      <div key={tab} style={{padding:"12px 10px 0",animation:"fadeIn .18s ease-out"}}>
 
         {/* SCOREBOARD TAB */}
         {tab==="scoreboard"&&(
