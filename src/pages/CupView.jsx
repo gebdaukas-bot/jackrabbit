@@ -50,7 +50,7 @@ function fmt(n) {
 }
 
 // ── TV Match Row (matches original CBS style) ─────────────────────────────────
-function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameTeeAsAbove }) {
+function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameTeeAsAbove, teeBetween }) {
   const { BORDER } = useTheme();
   // Which two of the cup's teams contest *this* match — with more than two teams
   // in the cup that varies match to match, so the card paints itself in its own
@@ -107,7 +107,11 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
     else if (halved){ badgeBg="var(--faint-c)";   badgeTop="HALVED"; badgeBot=pointValue===1?"½pt":`${pointValue/2}pt`; }
     // A match teeing off with the one above it (same group) doesn't repeat the time.
     else if (sameTeeAsAbove){ badgeBot=""; }
+    // Two singles sharing a tee time (neither started): the time sits on the line
+    // between the two cards, beside all four names, rather than on the top one.
+    else if (teeBetween){ badgeBot=""; }
     else if (match.teeTime){ badgeTop="TEE"; badgeBot=match.teeTime; }
+    const sharedTee = teeBetween && !aWin && !bWin && !halved;
     return (
       <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:"1px solid var(--sep)", opacity:canEdit?1:0.85, position:"relative", animation:flashing?"flash 1.2s ease-out":"none" }}>
         <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
@@ -122,7 +126,11 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
           </div>}
           {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
         </div>
-        <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
+        <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0, position:"relative" }}>
+          {sharedTee&&<div style={{ position:"absolute", left:0, right:0, bottom:0, transform:"translateY(50%)", zIndex:2, display:"flex", flexDirection:"column", alignItems:"center", padding:"4px 0", background:badgeBg }}>
+            <div style={{ fontSize:7, fontWeight:800, color:"var(--strong-dim)", fontFamily:"var(--mono)", letterSpacing:0.5 }}>TEE</div>
+            <div style={{ fontSize:match.teeTime.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"var(--mono)", lineHeight:1 }}>{match.teeTime}</div>
+          </div>}
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"var(--strong-dim)", fontFamily:"var(--mono)", letterSpacing:0.5 }}>{badgeTop}</div>}
           <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"var(--mono)", lineHeight:1 }}>{badgeBot}</div>
           {(isScramble||isShamble)&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"var(--mono)", marginTop:1, letterSpacing:0.5 }}>{isScramble?"SCRAMBLE":"SHAMBLE"}</div>}
@@ -229,7 +237,8 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
             )}
             {roundMatches.map((m,i)=>(
               <MatchCard key={m.id} match={m} teams={teams} onOpen={onOpen} canEdit={canEdit(m.id)} round={round} showTeamLabels={!twoTeam}
-                sameTeeAsAbove={!!m.teeTime&&i>0&&roundMatches[i-1].teeTime===m.teeTime}/>
+                sameTeeAsAbove={!!m.teeTime&&i>0&&roundMatches[i-1].teeTime===m.teeTime}
+                teeBetween={!!m.teeTime&&roundMatches[i+1]?.teeTime===m.teeTime&&(i===0||roundMatches[i-1].teeTime!==m.teeTime)&&[m,roundMatches[i+1]].every(x=>!(x.scores||[]).some(v=>v!=null))}/>
             ))}
           </div>
         );
