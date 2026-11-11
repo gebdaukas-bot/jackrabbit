@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { GOLD } from "../utils/scoring";
 import { teamInk } from "../utils/teams";
@@ -9,6 +10,10 @@ import { teamInk } from "../utils/teams";
 // no-login view-only page so they can't drift out of sync with each other.
 export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAColor, teamBColor, longLabel, sublabel, statusColor, meta }) {
   const { CARD, CARD2, BORDER, MUTED } = useTheme();
+  // The card is wider than a phone, so it scrolls sideways; a fade on the right
+  // edge says so, until you've scrolled to the end.
+  const [moreRight, setMoreRight] = useState(true);
+  const onScroll = e => { const el = e.currentTarget; setMoreRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4); };
   const isSingles = !match.player1b;
   const extraCount = match.extra?.length || 0;
   const startHole = match.startHole || 0;
@@ -134,7 +139,8 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
           {meta && <div style={{ fontSize: 9, color: MUTED, fontFamily: "monospace", textAlign: "center" }}>{meta}</div>}
         </div>
       )}
-      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      <div style={{ position: "relative" }}>
+      <div onScroll={onScroll} style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         <table style={{ borderCollapse: "collapse", fontSize: 11 }}>
           <thead>
             <tr style={{ background: "var(--panel-a)", borderBottom: `1px solid ${BORDER}` }}>
@@ -185,6 +191,8 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
             })}
           </tbody>
         </table>
+      </div>
+      {moreRight && <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 28, pointerEvents: "none", background: `linear-gradient(to right, transparent, ${CARD})`, transition: "opacity .2s" }}/>}
       </div>
     </div>
   );
