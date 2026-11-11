@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, onValue, set, update } from "../firebase";
-import { computeMatchStatus, standings, courseHcp, playingHcp, strokesOffLow, SHAMBLE_ALLOWANCE, GOLD } from "../utils/scoring";
+import { computeMatchStatus, standings, courseHcp, playingHcp, strokesOffLow, matchStrokes, SHAMBLE_ALLOWANCE, GOLD } from "../utils/scoring";
 import { getTeams, cupSidesFor, matchTeams, teamsToMeta, autoShort, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import { contrastText } from "../utils/color";
 import HoleEntry from "../components/HoleEntry";
@@ -568,31 +568,9 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
 
   const recalcHcps = (di, ri) => {
     const round = days[di]?.rounds[ri];
-    const course = round?.course;
-    if (!course?.par?.length) return;
-    // As GHIN does it: each player's course handicap is rounded, then the
-    // format's allowance applied (Shamble plays off a share) and rounded again,
-    // and the low player in the match plays off zero.
-    const toPh = (idx, startHole) => playingHcp(courseHcp(idx, course, round.totalHoles || 18, startHole), round.format);
-    const isSingles = round.format === "Singles";
-    const isScramble = round.format === "Scramble";
-    setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>{
-      if ((m.roundIdx??0)!==ri) return m;
-      const hcpOf = name => cupPlayers.find(p=>p.name===name)?.hcp||0;
-      const [ph1a,ph1b,ph2a,ph2b] = [m.player1a,m.player1b,m.player2a,m.player2b].map(n=>toPh(hcpOf(n), m.startHole||0));
-      if (isScramble && !isSingles) {
-        // Two-person scramble: 35% of the lower + 15% of the higher, rounded.
-        const team = (x,y) => Math.round(0.35*Math.min(x,y)+0.15*Math.max(x,y));
-        const [tA,tB] = strokesOffLow([team(ph1a,ph1b), team(ph2a,ph2b)]);
-        return {...m,hcp1a:tA,hcp1b:0,hcp2a:tB,hcp2b:0};
-      }
-      if (isSingles) {
-        const [a,b] = strokesOffLow([ph1a,ph2a]);
-        return {...m,hcp1a:a,hcp1b:0,hcp2a:b,hcp2b:0};
-      }
-      const [a1,b1,a2,b2] = strokesOffLow([ph1a,ph1b,ph2a,ph2b]);
-      return {...m,hcp1a:a1,hcp1b:b1,hcp2a:a2,hcp2b:b2};
-    })}));
+    if (!round?.course?.par?.length) return;
+    const indexOf = name => cupPlayers.find(p=>p.name===name)?.hcp||0;
+    setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>(m.roundIdx??0)!==ri?m:{...m,...matchStrokes(m,indexOf,round.course,m.format||round.format,round.totalHoles||18)})}));
   };
 
   const handleSave = async () => {
@@ -619,9 +597,11 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
           if(mx.id!==matchId) return mx;
           const player=cupPlayers.find(p=>p.name===val);
           // For scramble, don't auto-set hcp from player — team hcp is set separately
-          if(isScramble) return {...mx,[field]:val||""};
-          const hcpKey=field.replace("player","hcp");
-          return {...mx,[field]:val||"",[hcpKey]:playingHcp(player?.hcp||0,format)};
+          // Picking a player re-strokes the match off its low man (see recalcHcps).
+          const next={...mx,[field]:val||""};
+          const round=days[di].rounds[mx.roundIdx??0];
+          if(!round?.course?.par?.length||!next.player1a||!next.player2a) return next;
+          return {...next,...matchStrokes(next,n=>cupPlayers.find(p=>p.name===n)?.hcp||0,round.course,format||round.format,round.totalHoles||18)};
         })}));
       }}
         style={{flex:1,padding:"5px 6px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:11,cursor:"pointer",minWidth:0}}>
@@ -974,10 +954,28 @@ export default function CupView({ user }) {
   const saveWarmupHole = (roundId, hole, vals) => update(ref(db,`cups/${cupId}/warmupScores/${roundId}`),
     Object.fromEntries(Object.entries(vals).map(([name,v])=>[`${warmupKey(name)}/${hole}`, v])));
 
+  // Strokes follow from the players' indexes and the tees being played, so when
+  // either changes, every match that hasn't started yet is re-stroked: course
+  // handicaps from slope and rating, lowest in the match plays off zero. Matches
+  // under way keep the strokes they started with.
+  const restrokeUnstarted = async (roundsByDay, players) => {
+    const indexOf = name => players.find(p=>p.name===name)?.hcp || 0;
+    const updates = {};
+    days.forEach((d,di)=>d.matches.forEach(m=>{
+      if ((m.scores||[]).some(v=>v!=null) || !m.player1a || !m.player2a) return;
+      const round = roundsByDay[di]?.[m.roundIdx??0];
+      if (!round?.course?.par?.length || isWarmup(round)) return;
+      const st = matchStrokes(m, indexOf, round.course, m.format||round.format, round.totalHoles||18);
+      for (const k of ["hcp1a","hcp1b","hcp2a","hcp2b"]) if ((m[k]||0)!==st[k]) updates[`matches/m${m.id}/${k}`]=st[k];
+    }));
+    if (Object.keys(updates).length) await update(ref(db,`cups/${cupId}`),updates);
+  };
+
   const saveAdminPlayers = async (players) => {
     const obj = {};
     players.forEach(p=>{ if(p.name.trim()) obj[p.name.trim().toLowerCase().replace(/\s+/g,"_")]={name:p.name.trim(),team:p.team,hcp:p.hcp||0}; });
     await set(ref(db,`cups/${cupId}/players`),obj);
+    await restrokeUnstarted(days.map(d=>d.rounds), players.filter(p=>p.name.trim()).map(p=>({name:p.name.trim(),hcp:p.hcp||0})));
   };
 
   const saveAdminDays = async (editedDays) => {
@@ -997,6 +995,7 @@ export default function CupView({ user }) {
         })),
       });
     }
+    await restrokeUnstarted(editedDays.map(d=>d.rounds), cupPlayers);
   };
 
   // Like saveAdminDays, but also reconciles cups/{cupId}/matches and .../scores:

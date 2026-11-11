@@ -42,6 +42,28 @@ export function strokesOffLow(hcps) {
   return hcps.map(h => h - low);
 }
 
+// The strokes each player in a match receives, from their handicap indexes: each
+// index becomes a course handicap (slope and rating of the tees being played),
+// then the format's allowance, and the lowest in the match plays off zero.
+// Scramble sides play off 35% of the lower + 15% of the higher. `indexOf(name)`
+// gives a player's index; `course` carries par/stroke index and slope/rating.
+// Returns { hcp1a, hcp1b, hcp2a, hcp2b }.
+export function matchStrokes(m, indexOf, course, format, totalHoles = 18) {
+  const ph = name => playingHcp(courseHcp(indexOf(name) || 0, course, totalHoles, m.startHole || 0), format);
+  const [p1a, p1b, p2a, p2b] = [m.player1a, m.player1b, m.player2a, m.player2b].map(ph);
+  if (format === "Scramble" && m.player1b) {
+    const side = (x, y) => Math.round(0.35 * Math.min(x, y) + 0.15 * Math.max(x, y));
+    const [a, b] = strokesOffLow([side(p1a, p1b), side(p2a, p2b)]);
+    return { hcp1a: a, hcp1b: 0, hcp2a: b, hcp2b: 0 };
+  }
+  if (!m.player1b) {
+    const [a, b] = strokesOffLow([p1a, p2a]);
+    return { hcp1a: a, hcp1b: 0, hcp2a: b, hcp2b: 0 };
+  }
+  const [a1, b1, a2, b2] = strokesOffLow([p1a, p1b, p2a, p2b]);
+  return { hcp1a: a1, hcp1b: b1, hcp2a: a2, hcp2b: b2 };
+}
+
 // Strokes a player receives on a hole. They go to the hardest of the holes
 // being played first, in stroke-index order, one per hole, then round again —
 // so in a 9-hole round the nine holes rank 1–9 between themselves, and a
