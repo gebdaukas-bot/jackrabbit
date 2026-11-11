@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { seedCBSCup2027, CBS_2027_CUP_ID, CBS_2027_INVITE_CODE } from "../seed/cbsCup2027";
 import { GOLD } from "../utils/scoring";
+import { fixCBSCup2026 } from "../seed/fixCbsCup2026";
 
 export default function SeedPage({ user }) {
   const { BG, CARD, CARD2, BORDER, TEXT, MUTED } = useTheme();
@@ -65,6 +66,8 @@ export default function SeedPage({ user }) {
             OPEN CBS CUP 2027 →
           </button>
         )}
+        <button onClick={async()=>{try{await fixCBSCup2026();setLog(l=>[...l,"✓ CBS 2026 names fixed — Saturday pairings and Hunter v Ryan."]);}catch(e){setLog(l=>[...l,`✗ ${e.message}`]);}}}
+          style={{width:"100%",marginTop:10,padding:"10px",background:"none",border:`1px solid ${GOLD}66`,borderRadius:10,color:"var(--gold-text)",fontSize:12,cursor:"pointer",fontFamily:"monospace"}}>FIX CBS 2026 PAIRINGS</button>
         <button onClick={()=>nav("/")} style={{width:"100%",marginTop:10,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>← Back to home</button>
       </div>
     </div>
