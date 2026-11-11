@@ -48,16 +48,18 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
 
   return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
-      <div style={{fontSize:11,fontWeight:700,color:labelColor||color,fontFamily:"monospace",textAlign:"center",maxWidth:90,lineHeight:1.2}}>
-        {labelColor ? `${"★".repeat(strokes)} ${label}` : label}
+      {/* Names get a fixed two-line slot and the handicap line is always reserved, so
+          the steppers side by side line up even when only one name wraps. */}
+      <div style={{fontSize:11,fontWeight:700,color:labelColor||color,fontFamily:"monospace",textAlign:"center",maxWidth:130,lineHeight:"13px",height:26,display:"flex",alignItems:"flex-end",justifyContent:"center",overflow:"hidden"}}>
+        <span style={{display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{labelColor ? `${"★".repeat(strokes)} ${label}` : label}</span>
       </div>
-      {hcp > 0 && <div style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace"}}>HCP {Number(hcp).toFixed(1)}</div>}
+      <div style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",height:11,visibility:hcp > 0 ? "visible" : "hidden"}}>HCP {Number(hcp || 0).toFixed(1)}</div>
       <div style={{display:"flex",alignItems:"center",gap:0}}>
-        <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"var(--muted2-b)",cursor:"pointer"}}>−</button>
+        <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:48,height:52,fontSize:22,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"var(--muted2-b)",cursor:"pointer"}}>−</button>
         <div style={{width:52,height:52,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
           {scoreDisplay}
         </div>
-        <button onClick={()=>onChange(Math.min(12,value+1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 7px 7px 0",color:"var(--muted2-b)",cursor:"pointer"}}>+</button>
+        <button onClick={()=>onChange(Math.min(12,value+1))} style={{width:48,height:52,fontSize:22,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 7px 7px 0",color:"var(--muted2-b)",cursor:"pointer"}}>+</button>
       </div>
       {par && diff !== 0 && (
         <div style={{fontSize:8,color:diff<0?"#4caf50":diff===1?"#e88":diff===2?"#e55":"#c0392b",fontFamily:"monospace",fontWeight:700}}>
