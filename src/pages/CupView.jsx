@@ -1442,11 +1442,11 @@ export default function CupView({ user }) {
                 <div style={{fontSize:10,fontWeight:900,color:`${contrastText(a.color)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{a.name}</div>
                 <div style={{fontSize:36,fontWeight:900,color:contrastText(a.color),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(pa.actual)}</div>
               </div>
-              <div style={{background:"var(--panel-c)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:76}}>
-                <div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
-                <div style={{fontSize:10,fontWeight:700,fontFamily:"monospace",color:pa.proj>pb.proj?a.colorDisp:pb.proj>pa.proj?b.colorDisp:"var(--muted-b)",whiteSpace:"nowrap"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
-                {projWinner&&<div style={{fontSize:7,color:"var(--gold-text)",fontFamily:"monospace",marginTop:2,whiteSpace:"nowrap"}}>→ {projWinner}</div>}
-                <div style={{fontSize:7,color:"var(--faint-b)",marginTop:3,fontFamily:"monospace",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget)}</div>
+              <div style={{background:"var(--panel-c)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:96}}>
+                <div style={{fontSize:8,color:"var(--muted2)",fontFamily:"monospace",letterSpacing:0.5,marginBottom:2,fontWeight:700}}>PROJECTED</div>
+                <div style={{fontSize:16,fontWeight:900,fontFamily:"monospace",color:pa.proj>pb.proj?a.colorDisp:pb.proj>pa.proj?b.colorDisp:"var(--text)",whiteSpace:"nowrap",fontVariantNumeric:"tabular-nums"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
+                {projWinner&&<div style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",marginTop:1,whiteSpace:"nowrap",fontWeight:700}}>→ {projWinner}</div>}
+                <div style={{fontSize:11,color:"var(--gold-text)",marginTop:4,fontFamily:"monospace",whiteSpace:"nowrap",fontWeight:800,background:`${GOLD}1f`,borderRadius:4,padding:"1px 6px"}}>WIN: {fmt(winTarget)}</div>
               </div>
               <div style={{flex:1,background:b.color,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"flex-end",minWidth:0}}>
                 <div style={{fontSize:10,fontWeight:900,color:`${contrastText(b.color)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{b.name}</div>
@@ -1481,7 +1481,7 @@ export default function CupView({ user }) {
                     {/* What this team needs to be sure of the cup — no fixed
                         target exists with 3+ teams, so each gets its own. */}
                     {!winner&&(r.out||r.toWin!=null)&&
-                      <div style={{fontSize:8,color:`${txt}99`,fontFamily:"monospace",letterSpacing:1,marginTop:2}}>{r.out?"ELIMINATED":`WIN: ${fmt(r.toWin)}`}</div>}
+                      <div style={{fontSize:10,fontWeight:800,color:`${txt}dd`,fontFamily:"monospace",letterSpacing:0.5,marginTop:2}}>{r.out?"ELIMINATED":`WIN: ${fmt(r.toWin)}`}</div>}
                   </div>
                   <div style={{fontSize:9,color:`${txt}99`,fontFamily:"monospace",whiteSpace:"nowrap",flexShrink:0}}>proj {fmt(r.proj)}</div>
                   <div style={{fontSize:24,fontWeight:900,color:txt,fontFamily:"monospace",lineHeight:1,minWidth:40,textAlign:"right",flexShrink:0}}>{fmt(r.actual)}</div>
