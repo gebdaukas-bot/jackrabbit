@@ -53,7 +53,9 @@ export default function ContestPrompt({ hole, types, players, current, onSubmit,
           {lead ? <>Current: <span style={{ color: TEXT, fontWeight: 700 }}>{lead.name}</span>{isCtp ? <span style={{ color: "var(--gold-text)", fontWeight: 800, fontFamily: "var(--mono)" }}> {fmtFeet(lead.inches)}</span> : null}</> : "No one has it yet."}
         </div>
         <div style={{ fontSize: 18, fontWeight: 800, color: TEXT, margin: "10px 0 14px" }}>
-          {picked ? `How close was ${picked.name.split(" ")[0]}?` : lead ? "Did anyone in your group beat it?" : `Who in your group ${isCtp ? "was closest" : "hit the longest drive"}?`}
+          {picked ? `How close was ${picked.name.split(" ")[0]}?`
+            : lead ? (isCtp ? `Did anyone get inside ${fmtFeet(lead.inches)}?` : "Did anyone in your group outdrive that?")
+            : `Who in your group ${isCtp ? "was closest" : "hit the longest drive"}?`}
         </div>
 
         {!picked && (
@@ -83,7 +85,7 @@ export default function ContestPrompt({ hole, types, players, current, onSubmit,
 
         <button onClick={picked ? () => setPicked(null) : next}
           style={{ width: "100%", marginTop: 10, padding: 12, background: "none", border: `1px solid ${BORDER}`, borderRadius: 12, color: MUTED, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-          {picked ? "← Back" : lead ? "No, nobody beat it" : "Skip"}
+          {picked ? "← Back" : lead ? "No, nobody beat it" : isCtp ? "Skip (nobody on the green)" : "Skip"}
         </button>
       </div>
     </div>
