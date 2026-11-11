@@ -16,6 +16,7 @@
     "@capacitor/ios": "^8.5.2",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
+    "@vercel/blob": "^2.9.0",
     "canvas-confetti": "^1.9.3",
     "firebase": "^12.19.0",
     "firebase-admin": "^13.10.0",

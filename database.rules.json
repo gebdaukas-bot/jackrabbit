@@ -22,8 +22,12 @@
           ".write": "auth != null && newData.exists() && (data.exists() ? (root.child('users/' + auth.uid + '/cups/' + $cupId).exists() || data.child('createdBy').val() === auth.uid) : newData.child('createdBy').val() === auth.uid)",
           ".validate": "newData.hasChildren(['createdBy', 'inviteCode']) && (!data.exists() || (newData.child('createdBy').val() === data.child('createdBy').val() && newData.child('inviteCode').val() === data.child('inviteCode').val()))"
         },
+        // A member can change any part of a section (one match's scores, one
+        // player) but can't wipe out a whole section — every score, every
+        // match — in one go; only the cup's creator can. The app never needs
+        // to, so that only stops accidents and misbehaving clients.
         "$section": {
-          ".write": "auth != null && $section !== 'meta' && (root.child('users/' + auth.uid + '/cups/' + $cupId).exists() || root.child('cups/' + $cupId + '/meta/createdBy').val() === auth.uid)"
+          ".write": "auth != null && $section !== 'meta' && (root.child('cups/' + $cupId + '/meta/createdBy').val() === auth.uid || (root.child('users/' + auth.uid + '/cups/' + $cupId).exists() && newData.exists()))"
         }
       }
     },

@@ -1,8 +1,8 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getDatabase } from "firebase-admin/database";
 import { getMessaging } from "firebase-admin/messaging";
 import { assembleDays, cupEvents } from "../src/utils/cupEvents.js";
+import { admin } from "./_admin.js";
 
 // Sends a cup's push notifications: a match finishing, a day wrapping up, the
 // cup being won. Any member's app calls this after a match ends (and whenever it
@@ -12,13 +12,6 @@ import { assembleDays, cupEvents } from "../src/utils/cupEvents.js";
 
 // Cups created from here on announce everything from their first result.
 const PUSH_LAUNCH = Date.UTC(2026, 10, 9);
-
-function admin() {
-  if (!getApps().length) initializeApp({
-    credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
-    databaseURL: "https://cbs-ryder-cup-default-rtdb.firebaseio.com",
-  });
-}
 
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end(); // CORS preflight from the iOS app
