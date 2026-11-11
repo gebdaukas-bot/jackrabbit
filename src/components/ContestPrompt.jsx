@@ -54,7 +54,7 @@ export default function ContestPrompt({ hole, types, players, current, onSubmit,
         </div>
         <div style={{ fontSize: 18, fontWeight: 800, color: TEXT, margin: "10px 0 14px" }}>
           {picked ? `How close was ${picked.name.split(" ")[0]}?`
-            : lead ? (isCtp ? `Did anyone get inside ${fmtFeet(lead.inches)}?` : "Did anyone in your group outdrive that?")
+            : lead ? (isCtp ? `Did you beat ${fmtFeet(lead.inches)}?` : "Did you outdrive it?")
             : `Who in your group ${isCtp ? "was closest" : "hit the longest drive"}?`}
         </div>
 
@@ -85,8 +85,42 @@ export default function ContestPrompt({ hole, types, players, current, onSubmit,
 
         <button onClick={picked ? () => setPicked(null) : next}
           style={{ width: "100%", marginTop: 10, padding: 12, background: "none", border: `1px solid ${BORDER}`, borderRadius: 12, color: MUTED, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-          {picked ? "← Back" : lead ? "No, nobody beat it" : isCtp ? "Skip (nobody on the green)" : "Skip"}
+          {picked ? "← Back" : lead ? "No, nobody in our group did" : isCtp ? "Skip (nobody on the green)" : "Skip"}
         </button>
+      </div>
+    </div>
+  );
+}
+
+// Shown when a group finishes the hole before a contest hole: what the mark is
+// and who holds it, so they know what to aim for.
+export function ContestHeadsUp({ hole, types, current, teams, onDone }) {
+  const { CARD, BORDER, TEXT, MUTED } = useTheme();
+  return (
+    <div onClick={onDone} style={{ position: "fixed", inset: 0, zIndex: 400, background: "#000b", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 400, background: CARD, border: `1px solid ${GOLD}88`, borderRadius: 18, padding: "20px 18px", textAlign: "center", animation: "fadeIn .2s ease-out", boxShadow: "0 12px 40px #000a" }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing: 1 }}>UP NEXT · HOLE {hole + 1}</div>
+        {types.map(t => {
+          const lead = current[t];
+          const team = lead && teams.find(x => x.id === lead.team);
+          return (
+            <div key={t} style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${BORDER}` }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: TEXT }}>{t === "ld" ? "🏌️ Longest drive" : "🎯 Closest to the pin"}</div>
+              {lead ? (
+                <>
+                  {t === "ctp" && <div style={{ fontSize: 38, fontWeight: 900, color: "var(--gold-text)", fontFamily: "var(--mono)", lineHeight: 1.1, marginTop: 6 }}>{fmtFeet(lead.inches)}</div>}
+                  <div style={{ fontSize: 14, color: MUTED, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    {t === "ctp" ? "by" : "Held by"} {team && <TeamChip color={team.color} />}<span style={{ color: TEXT, fontWeight: 700 }}>{lead.name}</span>{team ? ` (${team.name.replace(/^team\s+/i, "")})` : ""}
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: TEXT, marginTop: 8 }}>{t === "ctp" ? "Try to beat it." : "Try to outdrive it."}</div>
+                </>
+              ) : (
+                <div style={{ fontSize: 14, color: MUTED, marginTop: 6 }}>Nobody's on the board yet. {t === "ctp" ? "Get it close." : "Let it rip."}</div>
+              )}
+            </div>
+          );
+        })}
+        <button onClick={onDone} style={{ width: "100%", marginTop: 18, padding: 14, background: `linear-gradient(135deg,${GOLD},${GOLD}cc)`, border: "none", borderRadius: 12, color: "#000", fontWeight: 900, fontSize: 14, fontFamily: "var(--mono)", letterSpacing: 1, cursor: "pointer" }}>LET'S GO</button>
       </div>
     </div>
   );

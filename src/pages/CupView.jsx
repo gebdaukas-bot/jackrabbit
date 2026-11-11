@@ -15,7 +15,7 @@ import { pushSupported, pushPref, enablePush, disablePush, refreshPush, notifyCu
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import TeamChip from "../components/TeamChip";
-import ContestPrompt from "../components/ContestPrompt";
+import ContestPrompt, { ContestHeadsUp } from "../components/ContestPrompt";
 import { CONTEST_LABEL, contestKey, contestsOnHole, fmtFeet } from "../utils/contests";
 import Icon, { DormieMark } from "../components/Icon";
 import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
@@ -841,6 +841,7 @@ export default function CupView({ user }) {
   // gets after confirming one of those holes.
   const [contests, setContests] = useState({});
   const [contestAsk, setContestAsk] = useState(null);
+  const [contestNext, setContestNext] = useState(null); // heads-up before a contest hole
   useEffect(()=>{
     const unsub = onValue(ref(db,`cups/${cupId}/contests`),snap=>setContests(snap.val()||{}));
     return ()=>unsub();
@@ -1441,7 +1442,14 @@ export default function CupView({ user }) {
   // whether anyone in the group took the lead.
   const askContests = (dayIdx, ms, hole) => {
     const roundIdx = ms[0]?.roundIdx ?? 0;
-    const types = contestsOnHole(days[dayIdx]?.rounds?.[roundIdx], hole);
+    const round = days[dayIdx]?.rounds?.[roundIdx];
+    // The next hole this group plays (shotgun starts wrap), if the round goes on.
+    const start = ms[0]?.startHole || 0, total = round?.totalHoles || 18;
+    const pos = (hole - start + 18) % 18;
+    const nextHole = pos < total - 1 ? (hole + 1) % 18 : null;
+    const nextTypes = nextHole == null ? [] : contestsOnHole(round, nextHole);
+    setContestNext(nextTypes.length ? { dayIdx, roundIdx, hole: nextHole, types: nextTypes } : null);
+    const types = contestsOnHole(round, hole);
     if (!types.length) return;
     const players = ms.flatMap(m => {
       const sides = cupSidesFor(teams, m);
@@ -1455,11 +1463,16 @@ export default function CupView({ user }) {
     await set(ref(db,`cups/${cupId}/contests/${contestKey(dayIdx,roundIdx,type)}`),{ type, dayIdx, roundIdx, hole, ...entry, at:Date.now() });
     notifyCup(cupId);
   };
-  const contestPrompt = contestAsk && (
+  // The "did you beat it?" prompt first; any heads-up for the next hole after it.
+  const contestPrompt = contestAsk ? (
     <ContestPrompt key={`${contestAsk.dayIdx}-${contestAsk.roundIdx}-${contestAsk.hole}`} hole={contestAsk.hole} types={contestAsk.types} players={contestAsk.players}
       current={Object.fromEntries(contestAsk.types.map(t=>[t,contests[contestKey(contestAsk.dayIdx,contestAsk.roundIdx,t)]]))}
       onSubmit={submitContest} onDone={()=>setContestAsk(null)}/>
-  );
+  ) : contestNext ? (
+    <ContestHeadsUp key={`next-${contestNext.hole}`} hole={contestNext.hole} types={contestNext.types} teams={teams}
+      current={Object.fromEntries(contestNext.types.map(t=>[t,contests[contestKey(contestNext.dayIdx,contestNext.roundIdx,t)]]))}
+      onDone={()=>setContestNext(null)}/>
+  ) : null;
 
   if (activeGroup){
     const d=days[activeGroup.dayIdx];
