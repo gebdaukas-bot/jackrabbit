@@ -76,6 +76,10 @@ golf,match play,golf trip,scorecard,best ball,scramble,handicap,team golf,leader
 
 > First release.
 
+## What's New (version 1.2)
+
+> A fresh look. Bigger, clearer score entry with one-tap Birdie, Par and Bogey; a hole grid that shows who won each hole; and the match standing after every hole on the board. The Scores tab now switches between Front 9, Back 9 and Total, and the home screen puts your live cup up front.
+
 ## App Review information
 
 - **Sign-in required: Yes.** Demo login (email sign-in, owns the demo cup):
@@ -106,14 +110,14 @@ Everything else: **Not collected**. Tracking: **No**.
 
 Required: **iPhone with Dynamic Island (medium display)**, 1206 × 2622 (or 1179 × 2556), 3–10 images. Apple changed this in 2026; 1320 × 2868 is rejected there.
 
-Taken from the demo cup (made-up names), in `~/Desktop/Dormie App Store/screenshots-1206x2622`. Upload order:
+Taken from the demo cup (made-up names) at exactly 1206 × 2622, in `~/Desktop/Dormie App Store/screenshots-1.2` (the 1.0 set is in `screenshots-1206x2622`). Upload order:
 
 1. `1-board-live.png`: live board with team points
-2. `6-score-entry.png`: entering a hole
-3. `3-my-match.png`
-4. `2-friday-results.png`
-5. `4-scores.png`: individual scores
-6. `5-home.png`
+2. `2-score-entry.png`: entering a hole (birdie picked)
+3. `3-hole-by-hole.png`: hole-by-hole cards with the match standing after each hole
+4. `4-friday-results.png`: a finished day
+5. `5-scores.png`: individual scores, front nine
+6. `6-home.png`: home with the live cup featured
 
 ## Build settings already done in the project
 
