@@ -22,7 +22,17 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
       <div style={{fontSize:13,fontWeight:700,color:labelColor||color,textAlign:"center",maxWidth:130,lineHeight:"13px",height:26,display:"flex",alignItems:"flex-end",justifyContent:"center",overflow:"hidden"}}>
         <span style={{display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{labelColor ? `${"★".repeat(strokes)} ${label}` : label}</span>
       </div>
-      <div style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",height:11,visibility:hcp > 0 ? "visible" : "hidden"}}>HCP {Number(hcp || 0).toFixed(1)}</div>
+      {/* Strokes in this match (the course-handicap difference to the low man, which
+          is what the match stores), and how many fall on this hole. */}
+      {(() => {
+        const total = Math.round(Number(hcp) || 0);
+        return (
+          <div style={{fontSize:10,color:"var(--muted2)",fontFamily:"var(--mono)",height:12,lineHeight:"12px",whiteSpace:"nowrap"}}>
+            {total === 0 ? "No strokes" : `${total} stroke${total === 1 ? "" : "s"}`}
+            {labelColor && <span style={{color:"var(--gold-text)",fontWeight:800}}> · {strokes} here</span>}
+          </div>
+        );
+      })()}
       <div style={{display:"flex",alignItems:"center",gap:0}}>
         <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:48,height:52,fontSize:22,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"var(--muted2-b)",cursor:"pointer"}}>−</button>
         <div style={{width:52,height:52,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center"}}>

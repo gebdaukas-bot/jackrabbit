@@ -57,6 +57,10 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   // pairing's colors rather than a cup-wide team A/team B.
   const { teamAColor, teamAColorDisp, teamAShort, teamBColor, teamBColorDisp, teamBShort } = cupSidesFor(teams, match);
   const isSingles = !match.player1b;
+  // Strokes shown beside each name: off the low man in this match, as scored.
+  const hcpKeys = isSingles ? ["hcp1a","hcp2a"] : ["hcp1a","hcp1b","hcp2a","hcp2b"];
+  const lowHcp = Math.min(...hcpKeys.map(k => Math.round(Number(match[k]) || 0)));
+  const strokesOf = k => Math.round(Number(match[k]) || 0) - lowHcp;
   const format = match.format || round?.format;
   const isScramble = format === "Scramble";
   const isShamble = format === "Shamble";
@@ -118,11 +122,11 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
           {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
           <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
-            {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
+            {!isScramble&&strokesOf("hcp1a")>0&&<span title="strokes" style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({strokesOf("hcp1a")})</span>}
           </div>
           {!isSingles&&<div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
-            {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
+            {!isScramble&&strokesOf("hcp1b")>0&&<span title="strokes" style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({strokesOf("hcp1b")})</span>}
           </div>}
           {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
         </div>
@@ -138,11 +142,11 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
           {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
           <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-            {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
+            {!isScramble&&strokesOf("hcp2a")>0&&<span title="strokes" style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({strokesOf("hcp2a")})</span>}
             <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
           </div>
           {!isSingles&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-            {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
+            {!isScramble&&strokesOf("hcp2b")>0&&<span title="strokes" style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({strokesOf("hcp2b")})</span>}
             <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
           </div>}
           {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
@@ -159,11 +163,11 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
         {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
         <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
-          {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
+          {!isScramble&&strokesOf("hcp1a")>0&&<span title="strokes" style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({strokesOf("hcp1a")})</span>}
         </div>
         {!isSingles&&<div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
-          {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
+          {!isScramble&&strokesOf("hcp1b")>0&&<span title="strokes" style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({strokesOf("hcp1b")})</span>}
         </div>}
         {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
       </div>
@@ -171,11 +175,11 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
       <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
         {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
         <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-          {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
+          {!isScramble&&strokesOf("hcp2a")>0&&<span title="strokes" style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({strokesOf("hcp2a")})</span>}
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
         </div>
         {!isSingles&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-          {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
+          {!isScramble&&strokesOf("hcp2b")>0&&<span title="strokes" style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({strokesOf("hcp2b")})</span>}
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
         </div>}
         {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}

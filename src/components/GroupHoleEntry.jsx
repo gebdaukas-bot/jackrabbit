@@ -41,13 +41,19 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
 
   const holeHcp = course.hcp[hole], holePar = course.par[hole];
   // Strokes on this hole, allocated over the holes the match actually plays.
+  // Each singles match plays off its low man: whatever the match stores, the
+  // lower of the two plays off zero and the other gets the difference.
+  const rel = (m, side) => {
+    const a = Math.round(Number(m.hcp1a) || 0), b = Math.round(Number(m.hcp2a) || 0);
+    return (side === "a" ? a : b) - Math.min(a, b);
+  };
   const strOf = (m, hcp) => strokesOnHole(hcp || 0, hole, course, m.startHole || 0, m.totalHoles || 18);
 
   const holeWinner = (mi) => {
     const sc = grossScores[mi][hole];
     const m = matches[mi];
-    const net1a = netScore(sc.p1a, strOf(m, m.hcp1a));
-    const net2a = netScore(sc.p2a, strOf(m, m.hcp2a));
+    const net1a = netScore(sc.p1a, strOf(m, rel(m, "a")));
+    const net2a = netScore(sc.p2a, strOf(m, rel(m, "b")));
     return net1a < net2a ? "A" : net2a < net1a ? "B" : "H";
   };
 
@@ -119,14 +125,14 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
   const hw0Color = hwColorOf(0, hw0);
   const hw1Color = hwColorOf(1, hw1);
 
-  const net0_1a = netScore(sc0.p1a, strOf(m0, m0.hcp1a));
-  const net0_2a = netScore(sc0.p2a, strOf(m0, m0.hcp2a));
-  const net1_1a = netScore(sc1.p1a, strOf(m1, m1.hcp1a));
-  const net1_2a = netScore(sc1.p2a, strOf(m1, m1.hcp2a));
+  const net0_1a = netScore(sc0.p1a, strOf(m0, rel(m0, "a")));
+  const net0_2a = netScore(sc0.p2a, strOf(m0, rel(m0, "b")));
+  const net1_1a = netScore(sc1.p1a, strOf(m1, rel(m1, "a")));
+  const net1_2a = netScore(sc1.p2a, strOf(m1, rel(m1, "b")));
 
   const strokeEntries = [
-    { name: m0.player1a, hcp: m0.hcp1a || 0, m: m0 }, { name: m0.player2a, hcp: m0.hcp2a || 0, m: m0 },
-    { name: m1.player1a, hcp: m1.hcp1a || 0, m: m1 }, { name: m1.player2a, hcp: m1.hcp2a || 0, m: m1 },
+    { name: m0.player1a, hcp: rel(m0, "a"), m: m0 }, { name: m0.player2a, hcp: rel(m0, "b"), m: m0 },
+    { name: m1.player1a, hcp: rel(m1, "a"), m: m1 }, { name: m1.player2a, hcp: rel(m1, "b"), m: m1 },
   ].map(({ m, ...p }) => ({ ...p, strokes: strOf(m, p.hcp) })).filter(e => e.strokes > 0);
 
   const groupStartHole = matches[0].startHole || 0;
@@ -228,12 +234,12 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
             <div key={mi} style={{ flex: 1, borderRadius: 14, overflow: "hidden", border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column" }}>
               <div style={{ background: `${sideOf(mi).teamAColor}22`, padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
                 <div style={{ fontSize: 7, fontWeight: 800, color: sideOf(mi).teamAColorDisp, letterSpacing: 1, fontFamily: "var(--mono)", marginBottom: 4 }}>{sideOf(mi).teamAShort}</div>
-                <ScoreInput label={m.player1a} hcp={m.hcp1a || 0} value={sc.p1a} onChange={v => setSc(mi, s => ({ ...s, p1a: v }))} color={sideOf(mi).teamAColorDisp} labelColor={strOf(m, m.hcp1a) > 0 ? GOLD : null} strokes={strOf(m, m.hcp1a) || 1} par={holePar} />
+                <ScoreInput label={m.player1a} hcp={rel(m, "a")} value={sc.p1a} onChange={v => setSc(mi, s => ({ ...s, p1a: v }))} color={sideOf(mi).teamAColorDisp} labelColor={strOf(m, rel(m, "a")) > 0 ? GOLD : null} strokes={strOf(m, rel(m, "a")) || 1} par={holePar} />
               </div>
               <div style={{ background: CARD2, padding: "5px 0", textAlign: "center", fontSize: 12, fontWeight: 900, color: MUTED, fontFamily: "var(--mono)", letterSpacing:1, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>VS</div>
               <div style={{ background: `${sideOf(mi).teamBColor}33`, padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
                 <div style={{ fontSize: 7, fontWeight: 800, color: sideOf(mi).teamBColorDisp, letterSpacing: 1, fontFamily: "var(--mono)", marginBottom: 4 }}>{sideOf(mi).teamBShort}</div>
-                <ScoreInput label={m.player2a} hcp={m.hcp2a || 0} value={sc.p2a} onChange={v => setSc(mi, s => ({ ...s, p2a: v }))} color={sideOf(mi).teamBColorDisp} labelColor={strOf(m, m.hcp2a) > 0 ? GOLD : null} strokes={strOf(m, m.hcp2a) || 1} par={holePar} />
+                <ScoreInput label={m.player2a} hcp={rel(m, "b")} value={sc.p2a} onChange={v => setSc(mi, s => ({ ...s, p2a: v }))} color={sideOf(mi).teamBColorDisp} labelColor={strOf(m, rel(m, "b")) > 0 ? GOLD : null} strokes={strOf(m, rel(m, "b")) || 1} par={holePar} />
               </div>
               <div style={{ background: hwColor, padding: "8px 4px", textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", fontFamily: "var(--mono)", letterSpacing: 1 }}>
