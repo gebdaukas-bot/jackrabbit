@@ -51,12 +51,14 @@ export function strokesOffLow(hcps) {
 export function matchStrokes(m, indexOf, course, format, totalHoles = 18) {
   const ph = name => playingHcp(courseHcp(indexOf(name) || 0, course, totalHoles, m.startHole || 0), format);
   const [p1a, p1b, p2a, p2b] = [m.player1a, m.player1b, m.player2a, m.player2b].map(ph);
-  if (format === "Scramble" && m.player1b) {
+  // Singles store null for the second slots; a fourball not yet filled in has "".
+  const singles = m.player1b == null && m.player2b == null;
+  if (format === "Scramble" && !singles) {
     const side = (x, y) => Math.round(0.35 * Math.min(x, y) + 0.15 * Math.max(x, y));
     const [a, b] = strokesOffLow([side(p1a, p1b), side(p2a, p2b)]);
     return { hcp1a: a, hcp1b: 0, hcp2a: b, hcp2b: 0 };
   }
-  if (!m.player1b) {
+  if (singles) {
     const [a, b] = strokesOffLow([p1a, p2a]);
     return { hcp1a: a, hcp1b: 0, hcp2a: b, hcp2b: 0 };
   }
