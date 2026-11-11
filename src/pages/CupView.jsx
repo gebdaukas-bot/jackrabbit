@@ -85,7 +85,7 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   const bNameColor = bWin ? contrastText(teamBColor) : bLeading ? "var(--strong)" : "var(--name-dim)";
   const aBg = aWin ? teamAColor : aLeading ? `${teamAColor}22` : "var(--panel-e)";
   const bBg = bWin ? teamBColor : bLeading ? `${teamBColor}22` : "var(--panel-e)";
-  const liveBadgeColor = aLeading ? contrastText(teamAColor) : bLeading ? contrastText(teamBColor) : "#fff";
+  const liveBadgeColor = aLeading ? contrastText(teamAColor) : bLeading ? contrastText(teamBColor) : "#ffffff"; // six digits: an alpha suffix gets appended below
 
   const sideLabel = (short, color, align) => showTeamLabels ? (
     <div style={{fontSize:7,fontWeight:800,color,letterSpacing:1,fontFamily:"var(--mono)",marginBottom:2,textAlign:align,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{short}</div>
