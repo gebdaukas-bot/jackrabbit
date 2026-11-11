@@ -4,8 +4,8 @@ import { teamInk } from "../utils/teams";
 
 // Full hole-by-hole scorecard for a single match: PAR + YARDAGE header rows,
 // one row per player with birdie/par/bogey-styled gross scores plus OUT/IN/TOT
-// subtotals, and a SCORE row showing the running match-play lead as an arrow
-// pointing at whoever's ahead. Shared by the in-app BOARD tab and the
+// subtotals, and a SCORE row showing the match standing after every hole: AS, or
+// an arrow pointing at whoever's ahead with how many up. Shared by the in-app BOARD tab and the
 // no-login view-only page so they can't drift out of sync with each other.
 export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAColor, teamBColor, longLabel, sublabel, statusColor, meta }) {
   const { CARD, CARD2, BORDER, MUTED } = useTheme();
@@ -25,8 +25,11 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
   };
   const totalStyle = (val) => ({ val: val ?? "—", color: val != null ? "#FFD700" : "var(--muted)", bg: "transparent", border: "none", radius: 2, bold: true });
 
-  const arrowCell = (num, isA) => {
-    if (num === 0) return <div style={{ fontSize: 11, fontWeight: 900, color: "var(--muted-b)" }}>—</div>;
+  // The match standing after a hole: "AS" when level, otherwise an arrow pointing
+  // at the side that's ahead (side A's rows are above the SCORE row) with how many up.
+  const standingCell = (lead) => {
+    if (lead === 0) return <div style={{ fontSize: 9, fontWeight: 900, color: "var(--muted-b)", fontFamily: "monospace" }}>AS</div>;
+    const isA = lead > 0, num = Math.abs(lead);
     const col = isA ? teamAColor : teamBColor;
     return (
       <div style={{ position: "relative", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
@@ -80,7 +83,8 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
       const en = col.hi - 18;
       const es = match.extra?.[en];
       const p = course.par?.[0] || 4;
-      const scoreCell = es === "A" || es === "B" ? arrowCell(1, es === "A") : <div style={{ fontSize: 11, fontWeight: 900, color: "var(--muted-b)" }}>—</div>;
+      // Playoff holes start from all square, so the standing is just that hole's result.
+      const scoreCell = es == null ? <div style={{ fontSize: 9, color: "var(--faint)" }}>·</div> : standingCell(es === "A" ? 1 : es === "B" ? -1 : 0);
       if (isSingles) return [scoreStyle(match.extraGrossA?.[en] ?? null, p), scoreCell, scoreStyle(match.extraGrossB?.[en] ?? null, p)][ri];
       return [scoreStyle(match.extraGrossA?.[en] ?? null, p), scoreStyle(null, p), scoreCell, scoreStyle(match.extraGrossB?.[en] ?? null, p), scoreStyle(null, p)][ri];
     }
@@ -89,8 +93,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
       const s = (match.scores || [])[hi];
       let scoreCell;
       if (s === null || s === undefined) scoreCell = <div style={{ fontSize: 9, color: "var(--faint)" }}>·</div>;
-      else if (s === "H") scoreCell = <div style={{ fontSize: 11, fontWeight: 900, color: "var(--muted-b)" }}>—</div>;
-      else { const rl = runLeads[hi]; scoreCell = arrowCell(rl === null ? 0 : Math.abs(rl), s === "A"); }
+      else scoreCell = standingCell(runLeads[hi] ?? 0);
       if (isSingles) return [scoreStyle(grossP1a[hi], p), scoreCell, scoreStyle(grossP2a[hi], p)][ri];
       return [scoreStyle(grossP1a[hi], p), scoreStyle(grossP1b[hi], p), scoreCell, scoreStyle(grossP2a[hi], p), scoreStyle(grossP2b[hi], p)][ri];
     }
