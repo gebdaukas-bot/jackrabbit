@@ -30,7 +30,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
     if (d === 1) return { val: gross, color: "var(--bogey-ink)", bg: "var(--bogey-bg)", border: "none", radius: 3 };
     return { val: gross, color: "#fff", bg: "#c0392b", border: "none", radius: 3, bold: true };
   };
-  const totalStyle = (val) => ({ val: val ?? "—", color: val != null ? "#FFD700" : "var(--muted)", bg: "transparent", border: "none", radius: 2, bold: true });
+  const totalStyle = (val) => ({ val: val ?? "—", color: val != null ? "var(--strong)" : "var(--muted)", bg: "transparent", border: "none", radius: 2, bold: true });
 
   // The match standing after a hole: "AS" when level, otherwise an arrow pointing
   // at the side that's ahead (side A's rows are above the SCORE row) with how many up.
@@ -148,7 +148,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
             <tr style={{ background: "var(--panel-a)", borderBottom: `1px solid ${BORDER}` }}>
               <td style={{ padding: "5px 10px", fontSize: 8, whiteSpace: "nowrap", minWidth: 70, position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}></td>
               {cols.map((col, i) => (
-                <td key={i} style={{ textAlign: "center", padding: "5px 4px", fontSize: 8, color: col.type === "hole" && col.hi >= 18 ? GOLD : col.type !== "hole" ? "#FFD700" : "var(--muted2)", fontFamily: "var(--mono)", minWidth: col.type === "hole" ? 34 : 38, borderLeft: divider(col), fontWeight: col.type !== "hole" || col.hi === 0 ? "800" : "400" }}>
+                <td key={i} style={{ textAlign: "center", padding: "5px 4px", fontSize: 8, color: col.type === "hole" && col.hi >= 18 ? GOLD : col.type !== "hole" ? "var(--text-b)" : "var(--muted2)", fontFamily: "var(--mono)", minWidth: col.type === "hole" ? 34 : 38, borderLeft: divider(col), fontWeight: col.type !== "hole" || col.hi === 0 ? "800" : "400" }}>
                   {colHeader(col)}
                   {col.type === "hole" && col.hi < 18 && (match.disputes || []).includes(col.hi) ? <span style={{ color: "#e55", fontSize: 7, marginLeft: 1 }}>🚩</span> : null}
                 </td>

@@ -113,13 +113,13 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
           {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
           <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
-            {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
+            {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
           </div>
           {!isSingles&&<div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
-            {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
+            {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
           </div>}
-          {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
+          {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
         </div>
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"var(--strong-dim)", fontFamily:"var(--mono)", letterSpacing:0.5 }}>{badgeTop}</div>}
@@ -129,14 +129,14 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
           {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
           <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-            {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
+            {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
             <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
           </div>
           {!isSingles&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-            {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
+            {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
             <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
           </div>}
-          {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
+          {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
         </div>
       </div>
     );
@@ -150,26 +150,26 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
         {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
         <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
-          {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
+          {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
         </div>
         {!isSingles&&<div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
-          {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
+          {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
         </div>}
-        {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
+        {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
       </div>
       {liveBadge}
       <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
         {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
         <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-          {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
+          {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
         </div>
         {!isSingles&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-          {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
+          {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--muted2)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
         </div>}
-        {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
+        {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
       </div>
     </div>
   );
@@ -189,7 +189,7 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
     <div style={{ marginBottom:14, borderRadius:10, overflow:"hidden", border:`1px solid ${BORDER}` }}>
       {/* Day header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"var(--panel-b)", padding:"7px 10px", borderBottom:`1px solid ${BORDER}` }}>
-        <div style={{ fontSize:10, fontWeight:800, color:"var(--gold-text)", letterSpacing:1, fontFamily:"var(--mono)" }}>{day.label?.toUpperCase()}</div>
+        <div style={{ fontSize:10, fontWeight:800, color:"var(--text-b)", letterSpacing:1, fontFamily:"var(--mono)" }}>{day.label?.toUpperCase()}</div>
       </div>
       {/* Team name header — only show if single round (multi-round has its own per-round) */}
       {!multiRound && !isWarmup(rounds[0]) && (
@@ -200,7 +200,7 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
             {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}<TeamChip color={teamBColorDisp} style={{marginLeft:5}}/></div>}
           </div>
           {rounds[0].course?.name && (
-            <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:7, color:"var(--gold-text)", fontFamily:"var(--mono)", fontWeight:700 }}>{courseLabel(rounds[0].course)}</div>
+            <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:8, color:"var(--muted2)", fontFamily:"var(--mono)", fontWeight:700 }}>{courseLabel(rounds[0].course)}</div>
           )}
         </div>
       )}
@@ -220,7 +220,7 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
             {multiRound && (
               <div style={{ display:"flex", background:"var(--panel-d)", borderBottom:`1px solid ${BORDER}`, borderTop:ri>0?`1px solid ${BORDER}`:"none" }}>
                 {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"var(--mono)" }}><TeamChip color={teamAColor} style={{marginRight:5}}/>{teamAShort}</div>}
-                <div style={{ flex:twoTeam?undefined:1, textAlign:twoTeam?undefined:"center", padding:"5px 10px", fontSize:7, color:"var(--gold-text)", fontFamily:"var(--mono)", fontWeight:700 }}>
+                <div style={{ flex:twoTeam?undefined:1, textAlign:twoTeam?undefined:"center", padding:"5px 10px", fontSize:8, color:"var(--muted2)", fontFamily:"var(--mono)", fontWeight:700 }}>
                   {round.format?.toUpperCase()}{round.course?.name?` · ${courseLabel(round.course)}`:""}
                 </div>
                 {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}<TeamChip color={teamBColorDisp} style={{marginLeft:5}}/></div>}
@@ -1578,7 +1578,7 @@ export default function CupView({ user }) {
             {/* Hole-by-hole breakdown */}
             {boardDay&&boardDay.matches.length>0&&(
               <div>
-                <div style={{marginTop:16,marginBottom:4,fontSize:9,color:"var(--gold-dim)",fontFamily:"var(--mono)",letterSpacing:1,}}>HOLE BY HOLE</div>
+                <div style={{marginTop:16,marginBottom:4,fontSize:9,color:"var(--muted2)",fontWeight:700,fontFamily:"var(--mono)",letterSpacing:1,}}>HOLE BY HOLE</div>
                 {[...boardDay.matches].sort((a,b)=>{const toMin=teeMinutes;return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
                   const mRound=boardDay.rounds?.[m.roundIdx??0];
                   const course=getCourse(boardDay,m);
@@ -1915,7 +1915,7 @@ export default function CupView({ user }) {
                   </button>
                 ))}
               </div>
-              <div style={{fontSize:9,color:"var(--gold-dim)",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:10,}}>{lbDay.label?.toUpperCase()} · INDIVIDUAL SCORES</div>
+              <div style={{fontSize:9,color:"var(--muted2)",fontWeight:700,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:10,}}>{lbDay.label?.toUpperCase()} · INDIVIDUAL SCORES</div>
               {started.length===0&&notStarted.length===0?(
                 <div style={{textAlign:"center",padding:"40px 20px",color:"var(--muted)"}}><div style={{fontSize:24,marginBottom:8}}>⛳</div><div style={{fontSize:12}}>No scores entered yet</div></div>
               ):(
@@ -1948,8 +1948,8 @@ export default function CupView({ user }) {
                               {holes.map(i=><td key={i} style={{...th,width:24}}>{i+1}</td>)}
                               {showOut&&<td style={sumTh}>OUT</td>}
                               {showIn&&<td style={sumTh}>IN</td>}
-                              {showTot&&<td style={{...sumTh,color:"var(--gold-text)"}}>TOT</td>}
-                              {showTot&&<td style={{...sumTh,color:"var(--gold-text)"}}>±PAR</td>}
+                              {showTot&&<td style={{...sumTh,color:"var(--text-b)",fontWeight:800}}>TOT</td>}
+                              {showTot&&<td style={{...sumTh,color:"var(--text-b)",fontWeight:800}}>±PAR</td>}
                             </tr>
                             <tr style={{background:"var(--panel-a)"}}>
                               <td style={{...th,...pin("var(--panel-a)",0),fontSize:7}}></td>
