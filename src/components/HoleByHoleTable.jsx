@@ -18,15 +18,17 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
   const extraCount = match.extra?.length || 0;
   const startHole = match.startHole || 0;
 
+  // Scores are tiered by shape as well as color, so over-par holes don't all
+  // shout: par plain, bogey a soft tint, double or worse a solid red box,
+  // birdie a circle, eagle a double circle.
   const scoreStyle = (gross, par) => {
     if (gross === null || gross === undefined) return { val: "·", color: "var(--faint)", bg: "transparent", border: "none", radius: 2 };
     const d = gross - par;
-    if (d <= -2) return { val: gross, color: "#FFD700", bg: "transparent", border: "1.5px double #FFD700", radius: 2 };
-    if (d === -1) return { val: gross, color: "#4caf50", bg: "transparent", border: "1.5px solid #4caf50", radius: "50%" };
+    if (d <= -2) return { val: gross, color: "#FFD700", bg: "transparent", border: "3px double #FFD700", radius: "50%", bold: true };
+    if (d === -1) return { val: gross, color: "#4caf50", bg: "transparent", border: "1.5px solid #4caf50", radius: "50%", bold: true };
     if (d === 0) return { val: gross, color: "var(--text)", bg: "transparent", border: "none", radius: 2 };
-    if (d === 1) return { val: gross, color: "#e88", bg: "transparent", border: "1.5px solid #e88", radius: 2 };
-    if (d === 2) return { val: gross, color: "#e55", bg: "transparent", border: "1.5px solid #e55", radius: 2 };
-    return { val: gross, color: "#fff", bg: "#c0392b", border: "none", radius: 2 };
+    if (d === 1) return { val: gross, color: "var(--bogey-ink)", bg: "var(--bogey-bg)", border: "none", radius: 3 };
+    return { val: gross, color: "#fff", bg: "#c0392b", border: "none", radius: 3, bold: true };
   };
   const totalStyle = (val) => ({ val: val ?? "—", color: val != null ? "#FFD700" : "var(--muted)", bg: "transparent", border: "none", radius: 2, bold: true });
 
@@ -141,7 +143,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
       )}
       <div style={{ position: "relative" }}>
       <div onScroll={onScroll} style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-        <table style={{ borderCollapse: "collapse", fontSize: 11 }}>
+        <table style={{ borderCollapse: "collapse", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>
           <thead>
             <tr style={{ background: "var(--panel-a)", borderBottom: `1px solid ${BORDER}` }}>
               <td style={{ padding: "5px 10px", fontSize: 8, whiteSpace: "nowrap", minWidth: 70, position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}></td>
@@ -181,7 +183,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
                         {isScoreRow ? (
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 30 }}>{cell}</div>
                         ) : (
-                          <div style={{ width: 24, height: 24, background: cell.bg, border: cell.border, borderRadius: cell.radius, display: "flex", alignItems: "center", justifyContent: "center", fontSize: cell.bold ? 11 : 10, fontWeight: cell.bold ? 900 : 700, color: cell.color, margin: "0 auto" }}>{cell.val}</div>
+                          <div style={{ width: 24, height: 24, boxSizing: "border-box", background: cell.bg, border: cell.border, borderRadius: cell.radius, display: "flex", alignItems: "center", justifyContent: "center", fontSize: cell.bold ? 11 : 10, fontWeight: cell.bold ? 900 : 700, color: cell.color, margin: "0 auto" }}>{cell.val}</div>
                         )}
                       </td>
                     );

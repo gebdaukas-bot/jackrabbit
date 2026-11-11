@@ -1868,15 +1868,17 @@ export default function CupView({ user }) {
           }
           const fmtPar=(n,p)=>p===0?"—":n===0?"E":n>0?`+${n}`:`${n}`;
           const parColor=(n,p)=>p===0?MUTED:n<0?"#4caf50":n===0?"var(--text)":n<=2?"#e88":"#c0392b";
+          // Tiered by shape as well as color (see HoleByHoleTable): par plain, bogey a
+          // soft tint, double or worse a solid red box, birdie a circle, eagle a double circle.
           const HoleScore=({gross,par})=>{
-            if(gross===null) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"var(--faint-b)"}}>·</div>;
+            const box={width:22,height:22,boxSizing:"border-box",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,margin:"0 auto"};
+            if(gross===null) return <div style={{...box,fontSize:10,color:"var(--faint-b)"}}>·</div>;
             const d=gross-par;
-            if(d<=-2) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,borderRadius:"50%",border:"1.5px solid #FFD700"}}/><div style={{position:"absolute",width:15,height:15,borderRadius:"50%",border:"1.5px solid #FFD700"}}/><span style={{fontSize:9,fontWeight:900,color:"#FFD700",zIndex:1}}>{gross}</span></div>;
-            if(d===-1) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,borderRadius:"50%",border:"1.5px solid #4caf50"}}/><span style={{fontSize:9,fontWeight:900,color:"#4caf50",zIndex:1}}>{gross}</span></div>;
-            if(d===0) return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"var(--text)"}}>{gross}</div>;
-            if(d===1) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,border:"1.5px solid #e88",borderRadius:2}}/><span style={{fontSize:9,fontWeight:900,color:"#e88",zIndex:1}}>{gross}</span></div>;
-            if(d===2) return <div style={{position:"relative",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{position:"absolute",width:22,height:22,border:"1.5px solid #e55",borderRadius:2}}/><div style={{position:"absolute",width:15,height:15,border:"1.5px solid #e55",borderRadius:1}}/><span style={{fontSize:9,fontWeight:900,color:"#e55",zIndex:1}}>{gross}</span></div>;
-            return <div style={{width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",background:"#c0392b",borderRadius:2,fontSize:9,fontWeight:900,color:"#fff"}}>{gross}</div>;
+            if(d<=-2) return <div style={{...box,borderRadius:"50%",border:"3px double #FFD700",fontWeight:900,color:"#FFD700"}}>{gross}</div>;
+            if(d===-1) return <div style={{...box,borderRadius:"50%",border:"1.5px solid #4caf50",fontWeight:900,color:"#4caf50"}}>{gross}</div>;
+            if(d===0) return <div style={{...box,fontWeight:700,color:"var(--text)"}}>{gross}</div>;
+            if(d===1) return <div style={{...box,borderRadius:3,background:"var(--bogey-bg)",fontWeight:700,color:"var(--bogey-ink)"}}>{gross}</div>;
+            return <div style={{...box,borderRadius:3,background:"#c0392b",fontWeight:900,color:"#fff"}}>{gross}</div>;
           };
           const course=lbDay.rounds?.[0]?.course||lbDay.course||{par:Array(18).fill(4)};
           return (
