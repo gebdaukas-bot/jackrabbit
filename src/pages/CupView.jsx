@@ -366,7 +366,8 @@ function AdminCourses({ initDays, onSave, onBack }) {
         </select>
         {course.teeName&&<div style={{fontSize:11,color:"var(--gold-text)",marginTop:8,fontFamily:"var(--mono)"}}>Playing the {course.teeName} tees · Rating {course.rating} · Slope {course.slope} — strokes for matches not yet started update automatically when you save.</div>}
       </div>
-      {/* Side contests for this round: the hole for each, or none. */}
+      {/* Side contests for this round: the hole for each, or none. Longest drive is
+          offered on par 4s and 5s only, closest to the pin on par 3s only. */}
       <div style={{display:"flex",gap:10,marginBottom:12}}>
         {[["ld","LONGEST DRIVE HOLE"],["ctp","CLOSEST TO THE PIN HOLE"]].map(([t,label])=>(
           <div key={t} style={{flex:1,minWidth:0}}>
@@ -374,7 +375,7 @@ function AdminCourses({ initDays, onSave, onBack }) {
             <select value={round.contests?.[t]??""} onChange={e=>updateRoundField("contests",{...(round.contests||{}),[t]:e.target.value===""?null:Number(e.target.value)})}
               style={{width:"100%",padding:"9px 8px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",cursor:"pointer"}}>
               <option value="">None</option>
-              {(course.par||[]).map((p,i)=>(t!=="ctp"||p===3)&&<option key={i} value={i}>Hole {i+1} · par {p}</option>)}
+              {(course.par||[]).map((p,i)=>(t==="ctp"?p===3:p!==3)&&<option key={i} value={i}>Hole {i+1} · par {p}</option>)}
             </select>
           </div>
         ))}
