@@ -15,6 +15,7 @@ import { pushSupported, pushPref, enablePush, disablePush, refreshPush, notifyCu
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import TeamChip from "../components/TeamChip";
+import Icon, { DormieMark } from "../components/Icon";
 import { courseLabel, BUILT_IN_COURSES } from "../utils/courses";
 import confetti from "canvas-confetti";
 
@@ -1339,7 +1340,7 @@ export default function CupView({ user }) {
           <div style={{textAlign:"center",marginBottom:28}}>
             {meta.logoUrl
               ? <img src={meta.logoUrl} alt="logo" style={{height:60,objectFit:"contain",marginBottom:8}}/>
-              : <div style={{fontSize:40,marginBottom:8}}>⛳</div>}
+              : <div style={{marginBottom:8,display:"flex",justifyContent:"center"}}><DormieMark size={44}/></div>}
             <div style={{fontSize:22,fontWeight:900,color:"var(--gold-text)",fontFamily:"var(--mono)",letterSpacing:1}}>{meta.name}</div>
             <div style={{fontSize:12,color:MUTED,marginTop:6,display:"flex",flexWrap:"wrap",justifyContent:"center",alignItems:"center",gap:4}}>
               {teams.map((t,i)=>(
@@ -1426,7 +1427,7 @@ export default function CupView({ user }) {
             <button onClick={()=>nav("/")} aria-label="All cups" style={{background:"none",border:"none",color:MUTED,fontSize:22,lineHeight:1,cursor:"pointer",padding:"0 4px 2px 0"}}>‹</button>
             {meta.logoUrl
               ? <img src={meta.logoUrl} alt="logo" style={{height:32,width:32,objectFit:"contain",borderRadius:4}}/>
-              : <div style={{fontSize:24,lineHeight:1}}>⛳</div>}
+              : <DormieMark size={26}/>}
             <div style={{minWidth:0}}>
               <div style={{fontSize:13,fontWeight:900,letterSpacing:1,color:TEXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:160}}>{meta.name}</div>
             </div>
@@ -1544,12 +1545,12 @@ export default function CupView({ user }) {
         {/* Tabs: a segmented control, inside the pinned header so it stays reachable while you scroll. */}
         <div style={{display:"flex",gap:4,padding:"6px 8px",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
           {[
-            ["scoreboard","📊 BOARD"],
-            ["matches","⛳ MY MATCH"],
-            ...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),
-            ...(meta.eventType!=="live_match"?[["leaderboard","🏌️ SCORES"]]:[]),
-          ].map(([key,label])=>(
-            <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"10px 2px",minHeight:40,background:tab===key?`${GOLD}26`:"none",border:"none",borderRadius:8,boxShadow:tab===key?`inset 0 -2px 0 ${GOLD}`:"none",color:tab===key?"var(--gold-text)":MUTED,fontWeight:tab===key?900:700,fontSize:9,letterSpacing:0.5,cursor:"pointer",fontFamily:"var(--mono)",transition:"background .15s, color .15s"}}>{label}</button>
+            ["scoreboard","BOARD","board"],
+          ["matches","MY MATCH","flag"],
+          ...(isAdmin?[["admin","ADMIN","sliders"]]:[]),
+          ...(meta.eventType!=="live_match"?[["leaderboard","SCORES","card"]]:[]),
+        ].map(([key,label,icon])=>(
+            <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"10px 2px",minHeight:40,background:tab===key?`${GOLD}26`:"none",border:"none",borderRadius:8,boxShadow:tab===key?`inset 0 -2px 0 ${GOLD}`:"none",color:tab===key?"var(--gold-text)":MUTED,fontWeight:tab===key?900:700,fontSize:9,letterSpacing:0.5,cursor:"pointer",fontFamily:"var(--mono)",transition:"background .15s, color .15s",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}><Icon name={icon} size={14} strokeWidth={tab===key?2.4:2}/>{label}</button>
           ))}
         </div>
       </div>
@@ -1892,7 +1893,7 @@ export default function CupView({ user }) {
             else{pos=i+1;started[i].pos=String(pos);}
           }
           const fmtPar=(n,p)=>p===0?"—":n===0?"E":n>0?`+${n}`:`${n}`;
-          const parColor=(n,p)=>p===0?MUTED:n<0?"#4caf50":n===0?"var(--text)":n<=2?"#e88":"#c0392b";
+          const parColor=(n,p)=>p===0?MUTED:n<0?"#4caf50":n===0?"var(--text)":n<=2?"var(--bogey-ink)":"var(--double-ink)";
           // Tiered by shape as well as color (see HoleByHoleTable): par plain, bogey a
           // soft tint, double or worse a solid red box, birdie a circle, eagle a double circle.
           const HoleScore=({gross,par})=>{
@@ -1903,7 +1904,7 @@ export default function CupView({ user }) {
             if(d===-1) return <div style={{...box,borderRadius:"50%",border:"1.5px solid #4caf50",fontWeight:900,color:"#4caf50"}}>{gross}</div>;
             if(d===0) return <div style={{...box,fontWeight:700,color:"var(--text)"}}>{gross}</div>;
             if(d===1) return <div style={{...box,borderRadius:3,background:"var(--bogey-bg)",fontWeight:700,color:"var(--bogey-ink)"}}>{gross}</div>;
-            return <div style={{...box,borderRadius:3,background:"#c0392b",fontWeight:900,color:"#fff"}}>{gross}</div>;
+            return <div style={{...box,borderRadius:3,background:"var(--double-bg)",fontWeight:900,color:"#fff"}}>{gross}</div>;
           };
           const course=lbDay.rounds?.[0]?.course||lbDay.course||{par:Array(18).fill(4)};
           return (

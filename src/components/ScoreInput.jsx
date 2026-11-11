@@ -13,7 +13,7 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
   else if (diff === -1) scoreDisplay = <div style={{ ...box, borderRadius: "50%", border: "2px solid #4caf50", color: "#4caf50" }}>{value}</div>;
   else if (diff === 0) scoreDisplay = <div style={{ ...box, color: "var(--strong)" }}>{value}</div>;
   else if (diff === 1) scoreDisplay = <div style={{ ...box, borderRadius: 4, background: "var(--bogey-bg)", color: "var(--bogey-ink)" }}>{value}</div>;
-  else scoreDisplay = <div style={{ ...box, borderRadius: 4, background: "#c0392b", color: "#fff" }}>{value}</div>;
+  else scoreDisplay = <div style={{ ...box, borderRadius: 4, background: "var(--double-bg)", color: "#fff" }}>{value}</div>;
 
   return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>

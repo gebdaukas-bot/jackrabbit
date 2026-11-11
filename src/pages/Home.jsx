@@ -9,6 +9,7 @@ import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { GOLD } from "../utils/scoring";
 import LiveBackground from "../components/LiveBackground";
 import { summarizeCup } from "../utils/cupSummary";
+import { DormieMark } from "../components/Icon";
 
 export default function Home({ user }) {
   const { BG, CARD, CARD2, BORDER, TEXT, MUTED, MUTED2, theme, toggle } = useTheme();
@@ -106,7 +107,7 @@ export default function Home({ user }) {
       <LiveBackground/>
       {/* Top bar */}
       <div style={{ background: "var(--glass-85)", backdropFilter:"blur(8px)", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: 16, fontWeight: 900, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing:1 }}>⛳ DORMIE</div>
+        <div style={{ fontSize: 16, fontWeight: 900, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing:1, display: "flex", alignItems: "center", gap: 8 }}><DormieMark size={22} />DORMIE</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={toggle} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
             {theme === "dark" ? "☀" : "☾"}
@@ -133,7 +134,7 @@ export default function Home({ user }) {
           + CREATE NEW CUP
         </button>
         <button onClick={() => nav("/match")} style={{ width:"100%", padding:"14px", background:"transparent", border:`1.5px solid ${GOLD}99`, borderRadius:14, color:"var(--gold-text)", fontWeight:800, fontSize:13, cursor:"pointer", letterSpacing:1, fontFamily:"var(--mono)", marginBottom:24 }}>
-          ⚡ CREATE NEW MATCH
+          CREATE NEW MATCH
         </button>
 
         {/* Join by code */}

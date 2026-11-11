@@ -28,7 +28,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
     if (d === -1) return { val: gross, color: "#4caf50", bg: "transparent", border: "1.5px solid #4caf50", radius: "50%", bold: true };
     if (d === 0) return { val: gross, color: "var(--text)", bg: "transparent", border: "none", radius: 2 };
     if (d === 1) return { val: gross, color: "var(--bogey-ink)", bg: "var(--bogey-bg)", border: "none", radius: 3 };
-    return { val: gross, color: "#fff", bg: "#c0392b", border: "none", radius: 3, bold: true };
+    return { val: gross, color: "#fff", bg: "var(--double-bg)", border: "none", radius: 3, bold: true };
   };
   const totalStyle = (val) => ({ val: val ?? "—", color: val != null ? "var(--strong)" : "var(--muted)", bg: "transparent", border: "none", radius: 2, bold: true });
 
