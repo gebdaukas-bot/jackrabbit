@@ -146,16 +146,16 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
     return (
       <div style={{ display: "flex", alignItems: "stretch", borderRadius: 8, overflow: "hidden", border: `1px solid ${BORDER}`, marginBottom: 6 }}>
         <div style={{ flex: 1, background: rLeader === "A" ? teamAColor : "var(--panel-f)", padding: "5px 8px", minWidth: 0 }}>
-          <div style={{ fontSize: 7, fontWeight: 800, color: rLeader === "A" ? contrastText(teamAColor) : teamAColorDisp, letterSpacing: 1, fontFamily: "monospace" }}>{teamAShort}</div>
+          <div style={{ fontSize: 7, fontWeight: 800, color: rLeader === "A" ? contrastText(teamAColor) : teamAColorDisp, letterSpacing: 1, fontFamily: "var(--mono)" }}>{teamAShort}</div>
           <div style={{ fontSize: 11, fontWeight: 700, color: rLeader === "A" ? contrastText(teamAColor) : "var(--text-b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.player1a}</div>
         </div>
         <div style={{ background: rLeader === "A" ? teamAColor : rLeader === "B" ? teamBColor : "#1a2a44", minWidth: 58, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "3px", borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}`, flexShrink: 0 }}>
-          {s.state === "pending" ? <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "monospace" }}>—</div>
-          : s.state === "complete" || s.state === "halved" ? <><div style={{ fontSize: 6, color: "#FFD700", fontFamily: "monospace", fontWeight: 800 }}>FINAL</div><div style={{ fontSize: 10, fontWeight: 900, color: rLeader ? contrastText(rLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "monospace" }}>{s.sublabel || "HALVED"}</div></>
-          : <><div style={{ fontSize: 13, fontWeight: 900, color: rLeader ? contrastText(rLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "monospace", lineHeight: 1 }}>{rLeader ? rAbs : "AS"}</div><div style={{ fontSize: 6, color: rLeader ? `${contrastText(rLeader === "A" ? teamAColor : teamBColor)}aa` : "#88aacc", fontFamily: "monospace" }}>{rLeader ? "UP" : "ALL SQ"}</div><div style={{ fontSize: 6, color: rLeader ? `${contrastText(rLeader === "A" ? teamAColor : teamBColor)}88` : "var(--muted)", fontFamily: "monospace" }}>THRU {groupPosInRotation}</div></>}
+          {s.state === "pending" ? <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "var(--mono)" }}>—</div>
+          : s.state === "complete" || s.state === "halved" ? <><div style={{ fontSize: 6, color: "#FFD700", fontFamily: "var(--mono)", fontWeight: 800 }}>FINAL</div><div style={{ fontSize: 10, fontWeight: 900, color: rLeader ? contrastText(rLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "var(--mono)" }}>{s.sublabel || "HALVED"}</div></>
+          : <><div style={{ fontSize: 13, fontWeight: 900, color: rLeader ? contrastText(rLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "var(--mono)", lineHeight: 1 }}>{rLeader ? rAbs : "AS"}</div><div style={{ fontSize: 6, color: rLeader ? `${contrastText(rLeader === "A" ? teamAColor : teamBColor)}aa` : "#88aacc", fontFamily: "var(--mono)" }}>{rLeader ? "UP" : "ALL SQ"}</div><div style={{ fontSize: 6, color: rLeader ? `${contrastText(rLeader === "A" ? teamAColor : teamBColor)}88` : "var(--muted)", fontFamily: "var(--mono)" }}>THRU {groupPosInRotation}</div></>}
         </div>
         <div style={{ flex: 1, background: rLeader === "B" ? teamBColor : "var(--panel-f)", padding: "5px 8px", display: "flex", flexDirection: "column", alignItems: "flex-end", minWidth: 0 }}>
-          <div style={{ fontSize: 7, fontWeight: 800, color: rLeader === "B" ? contrastText(teamBColor) : teamBColorDisp, letterSpacing: 1, fontFamily: "monospace" }}>{teamBShort}</div>
+          <div style={{ fontSize: 7, fontWeight: 800, color: rLeader === "B" ? contrastText(teamBColor) : teamBColorDisp, letterSpacing: 1, fontFamily: "var(--mono)" }}>{teamBShort}</div>
           <div style={{ fontSize: 11, fontWeight: 700, color: rLeader === "B" ? contrastText(teamBColor) : "var(--text-b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{m.player2a}</div>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
       {showEndEarly && (
         <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 24, maxWidth: 320, width: "100%", textAlign: "center" }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--gold-text)", marginBottom: 6, fontFamily: "monospace" }}>END BOTH MATCHES EARLY?</div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--gold-text)", marginBottom: 6, fontFamily: "var(--mono)" }}>END BOTH MATCHES EARLY?</div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 20 }}>Remaining holes will be halved for both matches.</div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setShowEndEarly(false)} style={{ flex: 1, padding: "10px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: MUTED, fontSize: 12, cursor: "pointer" }}>Cancel</button>
@@ -183,7 +183,7 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
       <div style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, padding: "10px 12px", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <button onClick={onClose} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 7, color: "var(--muted2)", padding: "5px 10px", cursor: "pointer", fontSize: 11 }}>← Back</button>
-          <div style={{ fontSize: 9, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 1 }}>GROUP · {m0.teeTime}</div>
+          <div style={{ fontSize: 9, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing: 1 }}>GROUP · {m0.teeTime}</div>
         </div>
         <MatchBar m={m0} lead={runLead0} s={statuses[0]} mi={0} />
         <MatchBar m={m1} lead={runLead1} s={statuses[1]} mi={1} />
@@ -194,18 +194,18 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
           const s = m0.scores[i];
           const bg = s === "A" ? sideOf(0).teamAColor : s === "B" ? sideOf(0).teamBColor : s === "H" ? "var(--faint)" : CARD2;
           const isAct = i === hole;
-          return <div key={i} onClick={() => setHole(i)} style={{ flex: 1, height: isAct ? 26 : 20, background: bg, borderRadius: 3, cursor: "pointer", border: isAct ? `2px solid ${GOLD}` : "2px solid transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isAct ? 8 : 7, color: s === "A" || s === "B" ? contrastText(bg) : isAct ? "var(--strong)" : "var(--strong-dim)", fontFamily: "monospace", fontWeight: 700 }}>{i + 1}</div>;
+          return <div key={i} onClick={() => setHole(i)} style={{ flex: 1, height: isAct ? 26 : 20, background: bg, borderRadius: 3, cursor: "pointer", border: isAct ? `2px solid ${GOLD}` : "2px solid transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: isAct ? 8 : 7, color: s === "A" || s === "B" ? contrastText(bg) : isAct ? "var(--strong)" : "var(--strong-dim)", fontFamily: "var(--mono)", fontWeight: 700 }}>{i + 1}</div>;
         })}
       </div>
 
       <div style={{ flex: 1, padding: "0 12px 0" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 12, padding: "10px", background: CARD, borderRadius: 12, border: `1px solid ${BORDER}` }}>
-          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>HOLE</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--gold-text)", fontFamily: "monospace", lineHeight: 1 }}>{hole + 1}</div></div>
+          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing:1 }}>HOLE</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--gold-text)", fontFamily: "var(--mono)", lineHeight: 1 }}>{hole + 1}</div></div>
           <div style={{ width: 1, background: BORDER }} />
-          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>PAR</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "monospace", lineHeight: 1 }}>{holePar}</div></div>
+          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing:1 }}>PAR</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "var(--mono)", lineHeight: 1 }}>{holePar}</div></div>
           <div style={{ width: 1, background: BORDER }} />
-          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>HCP IDX</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "monospace", lineHeight: 1 }}>{holeHcp}</div></div>
-          {strokeEntries.length > 0 && <><div style={{ width: 1, background: BORDER }} /><div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 1 }}>STROKE</div><div style={{ fontSize: 9, color: "var(--gold-text)", marginTop: 1 }}>{strokeEntries.map(e => `${e.name}${e.strokes > 1 ? ` ×${e.strokes}` : ""}`).join(", ")}</div></div></>}
+          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing:1 }}>HCP IDX</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "var(--mono)", lineHeight: 1 }}>{holeHcp}</div></div>
+          {strokeEntries.length > 0 && <><div style={{ width: 1, background: BORDER }} /><div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing: 1 }}>STROKE</div><div style={{ fontSize: 9, color: "var(--gold-text)", marginTop: 1 }}>{strokeEntries.map(e => `${e.name}${e.strokes > 1 ? ` ×${e.strokes}` : ""}`).join(", ")}</div></div></>}
         </div>
 
         {isComplete && (
@@ -216,7 +216,7 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
         {hasGap && (
           <div style={{ marginBottom: 8, background: "#e67e2222", border: "1px solid #e67e2299", borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ fontSize: 18 }}>⚠</div>
-            <div style={{ fontSize: 10, color: "#e67e22", fontFamily: "monospace" }}>MISSING SCORE — fill earlier hole first</div>
+            <div style={{ fontSize: 10, color: "#e67e22", fontFamily: "var(--mono)" }}>MISSING SCORE — fill earlier hole first</div>
           </div>
         )}
 
@@ -227,19 +227,19 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
           ].map(({ m, sc, mi, hwColor, hw, netA, netB }) => (
             <div key={mi} style={{ flex: 1, borderRadius: 14, overflow: "hidden", border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column" }}>
               <div style={{ background: `${sideOf(mi).teamAColor}22`, padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
-                <div style={{ fontSize: 7, fontWeight: 800, color: sideOf(mi).teamAColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 4 }}>{sideOf(mi).teamAShort}</div>
+                <div style={{ fontSize: 7, fontWeight: 800, color: sideOf(mi).teamAColorDisp, letterSpacing: 1, fontFamily: "var(--mono)", marginBottom: 4 }}>{sideOf(mi).teamAShort}</div>
                 <ScoreInput label={m.player1a} hcp={m.hcp1a || 0} value={sc.p1a} onChange={v => setSc(mi, s => ({ ...s, p1a: v }))} color={sideOf(mi).teamAColorDisp} labelColor={strOf(m, m.hcp1a) > 0 ? GOLD : null} strokes={strOf(m, m.hcp1a) || 1} par={holePar} />
               </div>
-              <div style={{ background: CARD2, padding: "5px 0", textAlign: "center", fontSize: 12, fontWeight: 900, color: MUTED, fontFamily: "monospace", letterSpacing: 2, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>VS</div>
+              <div style={{ background: CARD2, padding: "5px 0", textAlign: "center", fontSize: 12, fontWeight: 900, color: MUTED, fontFamily: "var(--mono)", letterSpacing:1, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>VS</div>
               <div style={{ background: `${sideOf(mi).teamBColor}33`, padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 120 }}>
-                <div style={{ fontSize: 7, fontWeight: 800, color: sideOf(mi).teamBColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 4 }}>{sideOf(mi).teamBShort}</div>
+                <div style={{ fontSize: 7, fontWeight: 800, color: sideOf(mi).teamBColorDisp, letterSpacing: 1, fontFamily: "var(--mono)", marginBottom: 4 }}>{sideOf(mi).teamBShort}</div>
                 <ScoreInput label={m.player2a} hcp={m.hcp2a || 0} value={sc.p2a} onChange={v => setSc(mi, s => ({ ...s, p2a: v }))} color={sideOf(mi).teamBColorDisp} labelColor={strOf(m, m.hcp2a) > 0 ? GOLD : null} strokes={strOf(m, m.hcp2a) || 1} par={holePar} />
               </div>
               <div style={{ background: hwColor, padding: "8px 4px", textAlign: "center" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", fontFamily: "monospace", letterSpacing: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", fontFamily: "var(--mono)", letterSpacing: 1 }}>
                   {hw === "A" ? `${m.player1a} wins` : hw === "B" ? `${m.player2a} wins` : "HALVED"}
                 </div>
-                <div style={{ fontSize: 9, color: "#ffffffbb", marginTop: 1, fontFamily: "monospace" }}>
+                <div style={{ fontSize: 9, color: "#ffffffbb", marginTop: 1, fontFamily: "var(--mono)" }}>
                   {hw === "H" ? `net ${netA} · ${netB}` : `net ${netA} vs ${netB}`}
                 </div>
               </div>
@@ -250,11 +250,11 @@ export default function GroupHoleEntry({ matches, course, cups, onSave, onClose 
         {/* Pinned to the bottom of the screen until scrolled to (see HoleEntry). */}
         {!isComplete && (
           <div style={{ position: "sticky", bottom: 0, zIndex: 5, padding: "12px 4px 4px", margin: "0 -4px", background: `linear-gradient(to bottom, transparent, ${BG} 18px)` }}>
-          <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${GOLD},${GOLD}aa)`, border: "none", borderRadius: 14, color: "var(--on-gold)", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", boxShadow: `0 4px 18px ${GOLD}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
+          <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${GOLD},${GOLD}aa)`, border: "none", borderRadius: 14, color: "var(--on-gold)", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "var(--mono)", boxShadow: `0 4px 18px ${GOLD}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
           </div>
         )}
-        {groupPosInRotation > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {((hole - 1 + 18) % 18) + 1}</button>}
-        {!isComplete && <button onClick={() => setShowEndEarly(true)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid var(--faint)`, borderRadius: 10, color: "var(--muted)", fontSize: 10, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 20 }}>End Matches Early</button>}
+        {groupPosInRotation > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "var(--mono)", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {((hole - 1 + 18) % 18) + 1}</button>}
+        {!isComplete && <button onClick={() => setShowEndEarly(true)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid var(--faint)`, borderRadius: 10, color: "var(--muted)", fontSize: 10, cursor: "pointer", fontFamily: "var(--mono)", letterSpacing: 1, marginBottom: 20 }}>End Matches Early</button>}
       </div>
     </div>
   );

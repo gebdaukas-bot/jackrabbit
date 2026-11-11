@@ -133,7 +133,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
       {showEndEarly && (
         <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 24, maxWidth: 320, width: "100%", textAlign: "center" }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--gold-text)", marginBottom: 6, fontFamily: "monospace" }}>END MATCH EARLY?</div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--gold-text)", marginBottom: 6, fontFamily: "var(--mono)" }}>END MATCH EARLY?</div>
             <div style={{ fontSize: 11, color: TEXT, marginBottom: 6 }}>
               {cur.state === "pending" ? "Match is all square — result will be HALVED." :
                cur.leader ? `${cur.leader === "A" ? teamAShort : teamBShort} leads ${cur.up}UP after ${cur.holesPlayed} holes.` :
@@ -157,21 +157,21 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
       <div style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, padding: "10px 12px", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <button onClick={onClose} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 7, color: "var(--muted2)", padding: "5px 10px", cursor: "pointer", fontSize: 11, flexShrink: 0 }}>← Back</button>
-          <button onClick={() => setShowHcp(true)} style={{ fontSize: 10, padding: "4px 10px", background: `${GOLD}22`, border: `1px solid ${GOLD}55`, borderRadius: 6, color: "var(--gold-text)", cursor: "pointer", fontFamily: "monospace", flexShrink: 0 }}>HCP ✏</button>
+          <button onClick={() => setShowHcp(true)} style={{ fontSize: 10, padding: "4px 10px", background: `${GOLD}22`, border: `1px solid ${GOLD}55`, borderRadius: 6, color: "var(--gold-text)", cursor: "pointer", fontFamily: "var(--mono)", flexShrink: 0 }}>HCP ✏</button>
         </div>
         <div style={{ display: "flex", alignItems: "stretch", borderRadius: 8, overflow: "hidden", border: `1px solid ${BORDER}` }}>
           <div style={{ flex: 1, background: runLeader === "A" ? teamAColor : "var(--panel-f)", padding: "8px 10px", minWidth: 0 }}>
-            <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "A" ? contrastText(teamAColor) : teamAColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamAShort}</div>
+            <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "A" ? contrastText(teamAColor) : teamAColorDisp, letterSpacing: 1, fontFamily: "var(--mono)", marginBottom: 2 }}>{teamAShort}</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: runLeader === "A" ? contrastText(teamAColor) : "var(--text-b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1a}</div>
             {match.player1b && <div style={{ fontSize: 12, fontWeight: 700, color: runLeader === "A" ? contrastText(teamAColor) : "var(--text-b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.player1b}</div>}
           </div>
           <div style={{ background: runLeader === "A" ? teamAColor : runLeader === "B" ? teamBColor : "#1a2a44", minWidth: 68, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "6px 4px", borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}`, flexShrink: 0 }}>
-            {cur.state === "pending" ? <div style={{ fontSize: 10, color: "var(--muted)", fontFamily: "monospace" }}>—</div>
-            : cur.state === "complete" || cur.state === "halved" ? <><div style={{ fontSize: 8, color: "#FFD700", fontFamily: "monospace", fontWeight: 800, letterSpacing: 1 }}>FINAL</div><div style={{ fontSize: 12, fontWeight: 900, color: runLeader ? contrastText(runLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "monospace" }}>{cur.sublabel || "HALVED"}</div></>
-            : <><div style={{ fontSize: 17, fontWeight: 900, color: runLeader ? contrastText(runLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "monospace", lineHeight: 1 }}>{runLeader ? runAbs : "AS"}</div><div style={{ fontSize: 8, color: runLeader ? `${contrastText(runLeader === "A" ? teamAColor : teamBColor)}aa` : "#88aacc", fontFamily: "monospace", marginTop: 1 }}>{runLeader ? "UP" : "ALL SQ"}</div><div style={{ fontSize: 8, color: runLeader ? `${contrastText(runLeader === "A" ? teamAColor : teamBColor)}88` : "var(--muted)", fontFamily: "monospace", marginTop: 2 }}>THRU {posInRotation}</div></>}
+            {cur.state === "pending" ? <div style={{ fontSize: 10, color: "var(--muted)", fontFamily: "var(--mono)" }}>—</div>
+            : cur.state === "complete" || cur.state === "halved" ? <><div style={{ fontSize: 8, color: "#FFD700", fontFamily: "var(--mono)", fontWeight: 800, letterSpacing: 1 }}>FINAL</div><div style={{ fontSize: 12, fontWeight: 900, color: runLeader ? contrastText(runLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "var(--mono)" }}>{cur.sublabel || "HALVED"}</div></>
+            : <><div style={{ fontSize: 17, fontWeight: 900, color: runLeader ? contrastText(runLeader === "A" ? teamAColor : teamBColor) : "#fff", fontFamily: "var(--mono)", lineHeight: 1 }}>{runLeader ? runAbs : "AS"}</div><div style={{ fontSize: 8, color: runLeader ? `${contrastText(runLeader === "A" ? teamAColor : teamBColor)}aa` : "#88aacc", fontFamily: "var(--mono)", marginTop: 1 }}>{runLeader ? "UP" : "ALL SQ"}</div><div style={{ fontSize: 8, color: runLeader ? `${contrastText(runLeader === "A" ? teamAColor : teamBColor)}88` : "var(--muted)", fontFamily: "var(--mono)", marginTop: 2 }}>THRU {posInRotation}</div></>}
           </div>
           <div style={{ flex: 1, background: runLeader === "B" ? teamBColor : "var(--panel-f)", padding: "8px 10px", display: "flex", flexDirection: "column", alignItems: "flex-end", minWidth: 0 }}>
-            <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "B" ? contrastText(teamBColor) : teamBColorDisp, letterSpacing: 1, fontFamily: "monospace", marginBottom: 2 }}>{teamBShort}</div>
+            <div style={{ fontSize: 8, fontWeight: 800, color: runLeader === "B" ? contrastText(teamBColor) : teamBColorDisp, letterSpacing: 1, fontFamily: "var(--mono)", marginBottom: 2 }}>{teamBShort}</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: runLeader === "B" ? contrastText(teamBColor) : "var(--text-b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2a}</div>
             {match.player2b && <div style={{ fontSize: 12, fontWeight: 700, color: runLeader === "B" ? contrastText(teamBColor) : "var(--text-b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", width: "100%" }}>{match.player2b}</div>}
           </div>
@@ -188,7 +188,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
           const isAct = i === hole;
           return (
             <div key={i} style={{ position: "relative" }}>
-              <div onClick={() => setHole(i)} style={{ height: 34, boxSizing: "border-box", background: bg, borderRadius: 6, cursor: "pointer", border: isAct ? `2px solid ${GOLD}` : s == null ? `1px solid ${BORDER}` : "2px solid transparent", boxShadow: isAct ? `0 0 0 2px ${GOLD}44` : "none", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 12, lineHeight: 1, color: s != null ? contrastText(s === "H" ? "#556677" : bg) : isAct ? "var(--strong)" : "var(--muted2)", fontFamily: "monospace", fontWeight: 800 }}>
+              <div onClick={() => setHole(i)} style={{ height: 34, boxSizing: "border-box", background: bg, borderRadius: 6, cursor: "pointer", border: isAct ? `2px solid ${GOLD}` : s == null ? `1px solid ${BORDER}` : "2px solid transparent", boxShadow: isAct ? `0 0 0 2px ${GOLD}44` : "none", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 12, lineHeight: 1, color: s != null ? contrastText(s === "H" ? "#556677" : bg) : isAct ? "var(--strong)" : "var(--muted2)", fontFamily: "var(--mono)", fontWeight: 800 }}>
                 {i + 1}
                 {s != null && <span style={{ fontSize: 8, marginTop: 1, opacity: 0.85 }}>✓</span>}
               </div>
@@ -204,7 +204,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
       {isComplete && (
         <div style={{ margin: "10px 12px 0", background: `${cur.leader === "A" ? teamAColor : cur.state === "halved" ? "var(--faint-c)" : teamBColor}33`, border: `1px solid ${cur.leader === "A" ? teamAColor : cur.state === "halved" ? "#556677" : teamBColor}66`, borderRadius: 12, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 9, color: "var(--muted2)", fontFamily: "monospace", letterSpacing: 1 }}>MATCH RESULT</div>
+            <div style={{ fontSize: 9, color: "var(--muted2)", fontFamily: "var(--mono)", letterSpacing: 1 }}>MATCH RESULT</div>
             <div style={{ fontSize: 15, fontWeight: 900, color: "var(--gold-text)", letterSpacing: 1 }}>{cur.longLabel}</div>
             <div style={{ fontSize: 11, color: "var(--muted2)", marginTop: 2 }}>{cur.sublabel}</div>
           </div>
@@ -215,10 +215,10 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
         <div style={{ margin: "8px 12px 0", background: "#e67e2222", border: "1px solid #e67e2299", borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ fontSize: 18 }}>⚠</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, color: "#e67e22", fontFamily: "monospace", letterSpacing: 1 }}>MISSING SCORE</div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: "#e67e22", fontFamily: "var(--mono)", letterSpacing: 1 }}>MISSING SCORE</div>
             <div style={{ fontSize: 10, color: "#e67e22bb", marginTop: 2 }}>Score from hole {nextNeededHole + 1} has not been recorded</div>
           </div>
-          <button onClick={() => setHole(nextNeededHole)} style={{ flexShrink: 0, padding: "5px 10px", background: "#e67e2233", border: "1px solid #e67e22", borderRadius: 7, color: "#e67e22", fontSize: 10, cursor: "pointer", fontWeight: 800, fontFamily: "monospace" }}>GO →</button>
+          <button onClick={() => setHole(nextNeededHole)} style={{ flexShrink: 0, padding: "5px 10px", background: "#e67e2233", border: "1px solid #e67e22", borderRadius: 7, color: "#e67e22", fontSize: 10, cursor: "pointer", fontWeight: 800, fontFamily: "var(--mono)" }}>GO →</button>
         </div>
       )}
       {cur.state === "extra" && (() => {
@@ -246,17 +246,17 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
         });
         return (
           <div style={{ margin: "10px 12px 0", background: `${GOLD}18`, border: `1px solid ${GOLD}55`, borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 1, marginBottom: 4 }}>PLAYOFF — HOLE {extraNum}</div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing: 1, marginBottom: 4 }}>PLAYOFF — HOLE {extraNum}</div>
             <div style={{ fontSize: 10, color: MUTED, marginBottom: 10 }}>All square through {totalHoles} — sudden death, replaying Hole 1 (par {pPar})</div>
             <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 10 }}>
               <ScoreInput label={match.player1a} hcp={hcpA} value={extraGross.a} onChange={v => setExtraGross(s => ({ ...s, a: v }))} color={teamAColorDisp} par={pPar} />
               <ScoreInput label={match.player2a} hcp={hcpB} value={extraGross.b} onChange={v => setExtraGross(s => ({ ...s, b: v }))} color={teamBColor} par={pPar} />
             </div>
-            <button onClick={confirmExtra} style={{ width: "100%", padding: "13px", background: `linear-gradient(135deg,${pwColor},${pwColor}aa)`, border: "none", borderRadius: 12, color: onFill(pwColor), fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "monospace" }}>
+            <button onClick={confirmExtra} style={{ width: "100%", padding: "13px", background: `linear-gradient(135deg,${pwColor},${pwColor}aa)`, border: "none", borderRadius: 12, color: onFill(pwColor), fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "var(--mono)" }}>
               CONFIRM PLAYOFF HOLE {extraNum} →
             </button>
             {match.extra?.length > 0 && (
-              <button onClick={undoExtra} style={{ width: "100%", marginTop: 8, padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>
+              <button onClick={undoExtra} style={{ width: "100%", marginTop: 8, padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "var(--mono)" }}>
                 ↩ UNDO PLAYOFF HOLE {extraNum - 1}
               </button>
             )}
@@ -266,17 +266,17 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
 
       <div style={{ flex: 1, padding: "12px 12px 0" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 12, padding: "10px", background: CARD, borderRadius: 12, border: `1px solid ${BORDER}` }}>
-          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>HOLE</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--gold-text)", fontFamily: "monospace", lineHeight: 1 }}>{hole + 1}</div></div>
+          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing:1 }}>HOLE</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--gold-text)", fontFamily: "var(--mono)", lineHeight: 1 }}>{hole + 1}</div></div>
           <div style={{ width: 1, background: BORDER }} />
-          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>PAR</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "monospace", lineHeight: 1 }}>{holePar}</div></div>
+          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing:1 }}>PAR</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "var(--mono)", lineHeight: 1 }}>{holePar}</div></div>
           <div style={{ width: 1, background: BORDER }} />
-          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>HCP IDX</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "monospace", lineHeight: 1 }}>{holeHcp}</div></div>
-          {holeYardage && <><div style={{ width: 1, background: BORDER }} /><div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>YDS</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "monospace", lineHeight: 1 }}>{holeYardage}</div></div></>}
-          {strokeEntries.length > 0 && <><div style={{ width: 1, background: BORDER }} /><div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 1 }}>STROKE</div><div style={{ fontSize: 9, color: "var(--gold-text)", marginTop: 1 }}>{strokeEntries.map(e => `${e.name}${e.strokes > 1 ? ` ×${e.strokes}` : ""}`).join(", ")}</div></div></>}
+          <div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing:1 }}>HCP IDX</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "var(--mono)", lineHeight: 1 }}>{holeHcp}</div></div>
+          {holeYardage && <><div style={{ width: 1, background: BORDER }} /><div style={{ textAlign: "center" }}><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing:1 }}>YDS</div><div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", fontFamily: "var(--mono)", lineHeight: 1 }}>{holeYardage}</div></div></>}
+          {strokeEntries.length > 0 && <><div style={{ width: 1, background: BORDER }} /><div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing: 1 }}>STROKE</div><div style={{ fontSize: 9, color: "var(--gold-text)", marginTop: 1 }}>{strokeEntries.map(e => `${e.name}${e.strokes > 1 ? ` ×${e.strokes}` : ""}`).join(", ")}</div></div></>}
         </div>
 
         <div style={{ background: `${teamAColor}18`, border: `1px solid ${teamAColor}44`, borderRadius: 12, padding: "12px", marginBottom: 8 }}>
-          <div style={{ fontSize: 9, color: teamAColorDisp, fontWeight: 800, letterSpacing: 2, fontFamily: "monospace", marginBottom: 10 }}>{teamAShort}</div>
+          <div style={{ fontSize: 9, color: teamAColorDisp, fontWeight: 800, letterSpacing:1, fontFamily: "var(--mono)", marginBottom: 10 }}>{teamAShort}</div>
           <div style={{ display: "flex", justifyContent: oneScorePerSide ? "center" : "space-around" }}>
             <ScoreInput label={isScramble && match.player1b ? `${match.player1a} / ${match.player1b}` : match.player1a} hcp={hcpA} value={sc.p1a} onChange={v => setSc(s => ({ ...s, p1a: v }))} color={teamAColorDisp} labelColor={strokeEntries.find(e => e.name?.startsWith(match.player1a))?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name?.startsWith(match.player1a))?.strokes || 1} par={holePar} />
             {!oneScorePerSide && <ScoreInput label={match.player1b} hcp={match.hcp1b || 0} value={sc.p1b} onChange={v => setSc(s => ({ ...s, p1b: v }))} color={teamAColorDisp} labelColor={strokeEntries.find(e => e.name === match.player1b)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player1b)?.strokes || 1} par={holePar} />}
@@ -285,7 +285,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
         </div>
 
         <div style={{ background: `${teamBColor}33`, border: `1px solid ${teamBColor}66`, borderRadius: 12, padding: "12px", marginBottom: 10 }}>
-          <div style={{ fontSize: 9, color: teamBColorDisp, fontWeight: 800, letterSpacing: 2, fontFamily: "monospace", marginBottom: 10 }}>{teamBShort}</div>
+          <div style={{ fontSize: 9, color: teamBColorDisp, fontWeight: 800, letterSpacing:1, fontFamily: "var(--mono)", marginBottom: 10 }}>{teamBShort}</div>
           <div style={{ display: "flex", justifyContent: oneScorePerSide ? "center" : "space-around" }}>
             <ScoreInput label={isScramble && match.player2b ? `${match.player2a} / ${match.player2b}` : match.player2a} hcp={hcpB} value={sc.p2a} onChange={v => setSc(s => ({ ...s, p2a: v }))} color={teamBColorDisp} labelColor={strokeEntries.find(e => e.name?.startsWith(match.player2a))?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name?.startsWith(match.player2a))?.strokes || 1} par={holePar} />
             {!oneScorePerSide && <ScoreInput label={match.player2b} hcp={match.hcp2b || 0} value={sc.p2b} onChange={v => setSc(s => ({ ...s, p2b: v }))} color={teamBColorDisp} labelColor={strokeEntries.find(e => e.name === match.player2b)?.strokes > 0 ? GOLD : null} strokes={strokeEntries.find(e => e.name === match.player2b)?.strokes || 1} par={holePar} />}
@@ -294,7 +294,7 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
         </div>
 
         <div style={{ background: `${hwColor}22`, border: `1px solid ${hwColor}55`, borderRadius: 10, padding: "9px 12px", marginBottom: 10, textAlign: "center" }}>
-          <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "monospace", marginBottom: 2 }}>HOLE RESULT</div>
+          <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "var(--mono)", marginBottom: 2 }}>HOLE RESULT</div>
           <div style={{ fontSize: 13, fontWeight: 800, color: hw === "A" ? teamAColorDisp : hw === "B" ? teamBColorDisp : "var(--gold-text)" }}>{hwLabel}</div>
         </div>
 
@@ -302,12 +302,12 @@ export default function HoleEntry({ match, isSingles, course, cup, onSave, onClo
             so it's never hidden below the fold on a short phone. */}
         <div style={{ position: "sticky", bottom: 0, zIndex: 5, padding: "12px 0 4px", margin: "0 -4px", paddingLeft: 4, paddingRight: 4, background: `linear-gradient(to bottom, transparent, ${BG} 18px)` }}>
         {cur.state === "gap" && hole !== nextNeededHole
-          ? <div style={{ width: "100%", padding: "15px", background: "#e67e2222", border: "1px solid #e67e2266", borderRadius: 14, color: "#e67e22", fontWeight: 900, fontSize: 13, textAlign: "center", fontFamily: "monospace", marginBottom: 8, letterSpacing: 1 }}>⚠ ENTER HOLE {nextNeededHole + 1} FIRST</div>
-          : <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${hwColor},${hwColor}aa)`, border: "none", borderRadius: 14, color: onFill(hwColor), fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", boxShadow: `0 4px 18px ${hwColor}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
+          ? <div style={{ width: "100%", padding: "15px", background: "#e67e2222", border: "1px solid #e67e2266", borderRadius: 14, color: "#e67e22", fontWeight: 900, fontSize: 13, textAlign: "center", fontFamily: "var(--mono)", marginBottom: 8, letterSpacing: 1 }}>⚠ ENTER HOLE {nextNeededHole + 1} FIRST</div>
+          : <button onClick={handleConfirm} style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${hwColor},${hwColor}aa)`, border: "none", borderRadius: 14, color: onFill(hwColor), fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "var(--mono)", boxShadow: `0 4px 18px ${hwColor}44`, marginBottom: 8 }}>CONFIRM HOLE {hole + 1} →</button>
         }
         </div>
-        {posInRotation > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {prevHole + 1}</button>}
-        {!isComplete && <button onClick={() => setShowEndEarly(true)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid var(--faint)`, borderRadius: 10, color: "var(--muted)", fontSize: 10, cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, marginBottom: 20 }}>End Match Early</button>}
+        {posInRotation > 0 && <button onClick={handleUndo} style={{ width: "100%", padding: "9px", background: "none", border: `1px solid ${BORDER}`, borderRadius: 10, color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "var(--mono)", letterSpacing: 1, marginBottom: 8 }}>↩ UNDO HOLE {prevHole + 1}</button>}
+        {!isComplete && <button onClick={() => setShowEndEarly(true)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid var(--faint)`, borderRadius: 10, color: "var(--muted)", fontSize: 10, cursor: "pointer", fontFamily: "var(--mono)", letterSpacing: 1, marginBottom: 20 }}>End Match Early</button>}
       </div>
     </div>
   );

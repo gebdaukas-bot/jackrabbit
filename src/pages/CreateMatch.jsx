@@ -19,7 +19,7 @@ function HcpStepper({ value, onChange }) {
     <div style={{ display:"flex", alignItems:"center" }}>
       <button onClick={() => onChange(Math.max(-10, value - 1))}
         style={{ width:44, height:44, background:"none", border:`1px solid ${BORDER}`, borderRadius:"10px 0 0 10px", color:MUTED, cursor:"pointer", fontSize:20, lineHeight:1 }}>−</button>
-      <div style={{ width:56, height:44, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:800, color:"var(--gold-text)", fontFamily:"monospace" }}>
+      <div style={{ width:56, height:44, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:800, color:"var(--gold-text)", fontFamily:"var(--mono)" }}>
         {fmtHcp(value)}
       </div>
       <button onClick={() => onChange(Math.min(36, value + 1))}
@@ -272,7 +272,7 @@ export default function CreateMatch({ user }) {
           style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:8, padding:"5px 10px", color:MUTED, fontSize:11, cursor:"pointer" }}>
           ← Back
         </button>
-        <div style={{ flex:1, textAlign:"center", fontSize:13, fontWeight:900, color:"var(--gold-text)", fontFamily:"monospace", letterSpacing:2 }}>
+        <div style={{ flex:1, textAlign:"center", fontSize:13, fontWeight:900, color:"var(--gold-text)", fontFamily:"var(--mono)", letterSpacing:1 }}>
           {STEPS[step - 1].toUpperCase()}
         </div>
         <div style={{ display:"flex", gap:5 }}>
@@ -288,11 +288,11 @@ export default function CreateMatch({ user }) {
         {step === 1 && (
           <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
             <div>
-              <div style={{ fontSize:11, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>FORMAT</div>
+              <div style={{ fontSize:11, color:MUTED2, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:12 }}>FORMAT</div>
               <div style={{ display:"flex", gap:8 }}>
                 {[["1v1","1v1"],["2v2","2v2 Best Ball"],["scramble","Scramble"],["shamble","Shamble"]].map(([key, label]) => (
                   <button key={key} onClick={() => setFormat(key)}
-                    style={{ flex:1, padding:"14px 4px", background:format===key?GOLD:"none", border:`1px solid ${format===key?GOLD:BORDER}`, borderRadius:12, color:format===key?"#000":MUTED, fontWeight:800, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
+                    style={{ flex:1, padding:"14px 4px", background:format===key?GOLD:"none", border:`1px solid ${format===key?GOLD:BORDER}`, borderRadius:12, color:format===key?"#000":MUTED, fontWeight:800, fontSize:12, cursor:"pointer", fontFamily:"var(--mono)" }}>
                     {label}
                   </button>
                 ))}
@@ -308,21 +308,21 @@ export default function CreateMatch({ user }) {
               </label>
             )}
             <div>
-              <div style={{ fontSize:11, color:"#C8102E", fontFamily:"monospace", letterSpacing:1, marginBottom:10 }}>SIDE A</div>
+              <div style={{ fontSize:11, color:"#C8102E", fontFamily:"var(--mono)", letterSpacing:1, marginBottom:10 }}>SIDE A</div>
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {nameInput("a1", is2v2 ? "Player 1 name" : "Player name", "#C8102E")}
                 {is2v2 && nameInput("a2", "Player 2 name", "#C8102E")}
               </div>
             </div>
             <div>
-              <div style={{ fontSize:11, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, marginBottom:10 }}>SIDE B</div>
+              <div style={{ fontSize:11, color:"#4A90D9", fontFamily:"var(--mono)", letterSpacing:1, marginBottom:10 }}>SIDE B</div>
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {nameInput("b1", is2v2 ? "Player 1 name" : "Player name", "#4A90D9")}
                 {is2v2 && nameInput("b2", "Player 2 name", "#4A90D9")}
               </div>
             </div>
             <button onClick={() => setStep(2)} disabled={!namesOk}
-              style={{ padding:"16px", background:namesOk?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${namesOk?GOLD:BORDER}`, borderRadius:14, color:namesOk?"#000":MUTED, fontWeight:900, fontSize:15, cursor:namesOk?"pointer":"default", fontFamily:"monospace", letterSpacing:1, opacity:namesOk?1:0.4 }}>
+              style={{ padding:"16px", background:namesOk?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${namesOk?GOLD:BORDER}`, borderRadius:14, color:namesOk?"#000":MUTED, fontWeight:900, fontSize:15, cursor:namesOk?"pointer":"default", fontFamily:"var(--mono)", letterSpacing:1, opacity:namesOk?1:0.4 }}>
               NEXT →
             </button>
           </div>
@@ -333,7 +333,7 @@ export default function CreateMatch({ user }) {
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             <div style={{ fontSize:11, color:MUTED, marginBottom:8 }}>Set each player's handicap index. Use + for a plus-handicap.{matchFormat === "Shamble" ? ` Shamble players get ${SHAMBLE_ALLOWANCE * 100}% of their course handicap.` : ""}</div>
             <div style={{ background:"rgba(200,16,46,0.08)", border:`1px solid #C8102E44`, borderRadius:14, padding:"16px 16px" }}>
-              <div style={{ fontSize:10, color:"#C8102E", fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>SIDE A</div>
+              <div style={{ fontSize:10, color:"#C8102E", fontFamily:"var(--mono)", letterSpacing:1, marginBottom:12 }}>SIDE A</div>
               <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 {[["a1",names.a1],["a2",names.a2]].filter(([k]) => k==="a1" || is2v2).map(([key, name]) => (
                   <div key={key} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
@@ -344,7 +344,7 @@ export default function CreateMatch({ user }) {
               </div>
             </div>
             <div style={{ background:"rgba(74,144,217,0.08)", border:`1px solid #4A90D944`, borderRadius:14, padding:"16px 16px" }}>
-              <div style={{ fontSize:10, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, marginBottom:12 }}>SIDE B</div>
+              <div style={{ fontSize:10, color:"#4A90D9", fontFamily:"var(--mono)", letterSpacing:1, marginBottom:12 }}>SIDE B</div>
               <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 {[["b1",names.b1],["b2",names.b2]].filter(([k]) => k==="b1" || is2v2).map(([key, name]) => (
                   <div key={key} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
@@ -355,7 +355,7 @@ export default function CreateMatch({ user }) {
               </div>
             </div>
             <button onClick={() => setStep(3)}
-              style={{ marginTop:8, padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", fontFamily:"monospace", letterSpacing:1 }}>
+              style={{ marginTop:8, padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", fontFamily:"var(--mono)", letterSpacing:1 }}>
               NEXT →
             </button>
           </div>
@@ -367,7 +367,7 @@ export default function CreateMatch({ user }) {
 
             {/* Previous courses dropdown */}
             <div>
-              <div style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>SELECT PREVIOUS COURSE</div>
+              <div style={{ fontSize:11, color:MUTED, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:8 }}>SELECT PREVIOUS COURSE</div>
               <select
                 value=""
                 onChange={e => {
@@ -387,7 +387,7 @@ export default function CreateMatch({ user }) {
 
             {/* Course search → pick the course; its tees are listed below */}
             <div>
-              <div style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>COURSE NAME</div>
+              <div style={{ fontSize:11, color:MUTED, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:8 }}>COURSE NAME</div>
               <CourseSearch large pickTee={false} query={courseName}
                 onQueryChange={v => { setCourseName(v); resetCourseData(); }}
                 onCourse={handleCourse}/>
@@ -396,7 +396,7 @@ export default function CreateMatch({ user }) {
             {/* Tee boxes */}
             {(tees.length > 0 || courseLoaded || courseNameOk) && (
               <div>
-                <div style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>
+                <div style={{ fontSize:11, color:MUTED, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:8 }}>
                   SELECT TEES {tees.length > 0 ? "" : "(add one below)"}
                 </div>
                 {tees.map((tee, i) => {
@@ -406,13 +406,13 @@ export default function CreateMatch({ user }) {
                       style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:sel?`${GOLD}18`:CARD2, border:`1px solid ${sel?GOLD:BORDER}`, borderRadius:10, cursor:"pointer", marginBottom:6 }}>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:13, fontWeight:700, color:sel?GOLD:TEXT }}>{tee.name}</div>
-                        <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", marginTop:2 }}>
+                        <div style={{ fontSize:10, color:MUTED, fontFamily:"var(--mono)", marginTop:2 }}>
                           Rating {tee.rating} · Slope {tee.slope}{tee.yardage ? ` · ${tee.yardage} yds` : ""}
                         </div>
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", gap:2, alignItems:"flex-end" }}>
                         {activePlayers.map(p => (
-                          <div key={p.key} style={{ fontSize:10, fontFamily:"monospace", color:sel?p.color:MUTED, whiteSpace:"nowrap" }}>
+                          <div key={p.key} style={{ fontSize:10, fontFamily:"var(--mono)", color:sel?p.color:MUTED, whiteSpace:"nowrap" }}>
                             {p.name}: <span style={{ fontWeight:800, color:sel?GOLD:MUTED }}>{fmtHcp(calcCourseHcp(p.hi, tee.slope, tee.rating, teePar(tee)))}</span>
                           </div>
                         ))}
@@ -423,7 +423,7 @@ export default function CreateMatch({ user }) {
 
                 {/* Add tee manually */}
                 <div style={{ marginTop:8 }}>
-                  <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>ADD TEE BOX</div>
+                  <div style={{ fontSize:10, color:MUTED, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:6 }}>ADD TEE BOX</div>
                   <div style={{ display:"flex", gap:6 }}>
                     <input value={newTeeName} onChange={e => setNewTeeName(e.target.value)} placeholder="Tee name"
                       style={{ flex:2, padding:"10px 10px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:12, outline:"none" }}/>
@@ -457,14 +457,14 @@ export default function CreateMatch({ user }) {
 
             {showHoles && ["par","hcp","yardage"].map(field => (
               <div key={field} style={{ marginBottom:8 }}>
-                <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>
+                <div style={{ fontSize:10, color:MUTED, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:6 }}>
                   {field === "par" ? "PAR PER HOLE" : field === "hcp" ? "HANDICAP INDEX" : "YARDAGE"}
                 </div>
                 <div style={{ overflowX:"auto", WebkitOverflowScrolling:"touch" }}>
                   <div style={{ display:"flex", gap:3, minWidth:"max-content" }}>
                     {Array.from({ length:18 }, (_, i) => (
                       <div key={i} style={{ textAlign:"center" }}>
-                        <div style={{ fontSize:8, color:MUTED, marginBottom:2, fontFamily:"monospace" }}>{i+1}</div>
+                        <div style={{ fontSize:8, color:MUTED, marginBottom:2, fontFamily:"var(--mono)" }}>{i+1}</div>
                         <input type="number" min={field==="par"?3:field==="hcp"?1:1} max={field==="par"?5:field==="hcp"?18:700}
                           value={field==="par"?par[i]:field==="hcp"?hcp[i]:(yardage[i] ?? "")}
                           placeholder={field==="yardage"?"—":undefined}
@@ -478,7 +478,7 @@ export default function CreateMatch({ user }) {
             ))}
 
             {!step3Ok && (
-              <div style={{ fontSize:12, color:"#e67e22", fontFamily:"monospace", textAlign:"center" }}>
+              <div style={{ fontSize:12, color:"#e67e22", fontFamily:"var(--mono)", textAlign:"center" }}>
                 {!courseNameOk
                   ? (!courseName.trim() ? "Enter a course name to continue"
                     : courseName.trim().toLowerCase() === "unknown course" ? "Please enter the real course name"
@@ -487,7 +487,7 @@ export default function CreateMatch({ user }) {
               </div>
             )}
             <button onClick={handleCreate} disabled={creating || !step3Ok}
-              style={{ padding:"16px", background:step3Ok?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${step3Ok?GOLD:BORDER}`, borderRadius:14, color:step3Ok?"#000":MUTED, fontWeight:900, fontSize:15, cursor:(creating||!step3Ok)?"default":"pointer", letterSpacing:1, fontFamily:"monospace", boxShadow:step3Ok?`0 4px 18px ${GOLD}33`:"none", marginTop:4, opacity:step3Ok?1:0.4 }}>
+              style={{ padding:"16px", background:step3Ok?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${step3Ok?GOLD:BORDER}`, borderRadius:14, color:step3Ok?"#000":MUTED, fontWeight:900, fontSize:15, cursor:(creating||!step3Ok)?"default":"pointer", letterSpacing:1, fontFamily:"var(--mono)", boxShadow:step3Ok?`0 4px 18px ${GOLD}33`:"none", marginTop:4, opacity:step3Ok?1:0.4 }}>
               {creating ? "CREATING..." : "START MATCH ⛳"}
             </button>
           </div>

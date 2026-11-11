@@ -106,7 +106,7 @@ export default function Home({ user }) {
       <LiveBackground/>
       {/* Top bar */}
       <div style={{ background: "var(--glass-85)", backdropFilter:"blur(8px)", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: 16, fontWeight: 900, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 2 }}>⛳ DORMIE</div>
+        <div style={{ fontSize: 16, fontWeight: 900, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing:1 }}>⛳ DORMIE</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={toggle} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "4px 10px", color: MUTED, fontSize: 11, cursor: "pointer" }}>
             {theme === "dark" ? "☀" : "☾"}
@@ -129,16 +129,16 @@ export default function Home({ user }) {
         )}
 
         {/* Create: a cup is the main thing; a one-off match is the secondary option. */}
-        <button onClick={() => nav("/create")} style={{ width:"100%", padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}cc)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", marginBottom:10, boxShadow:`0 4px 18px ${GOLD}33` }}>
+        <button onClick={() => nav("/create")} style={{ width:"100%", padding:"16px", background:`linear-gradient(135deg,${GOLD},${GOLD}cc)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", letterSpacing:1, fontFamily:"var(--mono)", marginBottom:10, boxShadow:`0 4px 18px ${GOLD}33` }}>
           + CREATE NEW CUP
         </button>
-        <button onClick={() => nav("/match")} style={{ width:"100%", padding:"14px", background:"transparent", border:`1.5px solid ${GOLD}99`, borderRadius:14, color:"var(--gold-text)", fontWeight:800, fontSize:13, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", marginBottom:24 }}>
+        <button onClick={() => nav("/match")} style={{ width:"100%", padding:"14px", background:"transparent", border:`1.5px solid ${GOLD}99`, borderRadius:14, color:"var(--gold-text)", fontWeight:800, fontSize:13, cursor:"pointer", letterSpacing:1, fontFamily:"var(--mono)", marginBottom:24 }}>
           ⚡ CREATE NEW MATCH
         </button>
 
         {/* Join by code */}
         <div style={{ background: "var(--glass-80)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", marginBottom: 24 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: MUTED2, letterSpacing: 1, marginBottom: 10, fontFamily: "monospace" }}>JOIN A CUP</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: MUTED2, letterSpacing: 1, marginBottom: 10, fontFamily: "var(--mono)" }}>JOIN A CUP</div>
           <div style={{ display: "flex", gap: 8 }}>
             <input
               value={joinCode}
@@ -146,7 +146,7 @@ export default function Home({ user }) {
               onKeyDown={e => e.key === "Enter" && handleJoin()}
               placeholder="INVITE CODE"
               maxLength={8}
-              style={{ flex: 1, padding: "10px 12px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, color: TEXT, fontSize: 14, fontFamily: "monospace", letterSpacing: 2, outline: "none" }}
+              style={{ flex: 1, padding: "10px 12px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, color: TEXT, fontSize: 14, fontFamily: "var(--mono)", letterSpacing:1, outline: "none" }}
             />
             <button onClick={handleJoin} disabled={joining} style={{ padding: "10px 16px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, color: TEXT, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
               {joining ? "..." : "Join"}
@@ -156,7 +156,7 @@ export default function Home({ user }) {
         </div>
 
         {/* Cups list */}
-        <div style={{ fontSize: 12, fontWeight: 700, color: MUTED2, letterSpacing: 1, marginBottom: 10, fontFamily: "monospace" }}>YOUR CUPS</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: MUTED2, letterSpacing: 1, marginBottom: 10, fontFamily: "var(--mono)" }}>YOUR CUPS</div>
         {cups.length === 0 ? (
           <div style={{ background: "var(--glass-80)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "24px", textAlign: "center", color: MUTED, fontSize: 12 }}>
             No cups yet. Create one or join with an invite code.
@@ -178,7 +178,7 @@ export default function Home({ user }) {
                     <button onClick={() => nav(`/cup/${cup.id}`)} style={{ width: "100%", textAlign: "left", background: "var(--glass-80)", backdropFilter:"blur(10px)", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
                         {cup.eventType === "live_match" && (
-                          <span style={{ fontSize:9, fontWeight:800, color:"#4A90D9", fontFamily:"monospace", letterSpacing:1, background:"#4A90D922", border:"1px solid #4A90D944", borderRadius:4, padding:"1px 5px" }}>⚡ MATCH</span>
+                          <span style={{ fontSize:9, fontWeight:800, color:"#4A90D9", fontFamily:"var(--mono)", letterSpacing:1, background:"#4A90D922", border:"1px solid #4A90D944", borderRadius:4, padding:"1px 5px" }}>⚡ MATCH</span>
                         )}
                         <div style={{ fontSize: 15, fontWeight: 800, color: TEXT, paddingRight: 30 }}>{cup.name}</div>
                       </div>
@@ -231,7 +231,7 @@ function ScoreLine({ sum, big = false }) {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: size, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
         <span style={{ color: a.colorDisp }}>{chip(a)}{a.name}</span>
-        <span style={{ color: "var(--strong)", fontFamily: "monospace", fontWeight: 900, fontSize: size + (big ? 5 : 1) }}>{fmt(pts[a.id])}–{fmt(pts[b.id])}</span>
+        <span style={{ color: "var(--strong)", fontFamily: "var(--mono)", fontWeight: 900, fontSize: size + (big ? 5 : 1) }}>{fmt(pts[a.id])}–{fmt(pts[b.id])}</span>
         <span style={{ color: b.colorDisp }}>{b.name}{chip(b, true)}</span>
       </div>
     );
@@ -239,7 +239,7 @@ function ScoreLine({ sum, big = false }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", fontSize: size, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
       {sum.rows.map(r => (
-        <span key={r.team.id} style={{ color: r.team.colorDisp }}>{chip(r.team)}{r.team.name.replace(/^team\s+/i, "")} <span style={{ color: "var(--strong)", fontFamily: "monospace" }}>{fmt(r.actual)}</span></span>
+        <span key={r.team.id} style={{ color: r.team.colorDisp }}>{chip(r.team)}{r.team.name.replace(/^team\s+/i, "")} <span style={{ color: "var(--strong)", fontFamily: "var(--mono)" }}>{fmt(r.actual)}</span></span>
       ))}
       {!sum.started && <span style={{ color: MUTED, fontWeight: 400 }}></span>}
     </div>
@@ -251,7 +251,7 @@ function CupCardBody({ cup, sum }) {
   if (!sum) return <div style={{ height: 34, borderRadius: 6, background: "var(--panel-a)", opacity: 0.6 }} />; // loading placeholder
   return (
     <>
-      <div style={{ fontSize: 11, color: sum.live ? "#4caf50" : MUTED2, fontFamily: "monospace", marginBottom: 6, fontWeight: 700 }}>
+      <div style={{ fontSize: 11, color: sum.live ? "#4caf50" : MUTED2, fontFamily: "var(--mono)", marginBottom: 6, fontWeight: 700 }}>
         {sum.live > 0 && <LiveDot />}{sum.live > 0 ? `${sum.live} LIVE · ` : ""}{sum.status}
       </div>
       {cup.eventType !== "live_match" && <ScoreLine sum={sum} />}
@@ -266,14 +266,14 @@ function FeaturedCup({ cup, sum, onOpen }) {
   return (
     <button onClick={onOpen} style={{ width: "100%", textAlign: "left", marginBottom: 18, padding: 0, border: `1px solid ${GOLD}55`, borderRadius: 16, cursor: "pointer", overflow: "hidden", background: `linear-gradient(135deg, ${a?.color || GOLD}33, var(--glass-95) 45%, ${b?.color || GOLD}33)`, boxShadow: `0 6px 24px #0006` }}>
       <div style={{ padding: "14px 16px 16px" }}>
-        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.5, fontFamily: "monospace", color: sum.live ? "#4caf50" : "var(--gold-text)", marginBottom: 6 }}>
+        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.5, fontFamily: "var(--mono)", color: sum.live ? "#4caf50" : "var(--gold-text)", marginBottom: 6 }}>
           {sum.live > 0 ? <><LiveDot />LIVE NOW · {sum.live} MATCH{sum.live === 1 ? "" : "ES"}</> : sum.started ? "IN PROGRESS" : "UP NEXT"}
         </div>
         <div style={{ fontSize: 20, fontWeight: 900, color: TEXT, marginBottom: 10 }}>{cup.name}</div>
         {cup.eventType !== "live_match" && <ScoreLine sum={sum} big />}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12, borderTop: `1px solid ${BORDER}`, paddingTop: 10 }}>
           <span style={{ fontSize: 11, color: MUTED2 }}>{sum.status}{sum.place ? ` · ${sum.place}` : ""}</span>
-          <span style={{ fontSize: 11, fontWeight: 800, color: "var(--gold-text)", fontFamily: "monospace", whiteSpace: "nowrap", flexShrink: 0, marginLeft: 10 }}>OPEN →</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: "var(--gold-text)", fontFamily: "var(--mono)", whiteSpace: "nowrap", flexShrink: 0, marginLeft: 10 }}>OPEN →</span>
         </div>
       </div>
     </button>

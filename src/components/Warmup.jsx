@@ -42,7 +42,7 @@ export function WarmupRound({ round, scores, teamColorOf, canScore, onOpen }) {
 
   return (
     <div>
-      <div style={{ background: "var(--panel-d)", borderBottom: `1px solid ${BORDER}`, padding: "5px 10px", fontSize: 7, color: "var(--gold-text)", fontFamily: "monospace", fontWeight: 700, textAlign: "center" }}>
+      <div style={{ background: "var(--panel-d)", borderBottom: `1px solid ${BORDER}`, padding: "5px 10px", fontSize: 7, color: "var(--gold-text)", fontFamily: "var(--mono)", fontWeight: 700, textAlign: "center" }}>
         WARMUP · NO POINTS{round.course?.name ? ` · ${courseLabel(round.course).toUpperCase()}` : ""}
       </div>
       {groups.map((g, gi) => {
@@ -51,8 +51,8 @@ export function WarmupRound({ round, scores, teamColorOf, canScore, onOpen }) {
           <div key={gi} onClick={can ? () => onOpen(gi) : undefined}
             style={{ display: "flex", alignItems: "stretch", borderBottom: "1px solid #0a1628", cursor: can ? "pointer" : "default", opacity: can ? 1 : 0.85 }}>
             <div style={{ width: 64, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--panel-b)", borderRight: `1px solid ${BORDER}` }}>
-              <div style={{ fontSize: 7, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 1 }}>TEE</div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text)", fontFamily: "monospace" }}>{g.teeTime || "TBD"}</div>
+              <div style={{ fontSize: 7, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing: 1 }}>TEE</div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text)", fontFamily: "var(--mono)" }}>{g.teeTime || "TBD"}</div>
             </div>
             <div style={{ flex: 1, padding: "6px 10px", minWidth: 0 }}>
               {(g.players || []).map(name => {
@@ -63,10 +63,10 @@ export function WarmupRound({ round, scores, teamColorOf, canScore, onOpen }) {
                     <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: "var(--text-b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</div>
                     {t.thru > 0
                       ? <>
-                          <div style={{ fontSize: 9, color: "var(--muted-b)", fontFamily: "monospace" }}>{t.thru === 18 ? "F" : `thru ${t.thru}`}</div>
-                          <div style={{ fontSize: 12, fontWeight: 900, color: toParColor(t.toPar), fontFamily: "monospace", minWidth: 30, textAlign: "right" }}>{fmtToPar(t.toPar)}</div>
+                          <div style={{ fontSize: 9, color: "var(--muted-b)", fontFamily: "var(--mono)" }}>{t.thru === 18 ? "F" : `thru ${t.thru}`}</div>
+                          <div style={{ fontSize: 12, fontWeight: 900, color: toParColor(t.toPar), fontFamily: "var(--mono)", minWidth: 30, textAlign: "right" }}>{fmtToPar(t.toPar)}</div>
                         </>
-                      : <div style={{ fontSize: 10, color: "var(--muted)", fontFamily: "monospace" }}>—</div>}
+                      : <div style={{ fontSize: 10, color: "var(--muted)", fontFamily: "var(--mono)" }}>—</div>}
                   </div>
                 );
               })}
@@ -103,8 +103,8 @@ export function WarmupEntry({ round, group, scores, teamColorOf, onSaveHole, onC
   const yards = course.yardage?.[hole] || null;
   const stat = (label, value, color = "var(--text)") => (
     <div style={{ textAlign: "center" }}>
-      <div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace", letterSpacing: 2 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 900, color, fontFamily: "monospace", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", letterSpacing:1 }}>{label}</div>
+      <div style={{ fontSize: 28, fontWeight: 900, color, fontFamily: "var(--mono)", lineHeight: 1 }}>{value}</div>
     </div>
   );
   const divider = <div style={{ width: 1, background: BORDER }} />;
@@ -114,7 +114,7 @@ export function WarmupEntry({ round, group, scores, teamColorOf, onSaveHole, onC
       <div style={{ background: CARD, borderBottom: `1px solid ${BORDER}`, padding: "10px 12px", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <button onClick={onClose} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 7, color: "var(--muted2)", padding: "5px 10px", cursor: "pointer", fontSize: 11 }}>← Back</button>
-          <div style={{ fontSize: 10, color: "var(--gold-text)", fontFamily: "monospace", fontWeight: 800, letterSpacing: 1 }}>WARMUP{group.teeTime ? ` · ${group.teeTime}` : ""}</div>
+          <div style={{ fontSize: 10, color: "var(--gold-text)", fontFamily: "var(--mono)", fontWeight: 800, letterSpacing: 1 }}>WARMUP{group.teeTime ? ` · ${group.teeTime}` : ""}</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
           {players.map(n => {
@@ -123,7 +123,7 @@ export function WarmupEntry({ round, group, scores, teamColorOf, onSaveHole, onC
               <div key={n} style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--panel-f)", borderRadius: 6, padding: "5px 8px", minWidth: 0 }}>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: teamColorOf(n), flexShrink: 0 }} />
                 <div style={{ flex: 1, fontSize: 11, fontWeight: 700, color: "var(--text-b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n}</div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: t.thru ? toParColor(t.toPar) : "var(--muted)", fontFamily: "monospace" }}>{t.thru ? fmtToPar(t.toPar) : "—"}</div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: t.thru ? toParColor(t.toPar) : "var(--muted)", fontFamily: "var(--mono)" }}>{t.thru ? fmtToPar(t.toPar) : "—"}</div>
               </div>
             );
           })}
@@ -133,7 +133,7 @@ export function WarmupEntry({ round, group, scores, teamColorOf, onSaveHole, onC
       {/* Hole strip: filled once every player in the group has a score */}
       <div style={{ padding: "8px 10px 10px", display: "flex", gap: 2 }}>
         {Array.from({ length: 18 }, (_, i) => (
-          <div key={i} onClick={() => goTo(i)} style={{ flex: 1, height: i === hole ? 26 : 20, background: holeDone(i) ? "#2e4a6e" : CARD2, borderRadius: 3, cursor: "pointer", border: i === hole ? `2px solid ${GOLD}` : "2px solid transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#99a", fontFamily: "monospace" }}>{i + 1}</div>
+          <div key={i} onClick={() => goTo(i)} style={{ flex: 1, height: i === hole ? 26 : 20, background: holeDone(i) ? "#2e4a6e" : CARD2, borderRadius: 3, cursor: "pointer", border: i === hole ? `2px solid ${GOLD}` : "2px solid transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#99a", fontFamily: "var(--mono)" }}>{i + 1}</div>
         ))}
       </div>
 
@@ -153,7 +153,7 @@ export function WarmupEntry({ round, group, scores, teamColorOf, onSaveHole, onC
         </div>
 
         <button onClick={save} disabled={saving}
-          style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${GOLD},${GOLD}aa)`, border: "none", borderRadius: 14, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "monospace", marginBottom: 20, opacity: saving ? 0.6 : 1 }}>
+          style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg,${GOLD},${GOLD}aa)`, border: "none", borderRadius: 14, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer", letterSpacing: 1, fontFamily: "var(--mono)", marginBottom: 20, opacity: saving ? 0.6 : 1 }}>
           {saving ? "SAVING…" : hole < 17 ? `SAVE HOLE ${hole + 1} →` : "SAVE HOLE 18 ✓"}
         </button>
       </div>

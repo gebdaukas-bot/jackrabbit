@@ -20,7 +20,7 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.error) {
       return (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, background: "#020c18", color: "#dde", textAlign: "center", fontFamily: "monospace" }}>
+        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, background: "#020c18", color: "#dde", textAlign: "center", fontFamily: "var(--mono)" }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>⛳</div>
           <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>Something went wrong</div>
           <div style={{ fontSize: 12, color: "#8899aa", marginBottom: 20, maxWidth: 320 }}>
@@ -28,7 +28,7 @@ export default class ErrorBoundary extends Component {
           </div>
           <button
             onClick={() => { this.setState({ error: null }); window.location.reload(); }}
-            style={{ padding: "12px 24px", background: "#C4A44A", border: "none", borderRadius: 10, color: "#000", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "monospace" }}
+            style={{ padding: "12px 24px", background: "#C4A44A", border: "none", borderRadius: 10, color: "#000", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "var(--mono)" }}
           >
             Reload
           </button>

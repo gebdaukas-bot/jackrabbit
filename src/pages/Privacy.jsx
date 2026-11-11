@@ -6,14 +6,14 @@ const CONTACT = "gebdaukas@gmail.com";
 // Public page (linked from App Store Connect as the privacy policy URL), so it renders the same signed in or out.
 export default function Privacy() {
   const nav = useNavigate();
-  const h = { fontSize: 15, fontWeight: 800, color: GOLD, margin: "24px 0 8px", fontFamily: "monospace", letterSpacing: 1 };
+  const h = { fontSize: 15, fontWeight: 800, color: GOLD, margin: "24px 0 8px", fontFamily: "var(--mono)", letterSpacing: 1 };
   const p = { fontSize: 14, lineHeight: 1.6, color: "#c8d2dc", margin: "0 0 10px" };
 
   return (
     <div style={{ minHeight: "100vh", background: "#020c18", padding: "24px 16px 48px" }}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
-        <button onClick={() => nav("/")} style={{ background: "none", border: "none", color: "#6a8a7a", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "monospace" }}>← Dormie</button>
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: GOLD, fontFamily: "monospace", letterSpacing: 3, margin: "16px 0 4px" }}>PRIVACY POLICY</h1>
+        <button onClick={() => nav("/")} style={{ background: "none", border: "none", color: "#6a8a7a", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "var(--mono)" }}>← Dormie</button>
+        <h1 style={{ fontSize: 26, fontWeight: 900, color: GOLD, fontFamily: "var(--mono)", letterSpacing:1.5, margin: "16px 0 4px" }}>PRIVACY POLICY</h1>
         <div style={{ fontSize: 12, color: "#6a8a7a", marginBottom: 8 }}>Last updated October 1, 2026</div>
 
         <p style={p}>Dormie is a scoring app for golf trips and matches. This page explains what it stores and why. We don't sell your data, show ads, or track you across other apps or websites.</p>

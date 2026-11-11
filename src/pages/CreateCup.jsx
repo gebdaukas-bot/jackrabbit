@@ -78,17 +78,17 @@ function Step1({ data, setData }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       <div>
-        <label style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1 }}>CUP NAME</label>
+        <label style={{ fontSize:11, color:MUTED, fontFamily:"var(--mono)", letterSpacing:1 }}>CUP NAME</label>
         {inp("name", 'e.g. "The Ryder Cup 2026"')}
       </div>
 
       <div>
-        <label style={{ fontSize:11, color:MUTED, fontFamily:"monospace", letterSpacing:1 }}>HOW MANY TEAMS?</label>
+        <label style={{ fontSize:11, color:MUTED, fontFamily:"var(--mono)", letterSpacing:1 }}>HOW MANY TEAMS?</label>
         <div style={{ fontSize:10, color:MUTED, marginTop:2, marginBottom:6 }}>Every match is still one team against another — with three or four, you pick the pairing for each match.</div>
         <div style={{ display:"flex", gap:8 }}>
           {[2,3,4].map(n=>(
             <button key={n} onClick={()=>setTeamCount(n)}
-              style={{ flex:1, padding:"12px 4px", background:data.teams.length===n?GOLD:"none", border:`1px solid ${data.teams.length===n?GOLD:BORDER}`, borderRadius:10, color:data.teams.length===n?"#000":TEXT, fontWeight:data.teams.length===n?900:400, fontSize:16, cursor:"pointer", fontFamily:"monospace" }}>
+              style={{ flex:1, padding:"12px 4px", background:data.teams.length===n?GOLD:"none", border:`1px solid ${data.teams.length===n?GOLD:BORDER}`, borderRadius:10, color:data.teams.length===n?"#000":TEXT, fontWeight:data.teams.length===n?900:400, fontSize:16, cursor:"pointer", fontFamily:"var(--mono)" }}>
               {n}
             </button>
           ))}
@@ -98,7 +98,7 @@ function Step1({ data, setData }) {
       {data.teams.map((t,i)=>(
         <div key={t.id} style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
           <div style={{ flex:1 }}>
-            <label style={{ fontSize:11, color:t.color, fontFamily:"monospace", letterSpacing:1 }}>TEAM {i+1} NAME</label>
+            <label style={{ fontSize:11, color:t.color, fontFamily:"var(--mono)", letterSpacing:1 }}>TEAM {i+1} NAME</label>
             <input value={t.name} onChange={e=>setTeam(i,{name:e.target.value})} placeholder={DEFAULT_TEAM_NAMES[i]}
               style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box", marginTop:6 }}/>
           </div>
@@ -108,9 +108,9 @@ function Step1({ data, setData }) {
       ))}
 
       <div>
-        <label style={{ fontSize:11, color:"var(--gold-text)", fontFamily:"monospace", letterSpacing:1 }}>INVITE CODE <span style={{ color:MUTED, fontWeight:400 }}>(optional)</span></label>
+        <label style={{ fontSize:11, color:"var(--gold-text)", fontFamily:"var(--mono)", letterSpacing:1 }}>INVITE CODE <span style={{ color:MUTED, fontWeight:400 }}>(optional)</span></label>
         <div style={{ fontSize:10, color:MUTED, marginTop:2, marginBottom:4 }}>Leave blank to auto-generate. Letters and numbers only.</div>
-        {inp("inviteCode", "e.g. RYDERC26", { fontFamily:"monospace", letterSpacing:2, textTransform:"uppercase" })}
+        {inp("inviteCode", "e.g. RYDERC26", { fontFamily:"var(--mono)", letterSpacing:1, textTransform:"uppercase" })}
       </div>
     </div>
   );
@@ -193,7 +193,7 @@ function Step2({ data, setData }) {
         </select>
         <div style={{ display:"flex", alignItems:"center" }}>
           <button onClick={()=>setNewHcp(h=>Math.round(Math.max(-10,h-0.1)*10)/10)} style={{ width:28, height:32, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:"6px 0 0 6px", color:TEXT, cursor:"pointer", fontSize:14 }}>−</button>
-          <div style={{ width:52, height:32, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, color:"var(--gold-text)", fontFamily:"monospace" }}>{newHcp<0?`+${Math.abs(newHcp).toFixed(1)}`:Number(newHcp).toFixed(1)}</div>
+          <div style={{ width:52, height:32, background:CARD2, border:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, color:"var(--gold-text)", fontFamily:"var(--mono)" }}>{newHcp<0?`+${Math.abs(newHcp).toFixed(1)}`:Number(newHcp).toFixed(1)}</div>
           <button onClick={()=>setNewHcp(h=>Math.round(Math.min(36,h+0.1)*10)/10)} style={{ width:28, height:32, background:CARD2, border:`1px solid ${BORDER}`, borderRadius:"0 6px 6px 0", color:TEXT, cursor:"pointer", fontSize:14 }}>+</button>
         </div>
         <button onClick={addPlayer} style={{ padding:"8px 14px", background:GOLD, border:"none", borderRadius:8, color:"#000", fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
@@ -203,7 +203,7 @@ function Step2({ data, setData }) {
         if (!players.length) return null;
         return (
           <div key={team.id} style={{ marginBottom:14 }}>
-            <div style={{ fontSize:11, color:team.color, fontFamily:"monospace", letterSpacing:1, marginBottom:6, fontWeight:700 }}>
+            <div style={{ fontSize:11, color:team.color, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:6, fontWeight:700 }}>
               {team.name} <span style={{color:MUTED,fontWeight:400}}>· {players.length}</span>
             </div>
             {players.map((p,ri)=>{
@@ -212,13 +212,13 @@ function Step2({ data, setData }) {
                 <div key={ri} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 10px", background:CARD2, borderRadius:8, marginBottom:4 }}>
                   <span style={{ fontSize:13, color:TEXT }}>{p.name}</span>
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <span style={{ fontSize:9, color:MUTED, fontFamily:"monospace" }}>HCP</span>
+                    <span style={{ fontSize:9, color:MUTED, fontFamily:"var(--mono)" }}>HCP</span>
                     <button onClick={()=>adjustHcp(gi,-0.1)} style={{ width:24, height:26, background:"none", border:`1px solid ${BORDER}`, borderRadius:"4px 0 0 4px", color:MUTED, cursor:"pointer", fontSize:13, lineHeight:1 }}>−</button>
                     <input type="number" inputMode="decimal" step="0.1" min="-10" max="36"
                       value={p.hcp}
                       onChange={e=>setPlayerHcp(gi, e.target.value)}
                       onBlur={e=>setPlayerHcp(gi, e.target.value)}
-                      style={{ width:52, height:26, background:"none", border:`1px solid ${BORDER}`, borderLeft:"none", borderRight:"none", color:"var(--gold-text)", fontFamily:"monospace", fontSize:12, fontWeight:700, textAlign:"center", outline:"none", MozAppearance:"textfield" }}/>
+                      style={{ width:52, height:26, background:"none", border:`1px solid ${BORDER}`, borderLeft:"none", borderRight:"none", color:"var(--gold-text)", fontFamily:"var(--mono)", fontSize:12, fontWeight:700, textAlign:"center", outline:"none", MozAppearance:"textfield" }}/>
                     <button onClick={()=>adjustHcp(gi,0.1)} style={{ width:24, height:26, background:"none", border:`1px solid ${BORDER}`, borderRadius:"0 4px 4px 0", color:MUTED, cursor:"pointer", fontSize:13, lineHeight:1 }}>+</button>
                     <button onClick={()=>removePlayer(gi)} style={{ background:"none", border:"none", color:"#e74c3c", cursor:"pointer", fontSize:16, lineHeight:1, marginLeft:4 }}>×</button>
                   </div>
@@ -274,7 +274,7 @@ function Step3({ data, setData }) {
         <div style={{ display:"flex", gap:8 }}>
           {[1,2,3,4,5].map(n=>(
             <button key={n} onClick={()=>setNumDays(n)}
-              style={{ flex:1, padding:"12px 4px", background:data.days.length===n?GOLD:"none", border:`1px solid ${data.days.length===n?GOLD:BORDER}`, borderRadius:10, color:data.days.length===n?"#000":TEXT, fontWeight:data.days.length===n?900:400, fontSize:16, cursor:"pointer", fontFamily:"monospace" }}>
+              style={{ flex:1, padding:"12px 4px", background:data.days.length===n?GOLD:"none", border:`1px solid ${data.days.length===n?GOLD:BORDER}`, borderRadius:10, color:data.days.length===n?"#000":TEXT, fontWeight:data.days.length===n?900:400, fontSize:16, cursor:"pointer", fontFamily:"var(--mono)" }}>
               {n}
             </button>
           ))}
@@ -283,7 +283,7 @@ function Step3({ data, setData }) {
 
       {data.days.map((day,di)=>(
         <div key={di} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, padding:14, marginBottom:12 }}>
-          <div style={{ fontSize:10, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:8 }}>DAY {di+1}</div>
+          <div style={{ fontSize:10, color:MUTED2, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:8 }}>DAY {di+1}</div>
 
           {/* Day label */}
           <div style={{ marginBottom:12 }}>
@@ -293,7 +293,7 @@ function Step3({ data, setData }) {
             <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
               {DAY_NAMES.map(d=>(
                 <button key={d} onClick={()=>updateDayLabel(di,d)}
-                  style={{ padding:"3px 8px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:MUTED, fontSize:10, cursor:"pointer", fontFamily:"monospace" }}>
+                  style={{ padding:"3px 8px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:MUTED, fontSize:10, cursor:"pointer", fontFamily:"var(--mono)" }}>
                   {d}
                 </button>
               ))}
@@ -304,7 +304,7 @@ function Step3({ data, setData }) {
           {day.rounds.map((round, ri)=>(
             <div key={ri} style={{ background:"var(--panel-b)", border:`1px solid ${BORDER}`, borderRadius:10, padding:12, marginBottom:8 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                <div style={{ fontSize:10, color:"var(--gold-text)", fontFamily:"monospace", letterSpacing:1 }}>
+                <div style={{ fontSize:10, color:"var(--gold-text)", fontFamily:"var(--mono)", letterSpacing:1 }}>
                   {day.rounds.length > 1 ? `ROUND ${ri+1}` : "ROUND"}{isWarmup(round) ? " · WARMUP · NO POINTS" : ""}
                 </div>
                 {day.rounds.length > 1 && (
@@ -312,18 +312,18 @@ function Step3({ data, setData }) {
                 )}
               </div>
               {!isWarmup(round) && <div style={{ marginBottom:8 }}>
-                <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"monospace" }}>FORMAT</div>
+                <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"var(--mono)" }}>FORMAT</div>
                 <div style={{ display:"flex", gap:6 }}>
                   {FORMATS.map(f=>(
                     <button key={f} onClick={()=>updateRound(di,ri,"format",f)}
-                      style={{ flex:1, padding:"7px 4px", background:round.format===f?GOLD:"none", border:`1px solid ${round.format===f?GOLD:BORDER}`, borderRadius:8, color:round.format===f?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:round.format===f?800:400, fontFamily:"monospace" }}>
+                      style={{ flex:1, padding:"7px 4px", background:round.format===f?GOLD:"none", border:`1px solid ${round.format===f?GOLD:BORDER}`, borderRadius:8, color:round.format===f?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:round.format===f?800:400, fontFamily:"var(--mono)" }}>
                       {f.toUpperCase()}
                     </button>
                   ))}
                 </div>
               </div>}
               <div>
-                <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"monospace" }}>COURSE NAME</div>
+                <div style={{ fontSize:10, color:MUTED2, marginBottom:4, fontFamily:"var(--mono)" }}>COURSE NAME</div>
                 <input value={round.courseName} onChange={e=>updateRound(di,ri,"courseName",e.target.value)} placeholder="e.g. Pebble Beach Golf Links"
                   style={{ width:"100%", padding:"8px 10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:13, outline:"none", boxSizing:"border-box" }} />
               </div>
@@ -334,7 +334,7 @@ function Step3({ data, setData }) {
             <div style={{ display:"flex", gap:8 }}>
               {[["+ ADD ROUND",false],["+ ADD WARMUP",true]].map(([label,warmup])=>(
                 <button key={label} onClick={()=>addRound(di,warmup)}
-                  style={{ flex:1, padding:"8px", background:"none", border:`1px dashed ${BORDER}`, borderRadius:8, color:MUTED, fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
+                  style={{ flex:1, padding:"8px", background:"none", border:`1px dashed ${BORDER}`, borderRadius:8, color:MUTED, fontSize:11, cursor:"pointer", fontFamily:"var(--mono)" }}>
                   {label}
                 </button>
               ))}
@@ -434,7 +434,7 @@ function Step4({ data, setData, prevCourses }) {
         <div style={{ display:"flex", gap:6, marginBottom:12 }}>
           {data.days.map((d,i)=>(
             <button key={i} onClick={()=>switchDay(i)}
-              style={{ flex:1, padding:"7px 4px", background:activeDay===i?GOLD:"none", border:`1px solid ${activeDay===i?GOLD:BORDER}`, borderRadius:8, color:activeDay===i?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:activeDay===i?800:400, fontFamily:"monospace" }}>
+              style={{ flex:1, padding:"7px 4px", background:activeDay===i?GOLD:"none", border:`1px solid ${activeDay===i?GOLD:BORDER}`, borderRadius:8, color:activeDay===i?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:activeDay===i?800:400, fontFamily:"var(--mono)" }}>
               {d.label}
             </button>
           ))}
@@ -446,7 +446,7 @@ function Step4({ data, setData, prevCourses }) {
         <div style={{ display:"flex", gap:6, marginBottom:12 }}>
           {day.rounds.map((r,i)=>(
             <button key={i} onClick={()=>setActiveRound(i)}
-              style={{ flex:1, padding:"6px 4px", background:ri===i?`${GOLD}33`:"none", border:`1px solid ${ri===i?GOLD:BORDER}`, borderRadius:8, color:ri===i?GOLD:MUTED, fontSize:10, cursor:"pointer", fontFamily:"monospace" }}>
+              style={{ flex:1, padding:"6px 4px", background:ri===i?`${GOLD}33`:"none", border:`1px solid ${ri===i?GOLD:BORDER}`, borderRadius:8, color:ri===i?GOLD:MUTED, fontSize:10, cursor:"pointer", fontFamily:"var(--mono)" }}>
               {r.courseName||`Round ${i+1}`}
             </button>
           ))}
@@ -455,7 +455,7 @@ function Step4({ data, setData, prevCourses }) {
 
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
         <div style={{ fontSize:12, color:MUTED }}>par and handicap index for <strong style={{ color:TEXT }}>{day.label}</strong></div>
-        <label style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:scanning?MUTED:GOLD, fontFamily:"monospace", cursor:scanning?"wait":"pointer", flexShrink:0, marginLeft:10 }}>
+        <label style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:scanning?MUTED:GOLD, fontFamily:"var(--mono)", cursor:scanning?"wait":"pointer", flexShrink:0, marginLeft:10 }}>
           {scanning ? "SCANNING..." : "📷 SCAN"}
           <input type="file" accept="image/*" style={{ display:"none" }} disabled={scanning}
             onChange={e => handleScan(e.target.files?.[0])}/>
@@ -468,13 +468,13 @@ function Step4({ data, setData, prevCourses }) {
           onTee={applyTee} selectedTee={round.teeName} placeholder="e.g. Streamsong Black"/>
       </div>
       {round.teeName
-        ? <div style={{ fontSize:11, color:"var(--gold-text)", marginBottom:10, fontFamily:"monospace" }}>Playing the {round.teeName} tees · Rating {round.rating} · Slope {round.slope}</div>
+        ? <div style={{ fontSize:11, color:"var(--gold-text)", marginBottom:10, fontFamily:"var(--mono)" }}>Playing the {round.teeName} tees · Rating {round.rating} · Slope {round.slope}</div>
         : <div style={{ fontSize:11, color:MUTED, marginBottom:10 }}>No tees picked — handicaps will use each player's index as-is. Search to pick tees, or enter par/hcp by hand below.</div>}
       {scanError && <div style={{ fontSize:11, color:"#e74c3c", marginBottom:10 }}>{scanError}</div>}
 
       {prevCourses?.length > 0 && (
         <div style={{ marginBottom:14 }}>
-          <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>LOAD PREVIOUS COURSE</div>
+          <div style={{ fontSize:10, color:MUTED, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:6 }}>LOAD PREVIOUS COURSE</div>
           <select
             defaultValue=""
             onChange={e => {
@@ -499,15 +499,15 @@ function Step4({ data, setData, prevCourses }) {
 
       {[0,1].map(half => (
         <div key={half} style={{ marginBottom:16 }}>
-          <div style={{ fontSize:10, color:MUTED2, fontFamily:"monospace", letterSpacing:1, marginBottom:6 }}>{half===0?"FRONT 9":"BACK 9"}</div>
+          <div style={{ fontSize:10, color:MUTED2, fontFamily:"var(--mono)", letterSpacing:1, marginBottom:6 }}>{half===0?"FRONT 9":"BACK 9"}</div>
           <div style={{ display:"grid", gridTemplateColumns:"28px 1fr 1fr", gap:4, alignItems:"center", marginBottom:4 }}>
-            <div style={{ fontSize:9, color:MUTED2, fontFamily:"monospace", textAlign:"center" }}>#</div>
-            <div style={{ fontSize:9, color:MUTED2, fontFamily:"monospace", textAlign:"center" }}>PAR</div>
-            <div style={{ fontSize:9, color:MUTED2, fontFamily:"monospace", textAlign:"center" }}>HCP</div>
+            <div style={{ fontSize:9, color:MUTED2, fontFamily:"var(--mono)", textAlign:"center" }}>#</div>
+            <div style={{ fontSize:9, color:MUTED2, fontFamily:"var(--mono)", textAlign:"center" }}>PAR</div>
+            <div style={{ fontSize:9, color:MUTED2, fontFamily:"var(--mono)", textAlign:"center" }}>HCP</div>
           </div>
           {Array.from({length:9},(_,i)=>half*9+i).map(i=>(
             <div key={i} style={{ display:"grid", gridTemplateColumns:"28px 1fr 1fr", gap:4, alignItems:"center", marginBottom:3 }}>
-              <div style={{ fontSize:11, color:MUTED, textAlign:"center", fontFamily:"monospace" }}>{i+1}</div>
+              <div style={{ fontSize:11, color:MUTED, textAlign:"center", fontFamily:"var(--mono)" }}>{i+1}</div>
               <input type="number" min={3} max={6} value={round.par[i]}
                 onChange={e=>updateHole("par",i,e.target.value)}
                 style={{ padding:"5px 6px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:13, textAlign:"center", outline:"none", width:"100%", boxSizing:"border-box" }} />
@@ -516,12 +516,12 @@ function Step4({ data, setData, prevCourses }) {
                 style={{ padding:"5px 6px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:13, textAlign:"center", outline:"none", width:"100%", boxSizing:"border-box" }} />
             </div>
           ))}
-          <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace", marginTop:4 }}>
+          <div style={{ fontSize:10, color:MUTED, fontFamily:"var(--mono)", marginTop:4 }}>
             {half===0?"Front":"Back"} par: {round.par.slice(half*9,(half+1)*9).reduce((a,b)=>a+b,0)}
           </div>
         </div>
       ))}
-      <div style={{ fontSize:11, color:"var(--gold-text)", fontFamily:"monospace", fontWeight:700 }}>Total par: {totalPar}</div>
+      <div style={{ fontSize:11, color:"var(--gold-text)", fontFamily:"var(--mono)", fontWeight:700 }}>Total par: {totalPar}</div>
     </div>
   );
 }
@@ -630,7 +630,7 @@ function Step5({ data, setData }) {
         <div style={{ display:"flex", gap:6, marginBottom:12 }}>
           {data.days.map((d,i)=>(
             <button key={i} onClick={()=>switchDay(i)}
-              style={{ flex:1, padding:"7px 4px", background:activeDay===i?GOLD:"none", border:`1px solid ${activeDay===i?GOLD:BORDER}`, borderRadius:8, color:activeDay===i?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:activeDay===i?800:400, fontFamily:"monospace" }}>
+              style={{ flex:1, padding:"7px 4px", background:activeDay===i?GOLD:"none", border:`1px solid ${activeDay===i?GOLD:BORDER}`, borderRadius:8, color:activeDay===i?"#000":TEXT, fontSize:11, cursor:"pointer", fontWeight:activeDay===i?800:400, fontFamily:"var(--mono)" }}>
               {d.label}
             </button>
           ))}
@@ -640,7 +640,7 @@ function Step5({ data, setData }) {
         <div style={{ display:"flex", gap:6, marginBottom:12 }}>
           {day.rounds.map((r,i)=>(
             <button key={i} onClick={()=>setActiveRound(i)}
-              style={{ flex:1, padding:"6px 4px", background:ri===i?`${GOLD}33`:"none", border:`1px solid ${ri===i?GOLD:BORDER}`, borderRadius:8, color:ri===i?GOLD:MUTED, fontSize:10, cursor:"pointer", fontFamily:"monospace" }}>
+              style={{ flex:1, padding:"6px 4px", background:ri===i?`${GOLD}33`:"none", border:`1px solid ${ri===i?GOLD:BORDER}`, borderRadius:8, color:ri===i?GOLD:MUTED, fontSize:10, cursor:"pointer", fontFamily:"var(--mono)" }}>
               {r.courseName||`Round ${i+1}`}
             </button>
           ))}
@@ -657,11 +657,11 @@ function Step5({ data, setData }) {
           <div key={mi} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:12, padding:12, marginBottom:10 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
               <input value={m.teeTime||""} onChange={e=>updateMatch(mi,"teeTime",e.target.value)} placeholder="Tee time"
-                style={{ width:68, padding:"4px 6px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:11, outline:"none", fontFamily:"monospace" }} />
+                style={{ width:68, padding:"4px 6px", background:"none", border:`1px solid ${BORDER}`, borderRadius:6, color:TEXT, fontSize:11, outline:"none", fontFamily:"var(--mono)" }} />
               <div style={{ display:"flex", gap:3 }}>
                 {ALL_MATCH_FMTS.map(f=>(
                   <button key={f} onClick={()=>setMatchFmt(mi,f)}
-                    style={{ padding:"3px 8px", background:fmt===f?GOLD:"none", border:`1px solid ${fmt===f?GOLD:BORDER}`, borderRadius:5, color:fmt===f?"#000":MUTED, fontSize:9, cursor:"pointer", fontFamily:"monospace", fontWeight:fmt===f?800:400 }}>
+                    style={{ padding:"3px 8px", background:fmt===f?GOLD:"none", border:`1px solid ${fmt===f?GOLD:BORDER}`, borderRadius:5, color:fmt===f?"#000":MUTED, fontSize:9, cursor:"pointer", fontFamily:"var(--mono)", fontWeight:fmt===f?800:400 }}>
                     {FMT_LABELS[f]}
                   </button>
                 ))}
@@ -674,9 +674,9 @@ function Step5({ data, setData }) {
                   const t=side==="A"?sidesOf(m).a:sidesOf(m).b;
                   return (
                     <div key={side} style={{ flex:1, display:"flex", alignItems:"center", gap:4, minWidth:0 }}>
-                      {side==="B"&&<span style={{ fontSize:9, color:MUTED, fontFamily:"monospace", flexShrink:0 }}>vs</span>}
+                      {side==="B"&&<span style={{ fontSize:9, color:MUTED, fontFamily:"var(--mono)", flexShrink:0 }}>vs</span>}
                       <select value={t.id} onChange={e=>setSideTeam(mi,side,e.target.value)}
-                        style={{ flex:1, padding:"5px 6px", background:CARD2, border:`1px solid ${t.color}`, borderRadius:7, color:t.color, fontSize:11, fontWeight:800, cursor:"pointer", minWidth:0, fontFamily:"monospace" }}>
+                        style={{ flex:1, padding:"5px 6px", background:CARD2, border:`1px solid ${t.color}`, borderRadius:7, color:t.color, fontSize:11, fontWeight:800, cursor:"pointer", minWidth:0, fontFamily:"var(--mono)" }}>
                         {data.teams.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}
                       </select>
                     </div>
@@ -685,19 +685,19 @@ function Step5({ data, setData }) {
               </div>
             )}
             <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:6 }}>
-              <span style={{ fontSize:9, color:sidesOf(m).a.color, fontFamily:"monospace", fontWeight:700, width:44, flexShrink:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{(sidesOf(m).a.name||"A").substring(0,5)}</span>
+              <span style={{ fontSize:9, color:sidesOf(m).a.color, fontFamily:"var(--mono)", fontWeight:700, width:44, flexShrink:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{(sidesOf(m).a.name||"A").substring(0,5)}</span>
               <PSel mi={mi} field="player1a" side="A"/>
               {!isSingles&&<PSel mi={mi} field="player1b" side="A"/>}
             </div>
             <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-              <span style={{ fontSize:9, color:sidesOf(m).b.color, fontFamily:"monospace", fontWeight:700, width:44, flexShrink:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{(sidesOf(m).b.name||"B").substring(0,5)}</span>
+              <span style={{ fontSize:9, color:sidesOf(m).b.color, fontFamily:"var(--mono)", fontWeight:700, width:44, flexShrink:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{(sidesOf(m).b.name||"B").substring(0,5)}</span>
               <PSel mi={mi} field="player2a" side="B"/>
               {!isSingles&&<PSel mi={mi} field="player2b" side="B"/>}
             </div>
           </div>
         );
       })}
-      {!isWarmup(round) && <button onClick={addMatch} style={{ width:"100%", padding:"10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:10, color:MUTED, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
+      {!isWarmup(round) && <button onClick={addMatch} style={{ width:"100%", padding:"10px", background:"none", border:`1px solid ${BORDER}`, borderRadius:10, color:MUTED, fontSize:12, cursor:"pointer", fontFamily:"var(--mono)" }}>
         + ADD MATCH
       </button>}
     </div>
@@ -719,7 +719,7 @@ function WarmupGroups({ round, players, teams, onChange }) {
         return (
           <div key={gi} style={{ background:CARD2, border:`1px solid ${BORDER}`, borderRadius:10, padding:10, marginBottom:8 }}>
             <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:8 }}>
-              <div style={{ fontSize:10, color:MUTED, fontFamily:"monospace" }}>GROUP {gi+1}</div>
+              <div style={{ fontSize:10, color:MUTED, fontFamily:"var(--mono)" }}>GROUP {gi+1}</div>
               <input value={g.teeTime} placeholder="Tee time" onChange={e=>setGroup(gi,{teeTime:e.target.value})}
                 style={{ flex:1, minWidth:0, padding:"6px 8px", background:"none", border:`1px solid ${BORDER}`, borderRadius:7, color:TEXT, fontSize:12, outline:"none" }}/>
               {groups.length>1 && <button onClick={()=>onChange(groups.filter((_,k)=>k!==gi))}
@@ -740,7 +740,7 @@ function WarmupGroups({ round, players, teams, onChange }) {
         );
       })}
       <button onClick={()=>onChange([...groups,{teeTime:"",players:[]}])}
-        style={{ width:"100%", padding:"10px", background:"none", border:`1px dashed ${BORDER}`, borderRadius:10, color:MUTED, fontSize:12, cursor:"pointer", fontFamily:"monospace" }}>
+        style={{ width:"100%", padding:"10px", background:"none", border:`1px dashed ${BORDER}`, borderRadius:10, color:MUTED, fontSize:12, cursor:"pointer", fontFamily:"var(--mono)" }}>
         + ADD GROUP
       </button>
     </div>
@@ -760,7 +760,7 @@ function Step6({ data, setData }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
       <div>
-        <label style={{ fontSize:11, color:"var(--gold-text)", fontFamily:"monospace", letterSpacing:1 }}>WHICH PLAYER ARE YOU?</label>
+        <label style={{ fontSize:11, color:"var(--gold-text)", fontFamily:"var(--mono)", letterSpacing:1 }}>WHICH PLAYER ARE YOU?</label>
         <div style={{ fontSize:10, color:MUTED, marginTop:2, marginBottom:8 }}>You'll be auto-signed in as this player when you open the cup.</div>
         <select value={data.creatorPlayer||""} onChange={e=>setData(d=>({...d,creatorPlayer:e.target.value}))}
           style={{ width:"100%", padding:"10px 12px", background:CARD2, border:`1px solid ${BORDER}`, borderRadius:8, color:TEXT, fontSize:14, outline:"none", boxSizing:"border-box" }}>
@@ -769,7 +769,7 @@ function Step6({ data, setData }) {
         </select>
       </div>
       <div>
-        <label style={{ fontSize:11, color:"var(--gold-text)", fontFamily:"monospace", letterSpacing:1 }}>ADMIN ACCESS</label>
+        <label style={{ fontSize:11, color:"var(--gold-text)", fontFamily:"var(--mono)", letterSpacing:1 }}>ADMIN ACCESS</label>
         <div style={{ fontSize:10, color:MUTED, marginTop:2, marginBottom:10 }}>Admins can edit scores and manage the cup. You always have admin access.</div>
         <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
           {allNames.filter(n=>n!==data.creatorPlayer).map(name=>{
@@ -983,12 +983,12 @@ export default function CreateCup({ user }) {
         <div style={{ marginTop:14 }}>
           {step<STEPS.length?(
             <button onClick={()=>setStep(s=>s+1)} disabled={!canNext()}
-              style={{ width:"100%", padding:"15px", background:canNext()?`linear-gradient(135deg,${GOLD},${GOLD}88)`:BORDER, border:"none", borderRadius:14, color:canNext()?"#000":MUTED, fontWeight:900, fontSize:15, cursor:canNext()?"pointer":"not-allowed", letterSpacing:1, fontFamily:"monospace" }}>
+              style={{ width:"100%", padding:"15px", background:canNext()?`linear-gradient(135deg,${GOLD},${GOLD}88)`:BORDER, border:"none", borderRadius:14, color:canNext()?"#000":MUTED, fontWeight:900, fontSize:15, cursor:canNext()?"pointer":"not-allowed", letterSpacing:1, fontFamily:"var(--mono)" }}>
               NEXT →
             </button>
           ):(
             <button onClick={handleCreate} disabled={saving}
-              style={{ width:"100%", padding:"15px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", letterSpacing:1, fontFamily:"monospace" }}>
+              style={{ width:"100%", padding:"15px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", letterSpacing:1, fontFamily:"var(--mono)" }}>
               {saving?"CREATING...":"CREATE CUP ⛳"}
             </button>
           )}

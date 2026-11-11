@@ -139,7 +139,7 @@ export default function Login() {
     flex: 1, padding: "8px 4px", background: "none",
     border: "none", borderBottom: mode === t ? `2px solid ${GOLD}` : "2px solid transparent",
     color: mode === t ? GOLD : "#4a6a5a", fontSize: 11, fontWeight: 800,
-    cursor: "pointer", fontFamily: "monospace", letterSpacing: 1, transition: "color 0.2s",
+    cursor: "pointer", fontFamily: "var(--mono)", letterSpacing: 1, transition: "color 0.2s",
   });
 
   const inputStyle = {
@@ -152,7 +152,7 @@ export default function Login() {
     width: "100%", padding: "14px 16px", background: disabled ? "rgba(255,255,255,0.05)" : `linear-gradient(135deg,${GOLD},${GOLD}88)`,
     border: "none", borderRadius: 14, color: disabled ? "#888" : "#000",
     fontWeight: 900, fontSize: 14, cursor: disabled ? "wait" : "pointer",
-    letterSpacing: 1, fontFamily: "monospace",
+    letterSpacing: 1, fontFamily: "var(--mono)",
   });
 
   return (
@@ -182,8 +182,8 @@ export default function Login() {
       <div style={{ position:"relative", zIndex:10, width:"100%", maxWidth:400 }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <div style={{ fontSize:56, marginBottom:8, lineHeight:1 }}>⛳</div>
-          <div className="login-title" style={{ fontSize:42, fontWeight:900, color:GOLD, fontFamily:"monospace", letterSpacing:6, lineHeight:1 }}>DORMIE</div>
-          <div style={{ fontSize:12, color:"#6a8a7a", marginTop:10, letterSpacing:2, fontFamily:"monospace" }}>MATCH PLAY · LIVE SCORING</div>
+          <div className="login-title" style={{ fontSize:42, fontWeight:900, color:GOLD, fontFamily:"var(--mono)", letterSpacing:6, lineHeight:1 }}>DORMIE</div>
+          <div style={{ fontSize:12, color:"#6a8a7a", marginTop:10, letterSpacing:1, fontFamily:"var(--mono)" }}>MATCH PLAY · LIVE SCORING</div>
         </div>
 
         <div className="login-card" style={{ background:"rgba(8,18,36,0.75)", backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)", border:`1px solid ${GOLD}33`, borderRadius:24, padding:"28px 28px 24px", boxShadow:`0 8px 40px rgba(0,0,0,0.6),0 0 0 1px ${GOLD}11 inset` }}>
@@ -197,7 +197,7 @@ export default function Login() {
           </div>
 
           {error && (
-            <div style={{ fontSize:11, color:"#e74c3c", marginBottom:14, padding:"8px 10px", background:"#e74c3c18", borderRadius:8, fontFamily:"monospace", wordBreak:"break-all", border:"1px solid #e74c3c33" }}>
+            <div style={{ fontSize:11, color:"#e74c3c", marginBottom:14, padding:"8px 10px", background:"#e74c3c18", borderRadius:8, fontFamily:"var(--mono)", wordBreak:"break-all", border:"1px solid #e74c3c33" }}>
               {error}
             </div>
           )}
@@ -237,7 +237,7 @@ export default function Login() {
               <button onClick={handleEmail} disabled={loading} style={btnStyle(loading)}>
                 {loading ? "..." : isCreating ? "CREATE ACCOUNT" : "SIGN IN"}
               </button>
-              <button onClick={()=>{setIsCreating(c=>!c);setError("");}} style={{ width:"100%", marginTop:10, background:"none", border:"none", color:"#4a6a5a", fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
+              <button onClick={()=>{setIsCreating(c=>!c);setError("");}} style={{ width:"100%", marginTop:10, background:"none", border:"none", color:"#4a6a5a", fontSize:11, cursor:"pointer", fontFamily:"var(--mono)" }}>
                 {isCreating ? "Already have an account? Sign in" : "No account? Create one"}
               </button>
             </div>
@@ -250,7 +250,7 @@ export default function Login() {
                 <>
                   <input type="tel" placeholder="+1 234 567 8900" value={phone} onChange={e=>setPhone(e.target.value)} style={inputStyle}
                     onKeyDown={e=>e.key==="Enter"&&handleSendOtp()}/>
-                  <div style={{ fontSize:10, color:"#4a6a5a", marginBottom:12, fontFamily:"monospace" }}>Include country code (e.g. +1 for US)</div>
+                  <div style={{ fontSize:10, color:"#4a6a5a", marginBottom:12, fontFamily:"var(--mono)" }}>Include country code (e.g. +1 for US)</div>
                   <button onClick={handleSendOtp} disabled={loading} style={btnStyle(loading)}>
                     {loading ? "SENDING..." : "SEND CODE"}
                   </button>
@@ -264,7 +264,7 @@ export default function Login() {
                   <button onClick={handleVerifyOtp} disabled={loading} style={btnStyle(loading)}>
                     {loading ? "VERIFYING..." : "VERIFY CODE"}
                   </button>
-                  <button onClick={()=>{setConfirmResult(null);setOtp("");setError("");}} style={{ width:"100%", marginTop:10, background:"none", border:"none", color:"#4a6a5a", fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>
+                  <button onClick={()=>{setConfirmResult(null);setOtp("");setError("");}} style={{ width:"100%", marginTop:10, background:"none", border:"none", color:"#4a6a5a", fontSize:11, cursor:"pointer", fontFamily:"var(--mono)" }}>
                     ← Change number
                   </button>
                 </>
@@ -273,7 +273,7 @@ export default function Login() {
           )}
         </div>
 
-        <div style={{ textAlign:"center", marginTop:20, fontSize:10, color:"#3a5a4a", letterSpacing:1, fontFamily:"monospace" }}>
+        <div style={{ textAlign:"center", marginTop:20, fontSize:10, color:"#3a5a4a", letterSpacing:1, fontFamily:"var(--mono)" }}>
           NO ACCOUNT NEEDED · JUST SIGN IN
         </div>
       </div>

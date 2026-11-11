@@ -257,7 +257,7 @@ function PlayerSelect({ onSelect }) {
       <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,padding:"30px 20px 20px",textAlign:"center",borderBottom:`1px solid ${BORDER}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,justifyContent:"center",marginBottom:4}}>
           {CBS_LOGO_LG}
-          <div style={{fontSize:26,fontWeight:900,letterSpacing:2,color:"#fff"}}>CBS RYDER CUP 2026</div>
+          <div style={{fontSize:26,fontWeight:900,letterSpacing:1,color:"#fff"}}>CBS RYDER CUP 2026</div>
         </div>
         <div style={{fontSize:13,color:"#446",marginTop:10}}>Select your name to get started</div>
       </div>
@@ -266,7 +266,7 @@ function PlayerSelect({ onSelect }) {
       {pendingName && (
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,width:"100%",maxWidth:300,textAlign:"center"}}>
-            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:4,letterSpacing:1,fontFamily:"monospace"}}>ADMIN ACCESS</div>
+            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:4,letterSpacing:1,fontFamily:"var(--mono)"}}>ADMIN ACCESS</div>
             <div style={{fontSize:11,color:"#446",marginBottom:20}}>Enter PIN for {pendingName}</div>
             {/* PIN dots */}
             <div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:20}}>
@@ -274,7 +274,7 @@ function PlayerSelect({ onSelect }) {
                 <div key={i} style={{width:14,height:14,borderRadius:"50%",background:i<pin.length?GOLD:BORDER}}/>
               ))}
             </div>
-            {pinError && <div style={{fontSize:11,color:"#e55",marginBottom:12,fontFamily:"monospace"}}>Incorrect PIN</div>}
+            {pinError && <div style={{fontSize:11,color:"#e55",marginBottom:12,fontFamily:"var(--mono)"}}>Incorrect PIN</div>}
             {/* Numpad */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
               {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((d,i)=>(
@@ -296,7 +296,7 @@ function PlayerSelect({ onSelect }) {
           <div key={team} style={{marginBottom:20}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,paddingBottom:8,borderBottom:`1px solid ${BORDER}`}}>
               <div style={{width:4,height:20,background:color,borderRadius:2}}/>
-              <div style={{fontSize:11,fontWeight:800,color:team==="A"?color:TEAM_B_DISP,letterSpacing:2,fontFamily:"monospace"}}>{label}</div>
+              <div style={{fontSize:11,fontWeight:800,color:team==="A"?color:TEAM_B_DISP,letterSpacing:1,fontFamily:"var(--mono)"}}>{label}</div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
               {players.map(p=>(
@@ -324,7 +324,7 @@ function ScoreInput({ label, hcp, value, onChange, color, labelColor, par, strok
       <div style={{position:"relative",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div style={{position:"absolute",width:44,height:44,borderRadius:"50%",border:"2px solid #FFD700"}}/>
         <div style={{position:"absolute",width:32,height:32,borderRadius:"50%",border:"2px solid #FFD700"}}/>
-        <span style={{fontSize:20,fontWeight:900,color:"#FFD700",fontFamily:"monospace",zIndex:1}}>{value}</span>
+        <span style={{fontSize:20,fontWeight:900,color:"#FFD700",fontFamily:"var(--mono)",zIndex:1}}>{value}</span>
       </div>
     );
   } else if (diff === -1) {
@@ -332,20 +332,20 @@ function ScoreInput({ label, hcp, value, onChange, color, labelColor, par, strok
     scoreDisplay = (
       <div style={{position:"relative",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div style={{position:"absolute",width:44,height:44,borderRadius:"50%",border:"2px solid #4caf50"}}/>
-        <span style={{fontSize:20,fontWeight:900,color:"#4caf50",fontFamily:"monospace",zIndex:1}}>{value}</span>
+        <span style={{fontSize:20,fontWeight:900,color:"#4caf50",fontFamily:"var(--mono)",zIndex:1}}>{value}</span>
       </div>
     );
   } else if (diff === 0) {
     // Par — plain
     scoreDisplay = (
-      <span style={{fontSize:20,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{value}</span>
+      <span style={{fontSize:20,fontWeight:900,color:"#fff",fontFamily:"var(--mono)"}}>{value}</span>
     );
   } else if (diff === 1) {
     // Bogey — one square
     scoreDisplay = (
       <div style={{position:"relative",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div style={{position:"absolute",width:40,height:40,border:"2px solid #e88",borderRadius:3}}/>
-        <span style={{fontSize:20,fontWeight:900,color:"#e88",fontFamily:"monospace",zIndex:1}}>{value}</span>
+        <span style={{fontSize:20,fontWeight:900,color:"#e88",fontFamily:"var(--mono)",zIndex:1}}>{value}</span>
       </div>
     );
   } else if (diff === 2) {
@@ -354,24 +354,24 @@ function ScoreInput({ label, hcp, value, onChange, color, labelColor, par, strok
       <div style={{position:"relative",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div style={{position:"absolute",width:44,height:44,border:"2px solid #e55",borderRadius:3}}/>
         <div style={{position:"absolute",width:34,height:34,border:"2px solid #e55",borderRadius:2}}/>
-        <span style={{fontSize:20,fontWeight:900,color:"#e55",fontFamily:"monospace",zIndex:1}}>{value}</span>
+        <span style={{fontSize:20,fontWeight:900,color:"#e55",fontFamily:"var(--mono)",zIndex:1}}>{value}</span>
       </div>
     );
   } else {
     // Triple bogey or worse — filled red square
     scoreDisplay = (
       <div style={{position:"relative",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:"#c0392b",borderRadius:3}}>
-        <span style={{fontSize:20,fontWeight:900,color:"#fff",fontFamily:"monospace",zIndex:1}}>{value}</span>
+        <span style={{fontSize:20,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",zIndex:1}}>{value}</span>
       </div>
     );
   }
 
   return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
-      <div style={{fontSize:11,fontWeight:700,color:labelColor||color,fontFamily:"monospace",textAlign:"center",maxWidth:90,lineHeight:1.2}}>
+      <div style={{fontSize:11,fontWeight:700,color:labelColor||color,fontFamily:"var(--mono)",textAlign:"center",maxWidth:90,lineHeight:1.2}}>
         {labelColor ? `${"★".repeat(strokes)} ${label}` : label}
       </div>
-      {hcp>0&&<div style={{fontSize:9,color:GOLD,fontFamily:"monospace"}}>HCP {fmtHcp(hcp)}</div>}
+      {hcp>0&&<div style={{fontSize:9,color:GOLD,fontFamily:"var(--mono)"}}>HCP {fmtHcp(hcp)}</div>}
       <div style={{display:"flex",alignItems:"center",gap:0}}>
         <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"#8aa",cursor:"pointer"}}>−</button>
         <div style={{width:52,height:52,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -380,7 +380,7 @@ function ScoreInput({ label, hcp, value, onChange, color, labelColor, par, strok
         <button onClick={()=>onChange(Math.min(12,value+1))} style={{width:34,height:52,fontSize:20,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 7px 7px 0",color:"#8aa",cursor:"pointer"}}>+</button>
       </div>
       {par && diff !== 0 && (
-        <div style={{fontSize:8,color:diff<0?"#4caf50":diff===1?"#e88":diff===2?"#e55":"#c0392b",fontFamily:"monospace",fontWeight:700}}>
+        <div style={{fontSize:8,color:diff<0?"#4caf50":diff===1?"#e88":diff===2?"#e55":"#c0392b",fontFamily:"var(--mono)",fontWeight:700}}>
           {diff > 0 ? `+${diff}` : diff}
         </div>
       )}
@@ -424,30 +424,30 @@ function HcpModal({ match, isSingles, course, courseKey, format, playerIndexes, 
 
   const ch = computed.courseHcps || {};
   const isScramble = format === "Scramble" && !isSingles;
-  const numInput = {padding:"5px 6px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:13,fontWeight:700,fontFamily:"monospace",textAlign:"center",width:"100%"};
+  const numInput = {padding:"5px 6px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:13,fontWeight:700,fontFamily:"var(--mono)",textAlign:"center",width:"100%"};
 
   const PlayerRow = ({ label, idxField, chVal, finalHcp, color }) => (
     <div style={{padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
       <div style={{fontSize:12,fontWeight:700,color,marginBottom:6}}>{label}</div>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
         <div style={{display:"flex",flexDirection:"column",gap:2}}>
-          <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>HANDICAP INDEX</div>
+          <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",letterSpacing:0.5}}>HANDICAP INDEX</div>
           <div style={{display:"flex",alignItems:"center"}}>
             <button onClick={()=>adjIdx(idxField,-0.1)} style={{width:30,height:32,fontSize:17,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"6px 0 0 6px",color:"#8aa",cursor:"pointer"}}>−</button>
-            <div style={{width:52,height:32,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>{fmtHcp(idxVals[idxField])}</div>
+            <div style={{width:52,height:32,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:GOLD,fontFamily:"var(--mono)"}}>{fmtHcp(idxVals[idxField])}</div>
             <button onClick={()=>adjIdx(idxField,0.1)} style={{width:30,height:32,fontSize:17,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:"#8aa",cursor:"pointer"}}>+</button>
           </div>
         </div>
         {effectiveCourse && (
           <div style={{display:"flex",gap:10}}>
             <div style={{textAlign:"center"}}>
-              <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>COURSE HCP</div>
-              <div style={{fontSize:13,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{chVal !== undefined ? fmtHcp(Math.round(chVal*10)/10) : "—"}</div>
+              <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",letterSpacing:0.5}}>COURSE HCP</div>
+              <div style={{fontSize:13,fontWeight:900,color:TEXT,fontFamily:"var(--mono)"}}>{chVal !== undefined ? fmtHcp(Math.round(chVal*10)/10) : "—"}</div>
             </div>
             {!isScramble && (
               <div style={{textAlign:"center"}}>
-                <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>PLAYING HCP</div>
-                <div style={{fontSize:13,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>{finalHcp}</div>
+                <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",letterSpacing:0.5}}>PLAYING HCP</div>
+                <div style={{fontSize:13,fontWeight:900,color:GOLD,fontFamily:"var(--mono)"}}>{finalHcp}</div>
               </div>
             )}
           </div>
@@ -459,26 +459,26 @@ function HcpModal({ match, isSingles, course, courseKey, format, playerIndexes, 
   return (
     <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:20,width:"100%",maxWidth:360,maxHeight:"90vh",overflowY:"auto"}}>
-        <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:10,letterSpacing:1,fontFamily:"monospace"}}>SET HANDICAPS</div>
+        <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:10,letterSpacing:1,fontFamily:"var(--mono)"}}>SET HANDICAPS</div>
 
         {/* Editable course slope / rating */}
         {course && (
           <div style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:12}}>
-            <div style={{fontSize:9,color:MUTED2,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{course.name}</div>
+            <div style={{fontSize:9,color:MUTED2,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>{course.name}</div>
             <div style={{display:"flex",gap:10,alignItems:"flex-end"}}>
               <div style={{flex:1}}>
-                <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5,marginBottom:4}}>SLOPE RATING</div>
+                <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",letterSpacing:0.5,marginBottom:4}}>SLOPE RATING</div>
                 <input type="number" value={slope} step="1" min="55" max="155"
                   onChange={e=>setSlope(Number(e.target.value))} style={numInput}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5,marginBottom:4}}>COURSE RATING</div>
+                <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",letterSpacing:0.5,marginBottom:4}}>COURSE RATING</div>
                 <input type="number" value={rating} step="0.1" min="60" max="85"
                   onChange={e=>setRating(parseFloat(e.target.value)||rating)} style={numInput}/>
               </div>
               <div style={{textAlign:"center",paddingBottom:2}}>
-                <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5}}>PAR</div>
-                <div style={{fontSize:14,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{par}</div>
+                <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",letterSpacing:0.5}}>PAR</div>
+                <div style={{fontSize:14,fontWeight:900,color:TEXT,fontFamily:"var(--mono)"}}>{par}</div>
               </div>
             </div>
           </div>
@@ -491,17 +491,17 @@ function HcpModal({ match, isSingles, course, courseKey, format, playerIndexes, 
         {!isSingles && <PlayerRow label={match.player2b} idxField="idx2b" chVal={ch.ch2b} finalHcp={computed.hcp2b} color={TEAM_B_DISP}/>}
         {isScramble && effectiveCourse && (
           <div style={{padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
-            <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",marginBottom:6}}>SCRAMBLE TEAM HANDICAP (0.35 lower + 0.15 higher)</div>
+            <div style={{fontSize:9,color:MUTED,fontFamily:"var(--mono)",marginBottom:6}}>SCRAMBLE TEAM HANDICAP (0.35 lower + 0.15 higher)</div>
             <div style={{display:"flex",justifyContent:"space-between"}}>
               <div style={{textAlign:"center"}}>
-                <div style={{fontSize:9,color:TEAM_A_COLOR,fontFamily:"monospace",fontWeight:700}}>TEAM A</div>
-                <div style={{fontSize:13,color:TEXT,fontFamily:"monospace"}}>{fmtHcp(Math.round((computed.teamA||0)*10)/10)}</div>
-                <div style={{fontSize:11,color:GOLD,fontFamily:"monospace",fontWeight:900}}>→ plays {computed.hcp1a}</div>
+                <div style={{fontSize:9,color:TEAM_A_COLOR,fontFamily:"var(--mono)",fontWeight:700}}>TEAM A</div>
+                <div style={{fontSize:13,color:TEXT,fontFamily:"var(--mono)"}}>{fmtHcp(Math.round((computed.teamA||0)*10)/10)}</div>
+                <div style={{fontSize:11,color:GOLD,fontFamily:"var(--mono)",fontWeight:900}}>→ plays {computed.hcp1a}</div>
               </div>
               <div style={{textAlign:"center"}}>
-                <div style={{fontSize:9,color:TEAM_B_DISP,fontFamily:"monospace",fontWeight:700}}>TEAM B</div>
-                <div style={{fontSize:13,color:TEXT,fontFamily:"monospace"}}>{fmtHcp(Math.round((computed.teamB||0)*10)/10)}</div>
-                <div style={{fontSize:11,color:GOLD,fontFamily:"monospace",fontWeight:900}}>→ plays {computed.hcp2a}</div>
+                <div style={{fontSize:9,color:TEAM_B_DISP,fontFamily:"var(--mono)",fontWeight:700}}>TEAM B</div>
+                <div style={{fontSize:13,color:TEXT,fontFamily:"var(--mono)"}}>{fmtHcp(Math.round((computed.teamB||0)*10)/10)}</div>
+                <div style={{fontSize:11,color:GOLD,fontFamily:"var(--mono)",fontWeight:900}}>→ plays {computed.hcp2a}</div>
               </div>
             </div>
           </div>
@@ -653,16 +653,16 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
     return (
       <div style={{display:"flex",alignItems:"stretch",borderRadius:8,overflow:"hidden",border:`1px solid ${BORDER}`,marginBottom:6}}>
         <div style={{flex:1,background:rLeader==="A"?TEAM_A_COLOR:"#111a2e",padding:"5px 8px",minWidth:0}}>
-          <div style={{fontSize:7,fontWeight:800,color:rLeader==="A"?"#ffcccc":TEAM_A_COLOR,letterSpacing:1,fontFamily:"monospace"}}>{TEAM_A_SHORT}</div>
+          <div style={{fontSize:7,fontWeight:800,color:rLeader==="A"?"#ffcccc":TEAM_A_COLOR,letterSpacing:1,fontFamily:"var(--mono)"}}>{TEAM_A_SHORT}</div>
           <div style={{fontSize:11,fontWeight:700,color:"#dde",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.player1a}</div>
         </div>
         <div style={{background:rLeader==="A"?TEAM_A_COLOR:rLeader==="B"?TEAM_B_COLOR:"#1a2a44",minWidth:58,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"3px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0}}>
-          {s.state==="pending"?<div style={{fontSize:9,color:"#446",fontFamily:"monospace"}}>—</div>
-          :s.state==="complete"||s.state==="halved"?<><div style={{fontSize:6,color:"#FFD700",fontFamily:"monospace",fontWeight:800}}>FINAL</div><div style={{fontSize:10,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{s.sublabel||"HALVED"}</div></>
-          :<><div style={{fontSize:13,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{rLeader?rAbs:"AS"}</div><div style={{fontSize:6,color:"#88aacc",fontFamily:"monospace"}}>{rLeader?"UP":"ALL SQ"}</div><div style={{fontSize:6,color:"#446",fontFamily:"monospace"}}>THRU {hole}</div></>}
+          {s.state==="pending"?<div style={{fontSize:9,color:"#446",fontFamily:"var(--mono)"}}>—</div>
+          :s.state==="complete"||s.state==="halved"?<><div style={{fontSize:6,color:"#FFD700",fontFamily:"var(--mono)",fontWeight:800}}>FINAL</div><div style={{fontSize:10,fontWeight:900,color:"#fff",fontFamily:"var(--mono)"}}>{s.sublabel||"HALVED"}</div></>
+          :<><div style={{fontSize:13,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",lineHeight:1}}>{rLeader?rAbs:"AS"}</div><div style={{fontSize:6,color:"#88aacc",fontFamily:"var(--mono)"}}>{rLeader?"UP":"ALL SQ"}</div><div style={{fontSize:6,color:"#446",fontFamily:"var(--mono)"}}>THRU {hole}</div></>}
         </div>
         <div style={{flex:1,background:rLeader==="B"?TEAM_B_COLOR:"#111a2e",padding:"5px 8px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
-          <div style={{fontSize:7,fontWeight:800,color:rLeader==="B"?"#cce4ff":TEAM_B_DISP,letterSpacing:1,fontFamily:"monospace"}}>{TEAM_B_SHORT}</div>
+          <div style={{fontSize:7,fontWeight:800,color:rLeader==="B"?"#cce4ff":TEAM_B_DISP,letterSpacing:1,fontFamily:"var(--mono)"}}>{TEAM_B_SHORT}</div>
           <div style={{fontSize:11,fontWeight:700,color:"#dde",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{m.player2a}</div>
         </div>
       </div>
@@ -674,7 +674,7 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
       {showEndEarly&&(
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
-            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:6,fontFamily:"monospace"}}>END BOTH MATCHES EARLY?</div>
+            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:6,fontFamily:"var(--mono)"}}>END BOTH MATCHES EARLY?</div>
             <div style={{fontSize:10,color:MUTED,marginBottom:20}}>Remaining holes will be halved for both matches.</div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setShowEndEarly(false)} style={{flex:1,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>Cancel</button>
@@ -691,7 +691,7 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
           <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:"#668",padding:"5px 10px",cursor:"pointer",fontSize:11}}>← Back</button>
-          <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:1}}>GROUP · {m0.teeTime}</div>
+          <div style={{fontSize:9,color:GOLD,fontFamily:"var(--mono)",letterSpacing:1}}>GROUP · {m0.teeTime}</div>
         </div>
         <MatchBar m={m0} lead={runLead0} s={statuses[0]}/>
         <MatchBar m={m1} lead={runLead1} s={statuses[1]}/>
@@ -703,19 +703,19 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
           const s=m0.scores[i];
           const bg=s==="A"?TEAM_A_COLOR:s==="B"?TEAM_B_COLOR:s==="H"?"#334":CARD2;
           const isAct=i===hole;
-          return <div key={i} onClick={()=>setHole(i)} style={{flex:1,height:isAct?26:20,background:bg,borderRadius:3,cursor:"pointer",border:isAct?`2px solid ${GOLD}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isAct?8:7,color:isAct?"#fff":"#ffffff99",fontFamily:"monospace",fontWeight:700}}>{i+1}</div>;
+          return <div key={i} onClick={()=>setHole(i)} style={{flex:1,height:isAct?26:20,background:bg,borderRadius:3,cursor:"pointer",border:isAct?`2px solid ${GOLD}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isAct?8:7,color:isAct?"#fff":"#ffffff99",fontFamily:"var(--mono)",fontWeight:700}}>{i+1}</div>;
         })}
       </div>
 
       <div style={{flex:1,padding:"0 12px 0"}}>
         {/* Hole info */}
         <div style={{display:"flex",justifyContent:"center",gap:10,marginBottom:12,padding:"10px",background:CARD,borderRadius:12,border:`1px solid ${BORDER}`}}>
-          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HOLE</div><div style={{fontSize:28,fontWeight:900,color:GOLD,fontFamily:"monospace",lineHeight:1}}>{hole+1}</div></div>
+          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)",letterSpacing:1}}>HOLE</div><div style={{fontSize:28,fontWeight:900,color:GOLD,fontFamily:"var(--mono)",lineHeight:1}}>{hole+1}</div></div>
           <div style={{width:1,background:BORDER}}/>
-          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>PAR</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"monospace",lineHeight:1}}>{holePar}</div></div>
+          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)",letterSpacing:1}}>PAR</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"var(--mono)",lineHeight:1}}>{holePar}</div></div>
           <div style={{width:1,background:BORDER}}/>
-          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HCP IDX</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"monospace",lineHeight:1}}>{holeHcp}</div></div>
-          {strokeEntries.length>0&&<><div style={{width:1,background:BORDER}}/><div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}><div style={{fontSize:8,color:GOLD,fontFamily:"monospace",letterSpacing:1}}>STROKE</div><div style={{fontSize:9,color:GOLD,marginTop:1}}>{strokeEntries.map(e=>`${e.name}${e.strokes>1?` ×${e.strokes}`:""}`).join(", ")}</div></div></>}
+          <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)",letterSpacing:1}}>HCP IDX</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"var(--mono)",lineHeight:1}}>{holeHcp}</div></div>
+          {strokeEntries.length>0&&<><div style={{width:1,background:BORDER}}/><div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}><div style={{fontSize:8,color:GOLD,fontFamily:"var(--mono)",letterSpacing:1}}>STROKE</div><div style={{fontSize:9,color:GOLD,marginTop:1}}>{strokeEntries.map(e=>`${e.name}${e.strokes>1?` ×${e.strokes}`:""}`).join(", ")}</div></div></>}
         </div>
 
         {/* Complete banner */}
@@ -729,7 +729,7 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
         {hasGap&&(
           <div style={{marginBottom:8,background:"#e67e2222",border:"1px solid #e67e2299",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
             <div style={{fontSize:18}}>⚠</div>
-            <div style={{fontSize:10,color:"#e67e22",fontFamily:"monospace"}}>MISSING SCORE — fill earlier hole first</div>
+            <div style={{fontSize:10,color:"#e67e22",fontFamily:"var(--mono)"}}>MISSING SCORE — fill earlier hole first</div>
           </div>
         )}
 
@@ -745,17 +745,17 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
                 <ScoreInput label={m.player1a} hcp={m.hcp1a||0} value={sc.p1a} onChange={v=>setSc(mi,s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={str(m.hcp1a||0)>0?GOLD:null} strokes={str(m.hcp1a||0)||1} par={holePar}/>
               </div>
               {/* VS divider */}
-              <div style={{background:CARD2,padding:"5px 0",textAlign:"center",fontSize:12,fontWeight:900,color:MUTED,fontFamily:"monospace",letterSpacing:2,borderTop:`1px solid ${BORDER}`,borderBottom:`1px solid ${BORDER}`}}>VS</div>
+              <div style={{background:CARD2,padding:"5px 0",textAlign:"center",fontSize:12,fontWeight:900,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,borderTop:`1px solid ${BORDER}`,borderBottom:`1px solid ${BORDER}`}}>VS</div>
               {/* Team B player — fixed height so result banner stays aligned */}
               <div style={{background:`${TEAM_B_COLOR}33`,padding:"10px 6px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:120}}>
                 <ScoreInput label={m.player2a} hcp={m.hcp2a||0} value={sc.p2a} onChange={v=>setSc(mi,s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={str(m.hcp2a||0)>0?GOLD:null} strokes={str(m.hcp2a||0)||1} par={holePar}/>
               </div>
               {/* Hole result — solid color banner */}
               <div style={{background:hwColor,padding:"8px 4px",textAlign:"center"}}>
-                <div style={{fontSize:11,fontWeight:900,color:"#fff",fontFamily:"monospace",letterSpacing:1}}>
+                <div style={{fontSize:11,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",letterSpacing:1}}>
                   {hw==="A"?`${m.player1a} wins`:hw==="B"?`${m.player2a} wins`:"HALVED"}
                 </div>
-                <div style={{fontSize:9,color:"#ffffffbb",marginTop:1,fontFamily:"monospace"}}>
+                <div style={{fontSize:9,color:"#ffffffbb",marginTop:1,fontFamily:"var(--mono)"}}>
                   {hw==="H"?`net ${netA} · ${netB}`:`net ${netA} vs ${netB}`}
                 </div>
               </div>
@@ -765,10 +765,10 @@ function GroupHoleEntry({ matches, courseKey, onSave, onClose }) {
 
         {/* Confirm / Undo / End early */}
         {!isComplete&&(
-          <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${GOLD},${GOLD}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 18px ${GOLD}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
+          <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${GOLD},${GOLD}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"var(--mono)",boxShadow:`0 4px 18px ${GOLD}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
         )}
-        {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>↩ UNDO HOLE {hole}</button>}
-        {!isComplete&&<button onClick={()=>setShowEndEarly(true)} style={{width:"100%",padding:"7px",background:"none",border:`1px solid #334`,borderRadius:10,color:"#446",fontSize:10,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:20}}>End Matches Early</button>}
+        {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>↩ UNDO HOLE {hole}</button>}
+        {!isComplete&&<button onClick={()=>setShowEndEarly(true)} style={{width:"100%",padding:"7px",background:"none",border:`1px solid #334`,borderRadius:10,color:"#446",fontSize:10,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:20}}>End Matches Early</button>}
       </div>
     </div>
   );
@@ -882,7 +882,7 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effecti
       {showEndEarly&&(
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
-            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:6,fontFamily:"monospace"}}>END MATCH EARLY?</div>
+            <div style={{fontSize:13,fontWeight:900,color:GOLD,marginBottom:6,fontFamily:"var(--mono)"}}>END MATCH EARLY?</div>
             <div style={{fontSize:11,color:TEXT,marginBottom:6}}>
               {cur.state==="pending"?"Match is all square — result will be HALVED.":cur.leader?`${cur.leader==="A"?TEAM_A_SHORT:TEAM_B_SHORT} leads ${cur.up}UP after ${cur.holesPlayed} holes.`:"All square after "+cur.holesPlayed+" holes — result will be HALVED."}
             </div>
@@ -903,22 +903,22 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effecti
       <div style={{background:CARD,borderBottom:`1px solid ${BORDER}`,padding:"10px 12px",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
           <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:"#668",padding:"5px 10px",cursor:"pointer",fontSize:11,flexShrink:0}}>← Back</button>
-          <button onClick={()=>setShowHcp(true)} style={{fontSize:10,padding:"4px 10px",background:`${GOLD}22`,border:`1px solid ${GOLD}55`,borderRadius:6,color:GOLD,cursor:"pointer",fontFamily:"monospace",flexShrink:0}}>HCP ✏</button>
+          <button onClick={()=>setShowHcp(true)} style={{fontSize:10,padding:"4px 10px",background:`${GOLD}22`,border:`1px solid ${GOLD}55`,borderRadius:6,color:GOLD,cursor:"pointer",fontFamily:"var(--mono)",flexShrink:0}}>HCP ✏</button>
         </div>
         {/* TV match score bar */}
         <div style={{display:"flex",alignItems:"stretch",borderRadius:8,overflow:"hidden",border:`1px solid ${BORDER}`}}>
           <div style={{flex:1,background:runLeader==="A"?TEAM_A_COLOR:"#111a2e",padding:"8px 10px",minWidth:0}}>
-            <div style={{fontSize:8,fontWeight:800,color:runLeader==="A"?"#ffcccc":TEAM_A_COLOR,letterSpacing:1,fontFamily:"monospace",marginBottom:2}}>{TEAM_A_SHORT}</div>
+            <div style={{fontSize:8,fontWeight:800,color:runLeader==="A"?"#ffcccc":TEAM_A_COLOR,letterSpacing:1,fontFamily:"var(--mono)",marginBottom:2}}>{TEAM_A_SHORT}</div>
             <div style={{fontSize:12,fontWeight:700,color:"#dde",lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
             {!isSingles&&<div style={{fontSize:12,fontWeight:700,color:"#dde",lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
           </div>
           <div style={{background:runLeader==="A"?TEAM_A_COLOR:runLeader==="B"?TEAM_B_COLOR:"#1a2a44",minWidth:68,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 4px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0}}>
-            {cur.state==="pending"?<div style={{fontSize:10,color:"#446",fontFamily:"monospace"}}>—</div>
-            :cur.state==="complete"||cur.state==="halved"?<><div style={{fontSize:8,color:"#FFD700",fontFamily:"monospace",fontWeight:800,letterSpacing:1}}>FINAL</div><div style={{fontSize:12,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{cur.sublabel||"HALVED"}</div></>
-            :<><div style={{fontSize:17,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{runLeader?runAbs:"AS"}</div><div style={{fontSize:8,color:"#88aacc",fontFamily:"monospace",marginTop:1}}>{runLeader?"UP":"ALL SQ"}</div><div style={{fontSize:8,color:"#446",fontFamily:"monospace",marginTop:2}}>THRU {hole}</div></>}
+            {cur.state==="pending"?<div style={{fontSize:10,color:"#446",fontFamily:"var(--mono)"}}>—</div>
+            :cur.state==="complete"||cur.state==="halved"?<><div style={{fontSize:8,color:"#FFD700",fontFamily:"var(--mono)",fontWeight:800,letterSpacing:1}}>FINAL</div><div style={{fontSize:12,fontWeight:900,color:"#fff",fontFamily:"var(--mono)"}}>{cur.sublabel||"HALVED"}</div></>
+            :<><div style={{fontSize:17,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",lineHeight:1}}>{runLeader?runAbs:"AS"}</div><div style={{fontSize:8,color:"#88aacc",fontFamily:"var(--mono)",marginTop:1}}>{runLeader?"UP":"ALL SQ"}</div><div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)",marginTop:2}}>THRU {hole}</div></>}
           </div>
           <div style={{flex:1,background:runLeader==="B"?TEAM_B_COLOR:"#111a2e",padding:"8px 10px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
-            <div style={{fontSize:8,fontWeight:800,color:runLeader==="B"?"#cce4ff":TEAM_B_DISP,letterSpacing:1,fontFamily:"monospace",marginBottom:2}}>{TEAM_B_SHORT}</div>
+            <div style={{fontSize:8,fontWeight:800,color:runLeader==="B"?"#cce4ff":TEAM_B_DISP,letterSpacing:1,fontFamily:"var(--mono)",marginBottom:2}}>{TEAM_B_SHORT}</div>
             <div style={{fontSize:12,fontWeight:700,color:"#dde",lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2a}</div>
             {!isSingles&&<div style={{fontSize:12,fontWeight:700,color:"#dde",lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2b}</div>}
           </div>
@@ -933,7 +933,7 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effecti
           const isAct=i===hole;
           return (
             <div key={i} style={{flex:1,position:"relative"}}>
-              <div onClick={()=>setHole(i)} style={{height:isAct?26:20,background:bg,borderRadius:3,cursor:"pointer",border:isAct?`2px solid ${GOLD}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isAct?8:7,color:isAct?"#fff":"#ffffff99",fontFamily:"monospace",fontWeight:700,transition:"all .12s"}}>
+              <div onClick={()=>setHole(i)} style={{height:isAct?26:20,background:bg,borderRadius:3,cursor:"pointer",border:isAct?`2px solid ${GOLD}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isAct?8:7,color:isAct?"#fff":"#ffffff99",fontFamily:"var(--mono)",fontWeight:700,transition:"all .12s"}}>
                 {i+1}
               </div>
               {isConfirmed&&(
@@ -949,7 +949,7 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effecti
       {isComplete&&(
         <div style={{margin:"10px 12px 0",background:`${cur.leader==="A"?TEAM_A_COLOR:cur.state==="halved"?"#334455":TEAM_B_COLOR}33`,border:`1px solid ${cur.leader==="A"?TEAM_A_COLOR:cur.state==="halved"?"#556677":TEAM_B_COLOR}66`,borderRadius:12,padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
-            <div style={{fontSize:9,color:"#668",fontFamily:"monospace",letterSpacing:1}}>MATCH RESULT</div>
+            <div style={{fontSize:9,color:"#668",fontFamily:"var(--mono)",letterSpacing:1}}>MATCH RESULT</div>
             <div style={{fontSize:15,fontWeight:900,color:GOLD,letterSpacing:1}}>{cur.longLabel}</div>
             <div style={{fontSize:11,color:"#668",marginTop:2}}>{cur.sublabel}</div>
           </div>
@@ -960,23 +960,23 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effecti
         <div style={{margin:"8px 12px 0",background:"#e67e2222",border:"1px solid #e67e2299",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
           <div style={{fontSize:18,flexShrink:0}}>⚠</div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontSize:11,fontWeight:900,color:"#e67e22",fontFamily:"monospace",letterSpacing:1}}>MISSING SCORE</div>
+            <div style={{fontSize:11,fontWeight:900,color:"#e67e22",fontFamily:"var(--mono)",letterSpacing:1}}>MISSING SCORE</div>
             <div style={{fontSize:10,color:"#e67e22bb",marginTop:2}}>Score from hole {cur.holesPlayed+1} has not been recorded</div>
           </div>
-          <button onClick={()=>setHole(cur.holesPlayed)} style={{flexShrink:0,padding:"5px 10px",background:"#e67e2233",border:"1px solid #e67e22",borderRadius:7,color:"#e67e22",fontSize:10,cursor:"pointer",fontWeight:800,fontFamily:"monospace"}}>GO →</button>
+          <button onClick={()=>setHole(cur.holesPlayed)} style={{flexShrink:0,padding:"5px 10px",background:"#e67e2233",border:"1px solid #e67e22",borderRadius:7,color:"#e67e22",fontSize:10,cursor:"pointer",fontWeight:800,fontFamily:"var(--mono)"}}>GO →</button>
         </div>
       )}
       <div style={{flex:1,padding:"12px 12px 0"}}>
           <div style={{display:"flex",justifyContent:"center",gap:10,marginBottom:12,padding:"10px",background:CARD,borderRadius:12,border:`1px solid ${BORDER}`}}>
-            <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HOLE</div><div style={{fontSize:28,fontWeight:900,color:GOLD,fontFamily:"monospace",lineHeight:1}}>{hole+1}</div></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)",letterSpacing:1}}>HOLE</div><div style={{fontSize:28,fontWeight:900,color:GOLD,fontFamily:"var(--mono)",lineHeight:1}}>{hole+1}</div></div>
             <div style={{width:1,background:BORDER}}/>
-            <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>PAR</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"monospace",lineHeight:1}}>{holePar}</div></div>
+            <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)",letterSpacing:1}}>PAR</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"var(--mono)",lineHeight:1}}>{holePar}</div></div>
             <div style={{width:1,background:BORDER}}/>
-            <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2}}>HCP IDX</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"monospace",lineHeight:1}}>{holeHcp}</div></div>
-            {strokeEntries.length>0&&<><div style={{width:1,background:BORDER}}/><div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}><div style={{fontSize:8,color:GOLD,fontFamily:"monospace",letterSpacing:1}}>STROKE</div><div style={{fontSize:9,color:GOLD,marginTop:1}}>{strokeEntries.map(e=>`${e.name}${e.strokes>1?` ×${e.strokes}`:""}`).join(", ")}</div></div></>}
+            <div style={{textAlign:"center"}}><div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)",letterSpacing:1}}>HCP IDX</div><div style={{fontSize:28,fontWeight:900,color:"#ccd",fontFamily:"var(--mono)",lineHeight:1}}>{holeHcp}</div></div>
+            {strokeEntries.length>0&&<><div style={{width:1,background:BORDER}}/><div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}><div style={{fontSize:8,color:GOLD,fontFamily:"var(--mono)",letterSpacing:1}}>STROKE</div><div style={{fontSize:9,color:GOLD,marginTop:1}}>{strokeEntries.map(e=>`${e.name}${e.strokes>1?` ×${e.strokes}`:""}`).join(", ")}</div></div></>}
           </div>
           <div style={{background:`${TEAM_A_COLOR}18`,border:`1px solid ${TEAM_A_COLOR}44`,borderRadius:12,padding:"12px",marginBottom:8}}>
-            <div style={{fontSize:9,color:TEAM_A_COLOR,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_A_SHORT}</div>
+            <div style={{fontSize:9,color:TEAM_A_COLOR,fontWeight:800,letterSpacing:1,fontFamily:"var(--mono)",marginBottom:10}}>{TEAM_A_SHORT}</div>
             <div style={{display:"flex",justifyContent:isSingles?"center":"space-around"}}>
               <ScoreInput label={match.player1a} hcp={match.hcp1a||0} value={sc.p1a} onChange={v=>setSc(s=>({...s,p1a:v}))} color={TEAM_A_COLOR} labelColor={strokeEntries.find(e=>e.name===match.player1a)?.strokes>0?GOLD:null} strokes={strokeEntries.find(e=>e.name===match.player1a)?.strokes||1} par={holePar}/>
               {!isSingles&&<ScoreInput label={match.player1b} hcp={match.hcp1b||0} value={sc.p1b} onChange={v=>setSc(s=>({...s,p1b:v}))} color={TEAM_A_COLOR} labelColor={strokeEntries.find(e=>e.name===match.player1b)?.strokes>0?GOLD:null} strokes={strokeEntries.find(e=>e.name===match.player1b)?.strokes||1} par={holePar}/>}
@@ -984,7 +984,7 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effecti
             {!isSingles&&<div style={{textAlign:"center",marginTop:8,fontSize:10,color:"#fff4"}}>best net: <span style={{color:"#fff",fontWeight:700}}>{teamANet}</span></div>}
           </div>
           <div style={{background:`${TEAM_B_COLOR}33`,border:`1px solid ${TEAM_B_COLOR}66`,borderRadius:12,padding:"12px",marginBottom:10}}>
-            <div style={{fontSize:9,color:TEAM_B_DISP,fontWeight:800,letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>{TEAM_B_SHORT}</div>
+            <div style={{fontSize:9,color:TEAM_B_DISP,fontWeight:800,letterSpacing:1,fontFamily:"var(--mono)",marginBottom:10}}>{TEAM_B_SHORT}</div>
             <div style={{display:"flex",justifyContent:isSingles?"center":"space-around"}}>
               <ScoreInput label={match.player2a} hcp={match.hcp2a||0} value={sc.p2a} onChange={v=>setSc(s=>({...s,p2a:v}))} color={TEAM_B_DISP} labelColor={strokeEntries.find(e=>e.name===match.player2a)?.strokes>0?GOLD:null} strokes={strokeEntries.find(e=>e.name===match.player2a)?.strokes||1} par={holePar}/>
               {!isSingles&&<ScoreInput label={match.player2b} hcp={match.hcp2b||0} value={sc.p2b} onChange={v=>setSc(s=>({...s,p2b:v}))} color={TEAM_B_DISP} labelColor={strokeEntries.find(e=>e.name===match.player2b)?.strokes>0?GOLD:null} strokes={strokeEntries.find(e=>e.name===match.player2b)?.strokes||1} par={holePar}/>}
@@ -992,15 +992,15 @@ function HoleEntry({ match, isSingles, courseKey, format, playerIndexes, effecti
             {!isSingles&&<div style={{textAlign:"center",marginTop:8,fontSize:10,color:"#fff4"}}>best net: <span style={{color:"#fff",fontWeight:700}}>{teamBNet}</span></div>}
           </div>
           <div style={{background:`${hwColor}22`,border:`1px solid ${hwColor}55`,borderRadius:10,padding:"9px 12px",marginBottom:10,textAlign:"center"}}>
-            <div style={{fontSize:9,color:"#446",fontFamily:"monospace",marginBottom:2}}>HOLE RESULT</div>
+            <div style={{fontSize:9,color:"#446",fontFamily:"var(--mono)",marginBottom:2}}>HOLE RESULT</div>
             <div style={{fontSize:13,fontWeight:800,color:hwColor}}>{hwLabel}</div>
           </div>
           {cur.state==="gap"&&hole!==cur.holesPlayed
-            ? <div style={{width:"100%",padding:"15px",background:"#e67e2222",border:"1px solid #e67e2266",borderRadius:14,color:"#e67e22",fontWeight:900,fontSize:13,textAlign:"center",fontFamily:"monospace",marginBottom:8,letterSpacing:1}}>⚠ ENTER HOLE {cur.holesPlayed+1} FIRST</div>
-            : <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${hwColor},${hwColor}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 18px ${hwColor}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
+            ? <div style={{width:"100%",padding:"15px",background:"#e67e2222",border:"1px solid #e67e2266",borderRadius:14,color:"#e67e22",fontWeight:900,fontSize:13,textAlign:"center",fontFamily:"var(--mono)",marginBottom:8,letterSpacing:1}}>⚠ ENTER HOLE {cur.holesPlayed+1} FIRST</div>
+            : <button onClick={handleConfirm} style={{width:"100%",padding:"15px",background:`linear-gradient(135deg,${hwColor},${hwColor}aa)`,border:"none",borderRadius:14,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",letterSpacing:1,fontFamily:"var(--mono)",boxShadow:`0 4px 18px ${hwColor}44`,marginBottom:8}}>CONFIRM HOLE {hole+1} →</button>
           }
-          {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>↩ UNDO HOLE {hole}</button>}
-          {!isComplete&&<button onClick={()=>setShowEndEarly(true)} style={{width:"100%",padding:"7px",background:"none",border:`1px solid #334`,borderRadius:10,color:"#446",fontSize:10,cursor:"pointer",fontFamily:"monospace",letterSpacing:1,marginBottom:20}}>End Match Early</button>}
+          {hole>0&&<button onClick={handleUndo} style={{width:"100%",padding:"9px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:"#446",fontSize:11,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>↩ UNDO HOLE {hole}</button>}
+          {!isComplete&&<button onClick={()=>setShowEndEarly(true)} style={{width:"100%",padding:"7px",background:"none",border:`1px solid #334`,borderRadius:10,color:"#446",fontSize:10,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:20}}>End Match Early</button>}
         </div>
     </div>
   );
@@ -1051,10 +1051,10 @@ function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, 
 
   const Spin = ({holeIdx, player, color, label}) => (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flex:1,minWidth:0}}>
-      <div style={{fontSize:8,color,fontFamily:"monospace",fontWeight:700,textAlign:"center",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:64}}>{label}</div>
+      <div style={{fontSize:8,color,fontFamily:"var(--mono)",fontWeight:700,textAlign:"center",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:64}}>{label}</div>
       <div style={{display:"flex",alignItems:"center"}}>
         <button onClick={()=>setG(holeIdx,player,Math.max(1,gross[holeIdx][player]-1))} style={{width:24,height:30,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"4px 0 0 4px",color:"#8aa",fontSize:14,cursor:"pointer"}}>−</button>
-        <div style={{width:30,height:30,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{gross[holeIdx][player]}</div>
+        <div style={{width:30,height:30,background:BG,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:TEXT,fontFamily:"var(--mono)"}}>{gross[holeIdx][player]}</div>
         <button onClick={()=>setG(holeIdx,player,Math.min(12,gross[holeIdx][player]+1))} style={{width:24,height:30,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"0 4px 4px 0",color:"#8aa",fontSize:14,cursor:"pointer"}}>+</button>
       </div>
     </div>
@@ -1068,7 +1068,7 @@ function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, 
         <button onClick={onClose} style={{background:"none",border:`1px solid ${BORDER}`,borderRadius:7,color:MUTED,padding:"5px 10px",cursor:"pointer",fontSize:11}}>← Back</button>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
           <button onClick={()=>setShowHcp(true)} style={{padding:"5px 10px",background:"none",border:`1px solid ${GOLD}`,borderRadius:7,color:GOLD,fontSize:11,cursor:"pointer",fontWeight:700}}>HCP</button>
-          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:1,fontFamily:"monospace"}}>ADMIN EDIT · Match {match.id}</div>
+          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:1,fontFamily:"var(--mono)"}}>ADMIN EDIT · Match {match.id}</div>
         </div>
         <button onClick={handleSave} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer"}}>SAVE</button>
       </div>
@@ -1086,8 +1086,8 @@ function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, 
           return (
             <div key={i} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px",marginBottom:8}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-                <div style={{fontSize:11,fontWeight:900,color:GOLD,fontFamily:"monospace"}}>HOLE {i+1}</div>
-                <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>PAR {par} · HCP {hcpIdx}</div>
+                <div style={{fontSize:11,fontWeight:900,color:GOLD,fontFamily:"var(--mono)"}}>HOLE {i+1}</div>
+                <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)"}}>PAR {par} · HCP {hcpIdx}</div>
               </div>
               <div style={{display:"flex",gap:4,marginBottom:8}}>
                 <Spin holeIdx={i} player="p1a" color={TEAM_A_COLOR} label={match.player1a}/>
@@ -1096,19 +1096,19 @@ function AdminMatchEditor({ match, isSingles, courseKey, format, playerIndexes, 
                 {!isSingles&&<Spin holeIdx={i} player="p2b" color={TEAM_B_DISP} label={match.player2b}/>}
               </div>
               <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
-                <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",flexShrink:0}}>RESULT:</div>
+                <div style={{fontSize:9,color:MUTED,fontFamily:"var(--mono)",flexShrink:0}}>RESULT:</div>
                 {[["auto","CALC"],["A","A"],["H","H"],["B","B"],["unplayed","—"]].map(([v,lbl])=>(
                   <button key={v} onClick={()=>setOverrides(prev=>{const n=[...prev];n[i]=v;return n;})}
-                    style={{padding:"3px 7px",background:ov===v?`${v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED}33`:"transparent",border:`1px solid ${ov===v?v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED:BORDER}`,borderRadius:5,color:ov===v?v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED:MUTED,fontSize:10,cursor:"pointer",fontFamily:"monospace",fontWeight:ov===v?700:400}}>
+                    style={{padding:"3px 7px",background:ov===v?`${v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED}33`:"transparent",border:`1px solid ${ov===v?v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED:BORDER}`,borderRadius:5,color:ov===v?v==="A"?TEAM_A_COLOR:v==="B"?TEAM_B_COLOR:v==="H"?GOLD:MUTED:MUTED,fontSize:10,cursor:"pointer",fontFamily:"var(--mono)",fontWeight:ov===v?700:400}}>
                     {lbl}
                   </button>
                 ))}
-                <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",marginLeft:"auto"}}>auto={computed}</div>
+                <div style={{fontSize:9,color:MUTED,fontFamily:"var(--mono)",marginLeft:"auto"}}>auto={computed}</div>
               </div>
             </div>
           );
         })}
-        <button onClick={handleSave} style={{width:"100%",padding:"14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:12,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"monospace",marginTop:4}}>
+        <button onClick={handleSave} style={{width:"100%",padding:"14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:12,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"var(--mono)",marginTop:4}}>
           SAVE ALL CHANGES
         </button>
       </div>
@@ -1175,7 +1175,7 @@ function AdminSection({ days, courseSettings }) {
       {confirmReset !== null && (
         <div style={{position:"fixed",inset:0,background:"#000000cc",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,maxWidth:320,width:"100%",textAlign:"center"}}>
-            <div style={{fontSize:13,fontWeight:900,color:"#e55",marginBottom:8,fontFamily:"monospace"}}>RESET MATCH {confirmReset}?</div>
+            <div style={{fontSize:13,fontWeight:900,color:"#e55",marginBottom:8,fontFamily:"var(--mono)"}}>RESET MATCH {confirmReset}?</div>
             <div style={{fontSize:12,color:TEXT,marginBottom:20}}>This clears all scores, gross scores, and disputes. Cannot be undone.</div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setConfirmReset(null)} style={{flex:1,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>Cancel</button>
@@ -1188,32 +1188,32 @@ function AdminSection({ days, courseSettings }) {
       {/* COURSES */}
       <div style={{marginBottom:22}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:2,fontFamily:"monospace"}}>COURSES</div>
-          <button onClick={saveCourses} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>
+          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:1,fontFamily:"var(--mono)"}}>COURSES</div>
+          <button onClick={saveCourses} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer",fontFamily:"var(--mono)"}}>
             {courseSaved?"✓ SAVED":"SAVE"}
           </button>
         </div>
         {Object.entries(COURSES).map(([key, c]) => {
           const par = c.par.reduce((a,b)=>a+b,0);
           const vals = courseVals[key] || {};
-          const numStyle = {padding:"5px 6px",background:BG,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:13,fontWeight:700,fontFamily:"monospace",textAlign:"center",width:"100%"};
+          const numStyle = {padding:"5px 6px",background:BG,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:13,fontWeight:700,fontFamily:"var(--mono)",textAlign:"center",width:"100%"};
           return (
             <div key={key} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
-              <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"monospace",marginBottom:8}}>{c.name}</div>
+              <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"var(--mono)",marginBottom:8}}>{c.name}</div>
               <div style={{display:"flex",gap:10,alignItems:"flex-end"}}>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5,marginBottom:4}}>SLOPE RATING</div>
+                  <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",letterSpacing:0.5,marginBottom:4}}>SLOPE RATING</div>
                   <input type="number" value={vals.slope ?? c.slope} step="1" min="55" max="155"
                     onChange={e=>setCourseField(key,"slope",Number(e.target.value))} style={numStyle}/>
                 </div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:8,color:MUTED,fontFamily:"monospace",letterSpacing:0.5,marginBottom:4}}>COURSE RATING</div>
+                  <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",letterSpacing:0.5,marginBottom:4}}>COURSE RATING</div>
                   <input type="number" value={vals.rating ?? c.rating} step="0.1" min="60" max="85"
                     onChange={e=>setCourseField(key,"rating",parseFloat(e.target.value)||vals.rating)} style={numStyle}/>
                 </div>
                 <div style={{textAlign:"center",paddingBottom:2}}>
-                  <div style={{fontSize:8,color:MUTED,fontFamily:"monospace"}}>PAR</div>
-                  <div style={{fontSize:14,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{par}</div>
+                  <div style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)"}}>PAR</div>
+                  <div style={{fontSize:14,fontWeight:900,color:TEXT,fontFamily:"var(--mono)"}}>{par}</div>
                 </div>
               </div>
             </div>
@@ -1223,15 +1223,15 @@ function AdminSection({ days, courseSettings }) {
 
       {/* DISPUTES */}
       <div style={{marginBottom:22}}>
-        <div style={{fontSize:11,fontWeight:900,color:"#e55",letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>🚩 DISPUTES</div>
+        <div style={{fontSize:11,fontWeight:900,color:"#e55",letterSpacing:1,fontFamily:"var(--mono)",marginBottom:10}}>🚩 DISPUTES</div>
         {(() => {
           const list = [];
           for (const day of days) for (const m of day.matches)
             for (const h of (m.disputes||[])) list.push({id:m.id,hole:h+1,players:[m.player1a,m.player1b,m.player2a,m.player2b].filter(Boolean).join(" / ")});
-          if (!list.length) return <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",padding:"8px 0"}}>No disputes flagged.</div>;
+          if (!list.length) return <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",padding:"8px 0"}}>No disputes flagged.</div>;
           return list.map((d,i)=>(
             <div key={i} style={{padding:"8px 12px",background:CARD2,borderRadius:8,marginBottom:6,border:"1px solid #e5533333"}}>
-              <div style={{fontSize:11,color:"#e55",fontWeight:700,fontFamily:"monospace"}}>Match {d.id} — Hole {d.hole}</div>
+              <div style={{fontSize:11,color:"#e55",fontWeight:700,fontFamily:"var(--mono)"}}>Match {d.id} — Hole {d.hole}</div>
               <div style={{fontSize:10,color:MUTED,marginTop:2}}>{d.players}</div>
             </div>
           ));
@@ -1241,19 +1241,19 @@ function AdminSection({ days, courseSettings }) {
       {/* PAIRINGS */}
       <div style={{marginBottom:22}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:2,fontFamily:"monospace"}}>PAIRINGS</div>
-          <button onClick={savePairings} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>
+          <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:1,fontFamily:"var(--mono)"}}>PAIRINGS</div>
+          <button onClick={savePairings} style={{padding:"6px 14px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:8,color:"#fff",fontWeight:800,fontSize:11,cursor:"pointer",fontFamily:"var(--mono)"}}>
             {pairingSaved?"✓ SAVED":"SAVE"}
           </button>
         </div>
-        <div style={{fontSize:10,color:MUTED2,fontFamily:"monospace",marginBottom:6,letterSpacing:1}}>SATURDAY — Day 2</div>
+        <div style={{fontSize:10,color:MUTED2,fontFamily:"var(--mono)",marginBottom:6,letterSpacing:1}}>SATURDAY — Day 2</div>
         {days[1].matches.map(m=>(
           <div key={m.id} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
-            <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"monospace",marginBottom:8}}>Match {m.id} · {m.teeTime}</div>
+            <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"var(--mono)",marginBottom:8}}>Match {m.id} · {m.teeTime}</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
               {[{k:"player1a",col:TEAM_A_COLOR,lbl:"A1",team:"A"},{k:"player1b",col:TEAM_A_COLOR,lbl:"A2",team:"A"},{k:"player2a",col:TEAM_B_DISP,lbl:"B1",team:"B"},{k:"player2b",col:TEAM_B_DISP,lbl:"B2",team:"B"}].map(slot=>(
                 <div key={slot.k}>
-                  <div style={{fontSize:8,color:slot.col,fontFamily:"monospace",marginBottom:2}}>{slot.lbl}</div>
+                  <div style={{fontSize:8,color:slot.col,fontFamily:"var(--mono)",marginBottom:2}}>{slot.lbl}</div>
                   <select value={pairings.d2[m.id]?.[slot.k]||""} onChange={e=>setPairings(prev=>({...prev,d2:{...prev.d2,[m.id]:{...prev.d2[m.id],[slot.k]:e.target.value}}}))} style={selStyle}>
                     <option value="">—</option>
                     {(slot.team==="A"?teamANames:teamBNames).map(n=><option key={n} value={n}>{n}</option>)}
@@ -1263,14 +1263,14 @@ function AdminSection({ days, courseSettings }) {
             </div>
           </div>
         ))}
-        <div style={{fontSize:10,color:MUTED2,fontFamily:"monospace",marginBottom:6,letterSpacing:1,marginTop:12}}>SUNDAY — Day 3</div>
+        <div style={{fontSize:10,color:MUTED2,fontFamily:"var(--mono)",marginBottom:6,letterSpacing:1,marginTop:12}}>SUNDAY — Day 3</div>
         {days[2].matches.map(m=>(
           <div key={m.id} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
-            <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"monospace",marginBottom:8}}>Match {m.id} · {m.teeTime}</div>
+            <div style={{fontSize:10,fontWeight:700,color:MUTED2,fontFamily:"var(--mono)",marginBottom:8}}>Match {m.id} · {m.teeTime}</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
               {[{k:"player1a",col:TEAM_A_COLOR,lbl:"A",team:"A"},{k:"player2a",col:TEAM_B_DISP,lbl:"B",team:"B"}].map(slot=>(
                 <div key={slot.k}>
-                  <div style={{fontSize:8,color:slot.col,fontFamily:"monospace",marginBottom:2}}>{slot.lbl}</div>
+                  <div style={{fontSize:8,color:slot.col,fontFamily:"var(--mono)",marginBottom:2}}>{slot.lbl}</div>
                   <select value={pairings.d3[m.id]?.[slot.k]||""} onChange={e=>setPairings(prev=>({...prev,d3:{...prev.d3,[m.id]:{...prev.d3[m.id],[slot.k]:e.target.value}}}))} style={selStyle}>
                     <option value="">—</option>
                     {(slot.team==="A"?teamANames:teamBNames).map(n=><option key={n} value={n}>{n}</option>)}
@@ -1284,14 +1284,14 @@ function AdminSection({ days, courseSettings }) {
 
       {/* RESET MATCHES */}
       <div>
-        <div style={{fontSize:11,fontWeight:900,color:"#e55",letterSpacing:2,fontFamily:"monospace",marginBottom:10}}>RESET MATCHES</div>
+        <div style={{fontSize:11,fontWeight:900,color:"#e55",letterSpacing:1,fontFamily:"var(--mono)",marginBottom:10}}>RESET MATCHES</div>
         {days.map((day,di)=>day.matches.map(m=>(
           <div key={m.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,marginBottom:6}}>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:TEXT}}>{m.player1a}{m.player1b?` & ${m.player1b}`:""} vs {m.player2a}{m.player2b?` & ${m.player2b}`:""}</div>
-              <div style={{fontSize:9,color:MUTED,fontFamily:"monospace"}}>Match {m.id} · Day {di+1}</div>
+              <div style={{fontSize:9,color:MUTED,fontFamily:"var(--mono)"}}>Match {m.id} · Day {di+1}</div>
             </div>
-            <button onClick={()=>setConfirmReset(m.id)} style={{padding:"5px 10px",background:"#c0392b22",border:"1px solid #c0392b66",borderRadius:7,color:"#e55",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"monospace",flexShrink:0}}>Reset</button>
+            <button onClick={()=>setConfirmReset(m.id)} style={{padding:"5px 10px",background:"#c0392b22",border:"1px solid #c0392b66",borderRadius:7,color:"#e55",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"var(--mono)",flexShrink:0}}>Reset</button>
           </div>
         )))}
       </div>
@@ -1323,8 +1323,8 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
       borderRadius:6, padding:"3px 8px", display:"flex", flexDirection:"column",
       alignItems:"center", flexShrink:0, minWidth:54,
     }}>
-      <div style={{fontSize:7,fontWeight:800,color:"#ffffffaa",fontFamily:"monospace",letterSpacing:1,lineHeight:1.3}}>THRU {s.holesPlayed}</div>
-      <div style={{fontSize:15,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1.1}}>{allSquare?"AS":`${s.up}UP`}</div>
+      <div style={{fontSize:7,fontWeight:800,color:"#ffffffaa",fontFamily:"var(--mono)",letterSpacing:1,lineHeight:1.3}}>THRU {s.holesPlayed}</div>
+      <div style={{fontSize:15,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",lineHeight:1.1}}>{allSquare?"AS":`${s.up}UP`}</div>
       <div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:2,animation:"pulse 1.5s infinite"}}/>
     </div>
   );
@@ -1341,16 +1341,16 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
         <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
           {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
-          {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace"}}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
+          {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"var(--mono)"}}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
         </div>
         <div style={{background:badgeBg,width:64,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"4px",flexShrink:0}}>
-          {badgeTop&&<div style={{fontSize:7,fontWeight:800,color:aWin||bWin?"#FFD700":"#ffffffbb",fontFamily:"monospace",letterSpacing:0.5}}>{badgeTop}</div>}
-          <div style={{fontSize:badgeBot.length>4?11:14,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{badgeBot}</div>
+          {badgeTop&&<div style={{fontSize:7,fontWeight:800,color:aWin||bWin?"#FFD700":"#ffffffbb",fontFamily:"var(--mono)",letterSpacing:0.5}}>{badgeTop}</div>}
+          <div style={{fontSize:badgeBot.length>4?11:14,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",lineHeight:1}}>{badgeBot}</div>
         </div>
         <div style={{flex:1,background:bBg,padding:"10px 10px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2a}</div>
           {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2b}</div>}
-          {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace",textAlign:"right"}}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
+          {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"var(--mono)",textAlign:"right"}}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
         </div>
       </div>
     );
@@ -1364,13 +1364,13 @@ function TVMatchRow({ match, isSingles, onOpen, canEdit }) {
       <div style={{flex:1,background:aBg,padding:"10px 10px",minWidth:0}}>
         <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1a}</div>
         {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{match.player1b}</div>}
-        {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace"}}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
+        {(match.hcp1a||0)+(match.hcp1b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"var(--mono)"}}>HCP {fmtHcp(match.hcp1a||0)}{!isSingles&&match.hcp1b?`/${fmtHcp(match.hcp1b)}`:""}</div>}
       </div>
       {/* Team B — names right-pinned */}
       <div style={{flex:1,background:bBg,padding:"10px 10px",display:"flex",flexDirection:"column",alignItems:"flex-end",minWidth:0}}>
         <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2a}</div>
         {!isSingles&&<div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",width:"100%"}}>{match.player2b}</div>}
-        {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"monospace",textAlign:"right"}}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
+        {(match.hcp2a||0)+(match.hcp2b||0)>0&&<div style={{fontSize:7,color:GOLD,marginTop:2,fontFamily:"var(--mono)",textAlign:"right"}}>HCP {fmtHcp(match.hcp2a||0)}{!isSingles&&match.hcp2b?`/${fmtHcp(match.hcp2b)}`:""}</div>}
       </div>
       {/* Badge — absolutely centred, then shifted 25% toward leading team */}
       <div style={{
@@ -1396,13 +1396,13 @@ function TVDayBlock({ day, onOpen, canEdit }) {
   return (
     <div style={{marginBottom:14,borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#060f22",padding:"7px 10px",borderBottom:`1px solid ${BORDER}`}}>
-        <div style={{fontSize:10,fontWeight:800,color:GOLD,letterSpacing:2,fontFamily:"monospace"}}>{day.label.toUpperCase()}</div>
-        {hasAct&&<div style={{fontSize:8,color:"#446",fontFamily:"monospace"}}>{fmt(dp.a)}–{fmt(dp.b)} · proj {fmt(dp.pA)}–{fmt(dp.pB)}</div>}
+        <div style={{fontSize:10,fontWeight:800,color:GOLD,letterSpacing:1,fontFamily:"var(--mono)"}}>{day.label.toUpperCase()}</div>
+        {hasAct&&<div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)"}}>{fmt(dp.a)}–{fmt(dp.b)} · proj {fmt(dp.pA)}–{fmt(dp.pB)}</div>}
       </div>
       <div style={{display:"flex",background:"#080f20",borderBottom:`1px solid ${BORDER}`}}>
-        <div style={{flex:1,padding:"5px 10px",fontSize:8,fontWeight:800,color:TEAM_A_COLOR,letterSpacing:1,fontFamily:"monospace"}}>{TEAM_A_SHORT}</div>
-        <div style={{width:64,textAlign:"center",padding:"5px 0",fontSize:7,color:"#446",fontFamily:"monospace"}}>{day.format.toUpperCase()}</div>
-        <div style={{flex:1,padding:"5px 10px",fontSize:8,fontWeight:800,color:TEAM_B_DISP,letterSpacing:1,fontFamily:"monospace",textAlign:"right"}}>{TEAM_B_SHORT}</div>
+        <div style={{flex:1,padding:"5px 10px",fontSize:8,fontWeight:800,color:TEAM_A_COLOR,letterSpacing:1,fontFamily:"var(--mono)"}}>{TEAM_A_SHORT}</div>
+        <div style={{width:64,textAlign:"center",padding:"5px 0",fontSize:7,color:"#446",fontFamily:"var(--mono)"}}>{day.format.toUpperCase()}</div>
+        <div style={{flex:1,padding:"5px 10px",fontSize:8,fontWeight:800,color:TEAM_B_DISP,letterSpacing:1,fontFamily:"var(--mono)",textAlign:"right"}}>{TEAM_B_SHORT}</div>
       </div>
       {day.matches.map(m=><TVMatchRow key={m.id} match={m} isSingles={!m.player1b} onOpen={()=>onOpen(m.id)} canEdit={canEdit?canEdit(m.id):false}/>)}
     </div>
@@ -1649,9 +1649,9 @@ export default function App() {
 
   // Loading screen
   if (!loaded) return (
-    <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"monospace",color:MUTED}}>
+    <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"var(--mono)",color:MUTED}}>
       <div style={{marginBottom:16}}>{CBS_LOGO_LG}</div>
-      <div style={{fontSize:12,letterSpacing:3,animation:"pulse 1.5s infinite"}}>CONNECTING...</div>
+      <div style={{fontSize:12,letterSpacing:1.5,animation:"pulse 1.5s infinite"}}>CONNECTING...</div>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}*{box-sizing:border-box;margin:0;padding:0}`}</style>
     </div>
   );
@@ -1722,8 +1722,8 @@ export default function App() {
       {/* Match completion celebration overlay */}
       {matchCelebration&&(
         <div style={{position:"fixed",inset:0,zIndex:1000,background:matchCelebration.color,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",animation:"celebFade 0.3s ease 1.2s forwards",pointerEvents:"none"}}>
-          <div style={{fontSize:42,fontWeight:900,color:"#fff",fontFamily:"monospace",letterSpacing:3,textAlign:"center",padding:"0 20px"}}>{matchCelebration.label}</div>
-          <div style={{fontSize:22,color:"rgba(255,255,255,0.85)",fontFamily:"monospace",marginTop:10}}>{matchCelebration.sublabel}</div>
+          <div style={{fontSize:42,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",letterSpacing:1.5,textAlign:"center",padding:"0 20px"}}>{matchCelebration.label}</div>
+          <div style={{fontSize:22,color:"rgba(255,255,255,0.85)",fontFamily:"var(--mono)",marginTop:10}}>{matchCelebration.sublabel}</div>
         </div>
       )}
 
@@ -1739,33 +1739,33 @@ export default function App() {
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3}}>
             {liveCount>0&&<div style={{fontSize:9,color:"#4caf50",fontWeight:700,animation:"pulse 2s infinite",letterSpacing:1}}>● {liveCount} LIVE</div>}
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
-              {offlineQueue.length>0&&<div style={{fontSize:8,color:"#f39c12",fontFamily:"monospace",fontWeight:700,whiteSpace:"nowrap"}}>⚡ Offline — {offlineQueue.length} pending</div>}
-              {syncStatus==="synced"&&<div style={{fontSize:8,color:"#4caf50",fontFamily:"monospace",fontWeight:700}}>✓ Synced</div>}
+              {offlineQueue.length>0&&<div style={{fontSize:8,color:"#f39c12",fontFamily:"var(--mono)",fontWeight:700,whiteSpace:"nowrap"}}>⚡ Offline — {offlineQueue.length} pending</div>}
+              {syncStatus==="synced"&&<div style={{fontSize:8,color:"#4caf50",fontFamily:"var(--mono)",fontWeight:700}}>✓ Synced</div>}
               <button onClick={toggleTheme} title={theme==="dark"?"Switch to light mode":"Switch to dark mode"} style={{fontSize:14,background:"none",border:"none",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>{theme==="dark"?"☀️":"🌙"}</button>
-              <button onClick={()=>setCurrentPlayer(null)} style={{fontSize:9,padding:"3px 8px",background:`${playerTeamColor}22`,border:`1px solid ${playerTeamColor}55`,borderRadius:5,color:TEXT,cursor:"pointer",fontFamily:"monospace",whiteSpace:"nowrap"}}>
+              <button onClick={()=>setCurrentPlayer(null)} style={{fontSize:9,padding:"3px 8px",background:`${playerTeamColor}22`,border:`1px solid ${playerTeamColor}55`,borderRadius:5,color:TEXT,cursor:"pointer",fontFamily:"var(--mono)",whiteSpace:"nowrap"}}>
                 👤 {currentPlayer} ✕
               </button>
             </div>
           </div>
         </div>
 
-        {winner&&<div style={{background:`${GOLD}22`,borderTop:`1px solid ${GOLD}44`,borderBottom:`1px solid ${GOLD}44`,padding:"7px",textAlign:"center"}}><div style={{fontSize:14,fontWeight:900,color:GOLD,letterSpacing:2}}>🏆 TEAM {winner} WINS THE CUP!</div></div>}
+        {winner&&<div style={{background:`${GOLD}22`,borderTop:`1px solid ${GOLD}44`,borderBottom:`1px solid ${GOLD}44`,padding:"7px",textAlign:"center"}}><div style={{fontSize:14,fontWeight:900,color:GOLD,letterSpacing:1}}>🏆 TEAM {winner} WINS THE CUP!</div></div>}
 
         {/* Big TV scoreboard */}
         <div style={{display:"flex",alignItems:"stretch"}}>
           <div style={{flex:1,background:TEAM_A_COLOR,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",minWidth:0}}>
-            <div style={{fontSize:10,fontWeight:900,color:"#ffcccc",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{TEAM_A}</div>
-            <div style={{fontSize:36,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualA)}</div>
+            <div style={{fontSize:10,fontWeight:900,color:"#ffcccc",letterSpacing:1,fontFamily:"var(--mono)",lineHeight:1.2,wordBreak:"break-word"}}>{TEAM_A}</div>
+            <div style={{fontSize:36,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",lineHeight:1,marginTop:2}}>{fmt(actualA)}</div>
           </div>
           <div style={{background:"#060d1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:76}}>
-            <div style={{fontSize:7,color:"#446",fontFamily:"monospace",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
-            <div style={{fontSize:10,fontWeight:700,fontFamily:"monospace",color:projA>projB?TEAM_A_COLOR:projB>projA?TEAM_B_DISP:"#557",whiteSpace:"nowrap"}}>{fmt(projA)}–{fmt(projB)}</div>
-            {projWinner&&<div style={{fontSize:7,color:GOLD,fontFamily:"monospace",marginTop:2,whiteSpace:"nowrap"}}>→ {projWinner}</div>}
-            <div style={{fontSize:7,color:"#335",marginTop:3,fontFamily:"monospace",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget+0.5)}</div>
+            <div style={{fontSize:7,color:"#446",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:2}}>PROJECTED</div>
+            <div style={{fontSize:10,fontWeight:700,fontFamily:"var(--mono)",color:projA>projB?TEAM_A_COLOR:projB>projA?TEAM_B_DISP:"#557",whiteSpace:"nowrap"}}>{fmt(projA)}–{fmt(projB)}</div>
+            {projWinner&&<div style={{fontSize:7,color:GOLD,fontFamily:"var(--mono)",marginTop:2,whiteSpace:"nowrap"}}>→ {projWinner}</div>}
+            <div style={{fontSize:7,color:"#335",marginTop:3,fontFamily:"var(--mono)",whiteSpace:"nowrap"}}>WIN: {fmt(winTarget+0.5)}</div>
           </div>
           <div style={{flex:1,background:TEAM_B_COLOR,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"flex-end",minWidth:0}}>
-            <div style={{fontSize:10,fontWeight:900,color:"#cce4ff",letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{TEAM_B}</div>
-            <div style={{fontSize:36,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(actualB)}</div>
+            <div style={{fontSize:10,fontWeight:900,color:"#cce4ff",letterSpacing:1,fontFamily:"var(--mono)",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{TEAM_B}</div>
+            <div style={{fontSize:36,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",lineHeight:1,marginTop:2}}>{fmt(actualB)}</div>
           </div>
         </div>
       </div>
@@ -1773,7 +1773,7 @@ export default function App() {
       {/* Tabs */}
       <div style={{display:"flex",background:CARD,borderBottom:`1px solid ${BORDER}`}}>
         {[["scoreboard","📊 BOARD"],["matches","⛳ MY MATCH"],...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),["leaderboard","🏌️ SCORES"]].map(([key,label])=>(
-          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:MUTED,fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"monospace"}}>{label}</button>
+          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:MUTED,fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"var(--mono)"}}>{label}</button>
         ))}
       </div>
 
@@ -1782,7 +1782,7 @@ export default function App() {
           <div>
             <div style={{display:"flex",gap:6,marginBottom:12}}>
               {days.map((d,i)=>(
-                <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${TEAM_B_COLOR}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>{dayLabels[i]}</button>
+                <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${TEAM_B_COLOR}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:1}}>{dayLabels[i]}</button>
               ))}
             </div>
             <TVDayBlock day={boardDay} onOpen={mid=>{
@@ -1793,7 +1793,7 @@ export default function App() {
             }} canEdit={(mid)=>canEdit(boardDayIdx,mid)}/>
 
             {/* Hole-by-hole match breakdowns */}
-            <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,opacity:0.7}}>
+            <div style={{marginTop:16,marginBottom:4,fontSize:9,color:GOLD,fontFamily:"var(--mono)",letterSpacing:1,opacity:0.7}}>
               HOLE BY HOLE
             </div>
             {boardDay.matches.map(m=>{
@@ -1893,12 +1893,12 @@ export default function App() {
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",background:"#060f22",borderBottom:`1px solid ${BORDER}`}}>
                     <div>
                       <div style={{fontSize:11,fontWeight:700,color:TEAM_A_COLOR}}>{isSingles?m.player1a:`${m.player1a} & ${m.player1b}`}</div>
-                      <div style={{fontSize:8,color:TEAM_A_COLOR,opacity:0.6,fontFamily:"monospace"}}>{TEAM_A_SHORT}</div>
+                      <div style={{fontSize:8,color:TEAM_A_COLOR,opacity:0.6,fontFamily:"var(--mono)"}}>{TEAM_A_SHORT}</div>
                     </div>
-                    <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"monospace",textAlign:"center",flex:1,padding:"0 8px"}}>{st.longLabel}{st.sublabel?` · ${st.sublabel}`:""}</div>
+                    <div style={{fontSize:10,fontWeight:800,color:stColor,fontFamily:"var(--mono)",textAlign:"center",flex:1,padding:"0 8px"}}>{st.longLabel}{st.sublabel?` · ${st.sublabel}`:""}</div>
                     <div style={{textAlign:"right"}}>
                       <div style={{fontSize:11,fontWeight:700,color:TEAM_B_DISP}}>{isSingles?m.player2a:`${m.player2a} & ${m.player2b}`}</div>
-                      <div style={{fontSize:8,color:TEAM_B_DISP,opacity:0.6,fontFamily:"monospace"}}>{TEAM_B_SHORT}</div>
+                      <div style={{fontSize:8,color:TEAM_B_DISP,opacity:0.6,fontFamily:"var(--mono)"}}>{TEAM_B_SHORT}</div>
                     </div>
                   </div>
 
@@ -1908,19 +1908,19 @@ export default function App() {
                       <thead>
                         <tr style={{background:"#080f20",borderBottom:`1px solid ${BORDER}`}}>
                           {/* Row label column */}
-                          <td style={{padding:"5px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",minWidth:70,position:"sticky",left:0,background:"#080f20",zIndex:1}}>
+                          <td style={{padding:"5px 10px",fontSize:8,color:"#446",fontFamily:"var(--mono)",whiteSpace:"nowrap",minWidth:70,position:"sticky",left:0,background:"#080f20",zIndex:1}}>
                           </td>
                           {/* Hole number columns */}
                           {Array.from({length:18},(_,i)=>(
-                            <td key={i} style={{textAlign:"center",padding:"5px 4px",fontSize:8,color:"#668",fontFamily:"monospace",minWidth:34,borderLeft:i===9?`1px solid ${BORDER}`:undefined,fontWeight:i===9||i===0?"800":"400"}}>
+                            <td key={i} style={{textAlign:"center",padding:"5px 4px",fontSize:8,color:"#668",fontFamily:"var(--mono)",minWidth:34,borderLeft:i===9?`1px solid ${BORDER}`:undefined,fontWeight:i===9||i===0?"800":"400"}}>
                               {i+1}{(m.disputes||[]).includes(i)?<span style={{color:"#e55",fontSize:7,marginLeft:1}}>🚩</span>:null}
                             </td>
                           ))}
                         </tr>
                         <tr style={{background:"#080f20",borderBottom:`2px solid ${BORDER}`}}>
-                          <td style={{padding:"4px 10px",fontSize:8,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap",position:"sticky",left:0,background:"#080f20",zIndex:1}}>PAR</td>
+                          <td style={{padding:"4px 10px",fontSize:8,color:"#446",fontFamily:"var(--mono)",whiteSpace:"nowrap",position:"sticky",left:0,background:"#080f20",zIndex:1}}>PAR</td>
                           {course.par.map((parNum,i)=>(
-                            <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"monospace",fontWeight:700,borderLeft:i===9?`1px solid ${BORDER}`:undefined}}>{parNum}</td>
+                            <td key={i} style={{textAlign:"center",padding:"4px 4px",fontSize:9,color:"#557",fontFamily:"var(--mono)",fontWeight:700,borderLeft:i===9?`1px solid ${BORDER}`:undefined}}>{parNum}</td>
                           ))}
                         </tr>
                       </thead>
@@ -1976,7 +1976,7 @@ export default function App() {
               const isGroup = !!companion;
               return (
                 <div>
-                  <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.8}}>{d.label.toUpperCase()} · {m.teeTime!=="TBD"?m.teeTime:""}{isGroup?" · GROUP":""}</div>
+                  <div style={{fontSize:9,color:GOLD,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:10,opacity:0.8}}>{d.label.toUpperCase()} · {m.teeTime!=="TBD"?m.teeTime:""}{isGroup?" · GROUP":""}</div>
                   {/* Show all matches in the group */}
                   {[m, ...groupMatches].map(gm=>{
                     const gs=computeMatchStatus(gm.scores);
@@ -1984,8 +1984,8 @@ export default function App() {
                     return (
                       <div key={gm.id} style={{borderRadius:12,overflow:"hidden",border:`1px solid ${gc}44`,marginBottom:10}}>
                         <div style={{display:"flex",background:"#080f20",borderBottom:`1px solid ${BORDER}`,padding:"6px 10px",alignItems:"center",justifyContent:"space-between"}}>
-                          <div style={{fontSize:9,color:"#446",fontFamily:"monospace"}}>{d.format.toUpperCase()}</div>
-                          <div style={{fontSize:10,fontWeight:800,color:gc,fontFamily:"monospace"}}>{gs.longLabel}</div>
+                          <div style={{fontSize:9,color:"#446",fontFamily:"var(--mono)"}}>{d.format.toUpperCase()}</div>
+                          <div style={{fontSize:10,fontWeight:800,color:gc,fontFamily:"var(--mono)"}}>{gs.longLabel}</div>
                         </div>
                         <TVMatchRow match={gm} isSingles={!gm.player1b} onOpen={()=>{}} canEdit={false}/>
                       </div>
@@ -1998,17 +1998,17 @@ export default function App() {
                       } else {
                         setActiveMatch(playerMatch);
                       }
-                    }} style={{width:"100%",padding:"16px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:14,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",boxShadow:`0 4px 20px ${TEAM_B_COLOR}44`,marginBottom:10}}>
+                    }} style={{width:"100%",padding:"16px",background:`linear-gradient(135deg,${TEAM_B_COLOR},${TEAM_B_DISP}66)`,border:`1px solid ${TEAM_B_COLOR}`,borderRadius:14,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",letterSpacing:1,fontFamily:"var(--mono)",boxShadow:`0 4px 20px ${TEAM_B_COLOR}44`,marginBottom:10}}>
                       ⛳ ENTER SCORES
                     </button>
                   ) : (
                     <div style={{textAlign:"center",padding:"12px",background:CARD2,borderRadius:12,marginBottom:10,border:`1px solid ${BORDER}`}}>
-                      <div style={{fontSize:11,color:"#446",fontFamily:"monospace"}}>
+                      <div style={{fontSize:11,color:"#446",fontFamily:"var(--mono)"}}>
                         🔒 Score entry opens on {dayLabels[playerMatch.dayIdx]}
                       </div>
                     </div>
                   )}
-                  <div style={{fontSize:10,color:"#446",textAlign:"center",fontFamily:"monospace"}}>{doneMatches}/{totalMatches} matches complete</div>
+                  <div style={{fontSize:10,color:"#446",textAlign:"center",fontFamily:"var(--mono)"}}>{doneMatches}/{totalMatches} matches complete</div>
                 </div>
               );
             })():(
@@ -2130,10 +2130,10 @@ export default function App() {
               {/* Day selector */}
               <div style={{display:"flex",gap:6,marginBottom:12}}>
                 {days.map((d,i)=>(
-                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${TEAM_B_COLOR}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>{dayLabels[i]}</button>
+                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${TEAM_B_COLOR}55`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"#446",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:1}}>{dayLabels[i]}</button>
                 ))}
               </div>
-              <div style={{fontSize:9,color:GOLD,fontFamily:"monospace",letterSpacing:2,marginBottom:10,opacity:0.7}}>
+              <div style={{fontSize:9,color:GOLD,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:10,opacity:0.7}}>
                 {lbDay.label.toUpperCase()} · INDIVIDUAL SCORES
               </div>
 
@@ -2149,32 +2149,32 @@ export default function App() {
                     <thead>
                       {/* Hole number row */}
                       <tr style={{background:"#060f22"}}>
-                        <td style={{width:28,padding:"5px 6px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>POS</td>
-                        <td style={{padding:"5px 8px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PLAYER</td>
+                        <td style={{width:28,padding:"5px 6px",fontSize:8,color:"#446",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}>POS</td>
+                        <td style={{padding:"5px 8px",fontSize:8,color:"#446",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}>PLAYER</td>
                         {Array.from({length:9},(_,i)=>(
-                          <td key={i} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+1}</td>
+                          <td key={i} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}>{i+1}</td>
                         ))}
-                        <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>OUT</td>
+                        <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>OUT</td>
                         {Array.from({length:9},(_,i)=>(
-                          <td key={i+9} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{i+10}</td>
+                          <td key={i+9} style={{width:24,textAlign:"center",padding:"3px 1px",fontSize:8,color:"#446",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}>{i+10}</td>
                         ))}
-                        <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>IN</td>
-                        <td style={{width:36,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>TOT</td>
-                        <td style={{width:40,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>TO PAR</td>
+                        <td style={{width:28,textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>IN</td>
+                        <td style={{width:36,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>TOT</td>
+                        <td style={{width:40,textAlign:"center",padding:"3px 4px",fontSize:8,color:GOLD,fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}>TO PAR</td>
                       </tr>
                       {/* Par row */}
                       <tr style={{background:"#080f20"}}>
-                        <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}></td>
-                        <td style={{padding:"3px 8px",fontSize:7,color:"#446",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>PAR</td>
+                        <td style={{padding:"3px 6px",fontSize:7,color:"#446",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}></td>
+                        <td style={{padding:"3px 8px",fontSize:7,color:"#446",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}>PAR</td>
                         {Array.from({length:9},(_,i)=>(
-                          <td key={i} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i]}</td>
+                          <td key={i} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}>{course.par[i]}</td>
                         ))}
-                        <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(0,9).reduce((a,b)=>a+b,0)}</td>
+                        <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"var(--mono)",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(0,9).reduce((a,b)=>a+b,0)}</td>
                         {Array.from({length:9},(_,i)=>(
-                          <td key={i+9} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`}}>{course.par[i+9]}</td>
+                          <td key={i+9} style={{textAlign:"center",padding:"3px 1px",fontSize:8,color:"#668",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`}}>{course.par[i+9]}</td>
                         ))}
-                        <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(9).reduce((a,b)=>a+b,0)}</td>
-                        <td style={{textAlign:"center",padding:"3px 4px",fontSize:8,color:"#668",fontFamily:"monospace",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.reduce((a,b)=>a+b,0)}</td>
+                        <td style={{textAlign:"center",padding:"3px 2px",fontSize:8,color:"#668",fontFamily:"var(--mono)",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.slice(9).reduce((a,b)=>a+b,0)}</td>
+                        <td style={{textAlign:"center",padding:"3px 4px",fontSize:8,color:"#668",fontFamily:"var(--mono)",fontWeight:700,borderBottom:`1px solid ${BORDER}`,borderLeft:`1px solid ${BORDER}`}}>{course.par.reduce((a,b)=>a+b,0)}</td>
                         <td style={{borderBottom:`1px solid ${BORDER}`}}></td>
                       </tr>
                     </thead>
@@ -2186,7 +2186,7 @@ export default function App() {
                         const inPlayed  = row.gross.slice(9).filter(g=>g!==null).length;
                         return (
                           <tr key={row.name} style={{background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`}}>
-                            <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
+                            <td style={{padding:"8px 6px",fontSize:10,fontWeight:800,color:"#446",fontFamily:"var(--mono)",whiteSpace:"nowrap"}}>{row.pos}</td>
                             <td style={{padding:"8px 8px",minWidth:80}}>
                               <div style={{fontSize:12,fontWeight:700,color:row.team==="A"?TEAM_A_COLOR:TEAM_B_DISP,whiteSpace:"nowrap"}}>{row.name}</div>
                             </td>
@@ -2195,7 +2195,7 @@ export default function App() {
                                 <HoleScore gross={row.gross[i]} par={course.par[i]}/>
                               </td>
                             ))}
-                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?toParColor(row.gross.slice(0,9).reduce((a,g)=>a+(g||0),0)-course.par.slice(0,outPlayed).reduce((a,b)=>a+b,0),outPlayed):"#446",fontFamily:"monospace"}}>
+                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:outPlayed>0?toParColor(row.gross.slice(0,9).reduce((a,g)=>a+(g||0),0)-course.par.slice(0,outPlayed).reduce((a,b)=>a+b,0),outPlayed):"#446",fontFamily:"var(--mono)"}}>
                               {outPlayed>0?outTotal:"—"}
                             </td>
                             {Array.from({length:9},(_,i)=>(
@@ -2203,13 +2203,13 @@ export default function App() {
                                 <HoleScore gross={row.gross[i+9]} par={course.par[i+9]}/>
                               </td>
                             ))}
-                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:inPlayed>0?toParColor(row.gross.slice(9,9+inPlayed).reduce((a,g)=>a+(g||0),0)-course.par.slice(9,9+inPlayed).reduce((a,b)=>a+b,0),inPlayed):"#446",fontFamily:"monospace"}}>
+                            <td style={{textAlign:"center",padding:"4px 2px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:inPlayed>0?toParColor(row.gross.slice(9,9+inPlayed).reduce((a,g)=>a+(g||0),0)-course.par.slice(9,9+inPlayed).reduce((a,b)=>a+b,0),inPlayed):"#446",fontFamily:"var(--mono)"}}>
                               {inPlayed>0?inTotal:"—"}
                             </td>
-                            <td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:12,fontWeight:700,color:row.holesPlayed>0?"#ccd":"#446",fontFamily:"monospace"}}>
+                            <td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:12,fontWeight:700,color:row.holesPlayed>0?"#ccd":"#446",fontFamily:"var(--mono)"}}>
                               {row.holesPlayed>0?row.total:"—"}
                             </td>
-                            <td style={{textAlign:"center",padding:"4px 4px",fontSize:13,fontWeight:900,color:toParColor(row.toPar,row.holesPlayed),fontFamily:"monospace"}}>
+                            <td style={{textAlign:"center",padding:"4px 4px",fontSize:13,fontWeight:900,color:toParColor(row.toPar,row.holesPlayed),fontFamily:"var(--mono)"}}>
                               {fmtToPar(row.toPar,row.holesPlayed)}
                             </td>
                           </tr>
@@ -2220,12 +2220,12 @@ export default function App() {
                 </div>}
                 {notStartedRows.length > 0 && (
                   <div style={{marginTop: startedRows.length > 0 ? 14 : 0}}>
-                    <div style={{fontSize:8,color:"#446",fontFamily:"monospace",letterSpacing:2,marginBottom:6,paddingLeft:2}}>NOT STARTED</div>
+                    <div style={{fontSize:8,color:"#446",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:6,paddingLeft:2}}>NOT STARTED</div>
                     {notStartedRows.map((row,ri)=>(
                       <div key={row.name} style={{display:"flex",alignItems:"center",padding:"9px 12px",background:ri%2===0?CARD:CARD2,borderBottom:`1px solid ${BORDER}33`,borderRadius:ri===0?"8px 8px 0 0":ri===notStartedRows.length-1?"0 0 8px 8px":0}}>
-                        <div style={{fontSize:10,color:"#334",fontFamily:"monospace",marginRight:10,minWidth:36}}>🕐</div>
+                        <div style={{fontSize:10,color:"#334",fontFamily:"var(--mono)",marginRight:10,minWidth:36}}>🕐</div>
                         <div style={{fontSize:13,fontWeight:700,color:row.team==="A"?TEAM_A_COLOR:TEAM_B_DISP,flex:1}}>{row.name}</div>
-                        <div style={{fontSize:11,color:"#446",fontFamily:"monospace"}}>{row.teeTime&&row.teeTime!=="TBD"?row.teeTime:"TBD"}</div>
+                        <div style={{fontSize:11,color:"#446",fontFamily:"var(--mono)"}}>{row.teeTime&&row.teeTime!=="TBD"?row.teeTime:"TBD"}</div>
                       </div>
                     ))}
                   </div>

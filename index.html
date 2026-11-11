@@ -34,8 +34,9 @@
         --panel-a: #080f20; --panel-b: #060f22; --panel-c: #060d1e; --panel-d: #0a1428; --panel-e: #0d1929; --panel-f: #111a2e;
         --glass-80: rgba(8,20,43,0.8); --glass-85: rgba(8,20,43,0.85); --glass-90: rgba(8,20,43,0.9); --glass-95: rgba(8,20,43,0.95);
         --text: #ccd; --text-b: #dde;
-        --muted: #446; --muted-b: #557; --muted2: #668; --muted2-b: #8aa;
-        --faint: #334; --faint-b: #335; --faint-c: #334455;
+        /* Secondary text meets WCAG AA (4.5:1) on the dark cards; --faint is for dots and dividers only. */
+        --muted: #7d89a6; --muted-b: #8792ad; --muted2: #95a1bb; --muted2-b: #a9b6c9;
+        --faint: #3a4660; --faint-b: #4a5670; --faint-c: #334455;
         --grid: #fff; --gold-text: #C4A44A; --gold-dim: rgba(196,164,74,0.7); --on-gold: #fff; --name-dim: #7a8fa8; --strong: #fff; --strong-dim: #ffffffbb; --sep: #0a1628;
         --bogey-bg: rgba(232,136,136,0.16); --bogey-ink: #f0a8a8;
         --bg-grad: linear-gradient(135deg,#020c18 0%,#0a1f1a 25%,#071428 50%,#0d1f10 75%,#020c18 100%);
@@ -51,7 +52,11 @@
         --bogey-bg: rgba(192,57,43,0.10); --bogey-ink: #a5352a;
         --bg-grad: linear-gradient(135deg,#f4f6f9 0%,#eaf3ee 25%,#eef2f9 50%,#edf4ea 75%,#f4f6f9 100%);
       }
-      body { background: var(--bg); padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+      /* Two type families: the system sans for names and text, a monospace for
+         labels and numbers. Buttons and inputs don't inherit fonts by default. */
+      :root { --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; }
+      body { background: var(--bg); padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+      button, input, select, textarea { font-family: inherit; }
       body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--bg); z-index: 2000; }
     </style>
   </head>

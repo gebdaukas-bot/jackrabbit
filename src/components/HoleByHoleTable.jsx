@@ -35,7 +35,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
   // The match standing after a hole: "AS" when level, otherwise an arrow pointing
   // at the side that's ahead (side A's rows are above the SCORE row) with how many up.
   const standingCell = (lead) => {
-    if (lead === 0) return <div style={{ fontSize: 9, fontWeight: 900, color: "var(--muted-b)", fontFamily: "monospace" }}>AS</div>;
+    if (lead === 0) return <div style={{ fontSize: 9, fontWeight: 900, color: "var(--muted-b)", fontFamily: "var(--mono)" }}>AS</div>;
     const isA = lead > 0, num = Math.abs(lead);
     const col = isA ? teamAColor : teamBColor;
     return (
@@ -137,8 +137,8 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
     <div style={{ background: CARD, borderRadius: 10, border: `1px solid ${BORDER}`, overflow: "hidden" }}>
       {(longLabel || meta) && (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "6px 10px", background: "var(--panel-b)", borderBottom: `1px solid ${BORDER}`, gap: 8 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: statusColor || GOLD, fontFamily: "monospace", textAlign: "center" }}>{longLabel}{sublabel ? ` · ${sublabel}` : ""}</div>
-          {meta && <div style={{ fontSize: 9, color: MUTED, fontFamily: "monospace", textAlign: "center" }}>{meta}</div>}
+          <div style={{ fontSize: 10, fontWeight: 800, color: statusColor || GOLD, fontFamily: "var(--mono)", textAlign: "center" }}>{longLabel}{sublabel ? ` · ${sublabel}` : ""}</div>
+          {meta && <div style={{ fontSize: 9, color: MUTED, fontFamily: "var(--mono)", textAlign: "center" }}>{meta}</div>}
         </div>
       )}
       <div style={{ position: "relative" }}>
@@ -148,23 +148,23 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
             <tr style={{ background: "var(--panel-a)", borderBottom: `1px solid ${BORDER}` }}>
               <td style={{ padding: "5px 10px", fontSize: 8, whiteSpace: "nowrap", minWidth: 70, position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}></td>
               {cols.map((col, i) => (
-                <td key={i} style={{ textAlign: "center", padding: "5px 4px", fontSize: 8, color: col.type === "hole" && col.hi >= 18 ? GOLD : col.type !== "hole" ? "#FFD700" : "var(--muted2)", fontFamily: "monospace", minWidth: col.type === "hole" ? 34 : 38, borderLeft: divider(col), fontWeight: col.type !== "hole" || col.hi === 0 ? "800" : "400" }}>
+                <td key={i} style={{ textAlign: "center", padding: "5px 4px", fontSize: 8, color: col.type === "hole" && col.hi >= 18 ? GOLD : col.type !== "hole" ? "#FFD700" : "var(--muted2)", fontFamily: "var(--mono)", minWidth: col.type === "hole" ? 34 : 38, borderLeft: divider(col), fontWeight: col.type !== "hole" || col.hi === 0 ? "800" : "400" }}>
                   {colHeader(col)}
                   {col.type === "hole" && col.hi < 18 && (match.disputes || []).includes(col.hi) ? <span style={{ color: "#e55", fontSize: 7, marginLeft: 1 }}>🚩</span> : null}
                 </td>
               ))}
             </tr>
             <tr style={{ background: "var(--panel-a)", borderBottom: yardage ? undefined : `2px solid ${BORDER}` }}>
-              <td style={{ padding: "4px 10px", fontSize: 8, color: "var(--muted)", fontFamily: "monospace", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}>PAR</td>
+              <td style={{ padding: "4px 10px", fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}>PAR</td>
               {cols.map((col, i) => (
-                <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "var(--muted-b)", fontFamily: "monospace", fontWeight: 700, borderLeft: divider(col) }}>{colPar(col)}</td>
+                <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "var(--muted-b)", fontFamily: "var(--mono)", fontWeight: 700, borderLeft: divider(col) }}>{colPar(col)}</td>
               ))}
             </tr>
             {yardage && (
               <tr style={{ background: "var(--panel-a)", borderBottom: `2px solid ${BORDER}` }}>
-                <td style={{ padding: "4px 10px", fontSize: 8, color: "var(--muted)", fontFamily: "monospace", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}>YDS</td>
+                <td style={{ padding: "4px 10px", fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--panel-a)", zIndex: 1 }}>YDS</td>
                 {cols.map((col, i) => (
-                  <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "var(--muted-b)", fontFamily: "monospace", fontWeight: 700, borderLeft: divider(col) }}>{colYardage(col) || "—"}</td>
+                  <td key={i} style={{ textAlign: "center", padding: "4px 4px", fontSize: 9, color: "var(--muted-b)", fontFamily: "var(--mono)", fontWeight: 700, borderLeft: divider(col) }}>{colYardage(col) || "—"}</td>
                 ))}
               </tr>
             )}
@@ -175,7 +175,7 @@ export default function HoleByHoleTable({ match, course, totalHoles = 18, teamAC
               const nameColor = rowColors[ri] && teamInk(rowColors[ri]);
               return (
                 <tr key={ri} style={{ borderBottom: `1px solid ${BORDER}22`, background: isScoreRow ? "var(--panel-b)" : ri % 2 === 0 ? CARD : CARD2 }}>
-                  <td style={{ padding: "6px 10px", fontSize: isScoreRow ? 8 : 11, fontWeight: 700, color: isScoreRow ? "var(--muted)" : nameColor, whiteSpace: "nowrap", position: "sticky", left: 0, background: isScoreRow ? "var(--panel-b)" : ri % 2 === 0 ? CARD : CARD2, zIndex: 1, fontFamily: isScoreRow ? "monospace" : "inherit", letterSpacing: isScoreRow ? 1 : 0 }}>{label}</td>
+                  <td style={{ padding: "6px 10px", fontSize: isScoreRow ? 8 : 11, fontWeight: 700, color: isScoreRow ? "var(--muted)" : nameColor, whiteSpace: "nowrap", position: "sticky", left: 0, background: isScoreRow ? "var(--panel-b)" : ri % 2 === 0 ? CARD : CARD2, zIndex: 1, fontFamily: isScoreRow ? "var(--mono)" : "inherit", letterSpacing: isScoreRow ? 1 : 0 }}>{label}</td>
                   {cols.map((col, i) => {
                     const cell = cellFor(col, ri);
                     return (

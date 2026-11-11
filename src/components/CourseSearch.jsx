@@ -90,7 +90,7 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
   const fmt = v => v < 0 ? `+${Math.abs(v)}` : `${v}`;
 
   const row = { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: radius, cursor: "pointer", marginBottom: 6, textAlign: "left", width: "100%", boxSizing: "border-box", color: TEXT };
-  const label = { fontSize: 10, color: MUTED, fontFamily: "monospace", letterSpacing: 1, marginBottom: 6 };
+  const label = { fontSize: 10, color: MUTED, fontFamily: "var(--mono)", letterSpacing: 1, marginBottom: 6 };
 
   return (
     <div>
@@ -103,7 +103,7 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
           style={{ flex: 1, minWidth: 0, padding: pad, background: CARD2, border: `1px solid ${course ? "#4caf50" : BORDER}`, borderRadius: radius, color: TEXT, fontSize: large ? 14 : 13, outline: "none", boxSizing: "border-box" }}
         />
         <button onClick={search} disabled={!!busy || !q}
-          style={{ padding: large ? "14px 16px" : "9px 14px", background: GOLD, border: "none", borderRadius: radius, color: "#000", fontWeight: 900, fontSize: large ? 12 : 11, cursor: busy || !q ? "default" : "pointer", fontFamily: "monospace", flexShrink: 0, opacity: busy || !q ? 0.5 : 1 }}>
+          style={{ padding: large ? "14px 16px" : "9px 14px", background: GOLD, border: "none", borderRadius: radius, color: "#000", fontWeight: 900, fontSize: large ? 12 : 11, cursor: busy || !q ? "default" : "pointer", fontFamily: "var(--mono)", flexShrink: 0, opacity: busy || !q ? 0.5 : 1 }}>
           {busy === "search" ? "…" : "🔍 Search"}
         </button>
       </div>
@@ -116,7 +116,7 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
           <div>{notice.text}</div>
           {q && (
             <button onClick={estimate} disabled={!!busy}
-              style={{ marginTop: 8, padding: "6px 10px", background: "none", border: `1px solid ${GOLD}`, borderRadius: 6, color: "var(--gold-text)", fontSize: 10, fontWeight: 800, cursor: "pointer", fontFamily: "monospace" }}>
+              style={{ marginTop: 8, padding: "6px 10px", background: "none", border: `1px solid ${GOLD}`, borderRadius: 6, color: "var(--gold-text)", fontSize: 10, fontWeight: 800, cursor: "pointer", fontFamily: "var(--mono)" }}>
               ESTIMATE WITH AI
             </button>
           )}
@@ -146,7 +146,7 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
         <div style={{ marginTop: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#4caf50", minWidth: 0 }}>✓ {course.name}</div>
-            <div style={{ fontSize: 10, color: MUTED, fontFamily: "monospace", flexShrink: 0 }}>{course.tees?.length || 0} tee{course.tees?.length === 1 ? "" : "s"}</div>
+            <div style={{ fontSize: 10, color: MUTED, fontFamily: "var(--mono)", flexShrink: 0 }}>{course.tees?.length || 0} tee{course.tees?.length === 1 ? "" : "s"}</div>
           </div>
           {course.source === "claude" && (
             <div style={{ fontSize: 10, color: "#e67e22", marginBottom: 8 }}>AI estimate, not official scorecard data — check the slope and rating against the scorecard.</div>
@@ -161,14 +161,14 @@ export default function CourseSearch({ query, onQueryChange, onCourse, onTee, se
                     style={{ ...row, background: sel ? `${GOLD}18` : CARD2, border: `1px solid ${sel ? GOLD : BORDER}` }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: sel ? GOLD : TEXT }}>{t.name}</div>
-                      <div style={{ fontSize: 10, color: MUTED, fontFamily: "monospace", marginTop: 2 }}>
+                      <div style={{ fontSize: 10, color: MUTED, fontFamily: "var(--mono)", marginTop: 2 }}>
                         Rating {t.rating} · Slope {t.slope}{t.yardage ? ` · ${t.yardage} yds` : ""}{t.par ? ` · Par ${teePar(t)}` : ""}
                       </div>
                     </div>
                     {players.length > 0 && (
                       <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-end", flexShrink: 0 }}>
                         {players.map(p => (
-                          <div key={p.name} style={{ fontSize: 10, fontFamily: "monospace", color: sel ? p.color : MUTED, whiteSpace: "nowrap" }}>
+                          <div key={p.name} style={{ fontSize: 10, fontFamily: "var(--mono)", color: sel ? p.color : MUTED, whiteSpace: "nowrap" }}>
                             {p.name}: <span style={{ fontWeight: 800, color: sel ? GOLD : MUTED }}>{fmt(courseHcp(p.hi, t))}</span>
                           </div>
                         ))}

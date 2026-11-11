@@ -76,13 +76,13 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
   const liveBadgeColor = aLeading ? contrastText(teamAColor) : bLeading ? contrastText(teamBColor) : "#fff";
 
   const sideLabel = (short, color, align) => showTeamLabels ? (
-    <div style={{fontSize:7,fontWeight:800,color,letterSpacing:1,fontFamily:"monospace",marginBottom:2,textAlign:align,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{short}</div>
+    <div style={{fontSize:7,fontWeight:800,color,letterSpacing:1,fontFamily:"var(--mono)",marginBottom:2,textAlign:align,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{short}</div>
   ) : null;
 
   const liveBadge = (
     <div style={{ background:aLeading?`${teamAColor}ee`:bLeading?`${teamBColor}ee`:"#1a2a44", borderRadius:6, padding:"3px 8px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0, minWidth:54 }}>
-      <div style={{ fontSize:7, fontWeight:800, color:`${liveBadgeColor}aa`, fontFamily:"monospace", letterSpacing:1, lineHeight:1.3 }}>THRU {st.holesPlayed}</div>
-      <div style={{ fontSize:15, fontWeight:900, color:liveBadgeColor, fontFamily:"monospace", lineHeight:1.1 }}>{allSquare?"AS":`${st.up}UP`}</div>
+      <div style={{ fontSize:7, fontWeight:800, color:`${liveBadgeColor}aa`, fontFamily:"var(--mono)", letterSpacing:1, lineHeight:1.3 }}>THRU {st.holesPlayed}</div>
+      <div style={{ fontSize:15, fontWeight:900, color:liveBadgeColor, fontFamily:"var(--mono)", lineHeight:1.1 }}>{allSquare?"AS":`${st.up}UP`}</div>
       <div style={{ width:5, height:5, borderRadius:"50%", background:"#4caf50", marginTop:2, animation:"pulse 1.5s infinite" }}/>
     </div>
   );
@@ -101,30 +101,30 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
           {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
           <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
-            {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
+            {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
           </div>
           {!isSingles&&<div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
-            {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
+            {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
           </div>}
-          {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"monospace",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
+          {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
         </div>
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0 }}>
-          {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"var(--strong-dim)", fontFamily:"monospace", letterSpacing:0.5 }}>{badgeTop}</div>}
-          <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"monospace", lineHeight:1 }}>{badgeBot}</div>
-          {(isScramble||isShamble)&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"monospace", marginTop:1, letterSpacing:0.5 }}>{isScramble?"SCRAMBLE":"SHAMBLE"}</div>}
+          {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"var(--strong-dim)", fontFamily:"var(--mono)", letterSpacing:0.5 }}>{badgeTop}</div>}
+          <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"var(--mono)", lineHeight:1 }}>{badgeBot}</div>
+          {(isScramble||isShamble)&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"var(--mono)", marginTop:1, letterSpacing:0.5 }}>{isScramble?"SCRAMBLE":"SHAMBLE"}</div>}
         </div>
         <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
           {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
           <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-            {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
+            {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
             <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
           </div>
           {!isSingles&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-            {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
+            {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
             <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
           </div>}
-          {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"monospace",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
+          {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
         </div>
       </div>
     );
@@ -138,26 +138,26 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
         {sideLabel(teamAShort, aWin||aLeading ? aNameColor : teamAColorDisp, "left")}
         <div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1a}</div>
-          {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
+          {!isScramble&&(match.hcp1a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1a||0)})</span>}
         </div>
         {!isSingles&&<div style={{display:"flex",alignItems:"center",gap:4,overflow:"hidden"}}>
           <div style={{fontSize:12,fontWeight:800,color:aNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{match.player1b}</div>
-          {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
+          {!isScramble&&(match.hcp1b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp1b||0)})</span>}
         </div>}
-        {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"monospace",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
+        {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
       </div>
       {liveBadge}
       <div style={{ flex:1, background:bBg, padding:"10px 10px", display:"flex", flexDirection:"column", alignItems:"flex-end", minWidth:0 }}>
         {sideLabel(teamBShort, bWin||bLeading ? bNameColor : teamBColorDisp, "right")}
         <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-          {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
+          {!isScramble&&(match.hcp2a||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2a||0)})</span>}
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2a}</div>
         </div>
         {!isSingles&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4,overflow:"hidden"}}>
-          {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
+          {!isScramble&&(match.hcp2b||0)!==0&&<span style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",flexShrink:0}}>({fmtHcp(match.hcp2b||0)})</span>}
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
         </div>}
-        {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"monospace",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
+        {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
       </div>
     </div>
   );
@@ -177,18 +177,18 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
     <div style={{ marginBottom:14, borderRadius:10, overflow:"hidden", border:`1px solid ${BORDER}` }}>
       {/* Day header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"var(--panel-b)", padding:"7px 10px", borderBottom:`1px solid ${BORDER}` }}>
-        <div style={{ fontSize:10, fontWeight:800, color:"var(--gold-text)", letterSpacing:2, fontFamily:"monospace" }}>{day.label?.toUpperCase()}</div>
+        <div style={{ fontSize:10, fontWeight:800, color:"var(--gold-text)", letterSpacing:1, fontFamily:"var(--mono)" }}>{day.label?.toUpperCase()}</div>
       </div>
       {/* Team name header — only show if single round (multi-round has its own per-round) */}
       {!multiRound && !isWarmup(rounds[0]) && (
         <div style={{ display:"flex", flexDirection:"column", background:"var(--panel-a)", borderBottom:`1px solid ${BORDER}` }}>
           <div style={{ display:"flex" }}>
-            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>}
-            <div style={{ flex:twoTeam?undefined:1, width:twoTeam?64:undefined, textAlign:"center", padding:"5px 0", fontSize:7, color:"var(--muted)", fontFamily:"monospace" }}>{rounds[0].format?.toUpperCase()}</div>
-            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>}
+            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"var(--mono)" }}>{teamAShort}</div>}
+            <div style={{ flex:twoTeam?undefined:1, width:twoTeam?64:undefined, textAlign:"center", padding:"5px 0", fontSize:7, color:"var(--muted)", fontFamily:"var(--mono)" }}>{rounds[0].format?.toUpperCase()}</div>
+            {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}</div>}
           </div>
           {rounds[0].course?.name && (
-            <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:7, color:"var(--gold-text)", fontFamily:"monospace", fontWeight:700 }}>{courseLabel(rounds[0].course)}</div>
+            <div style={{ textAlign:"center", padding:"0 10px 5px", fontSize:7, color:"var(--gold-text)", fontFamily:"var(--mono)", fontWeight:700 }}>{courseLabel(rounds[0].course)}</div>
           )}
         </div>
       )}
@@ -207,11 +207,11 @@ function DayBlock({ day, teams, onOpen, canEdit, warmupScores, teamColorOf, canS
           <div key={ri}>
             {multiRound && (
               <div style={{ display:"flex", background:"var(--panel-d)", borderBottom:`1px solid ${BORDER}`, borderTop:ri>0?`1px solid ${BORDER}`:"none" }}>
-                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"monospace" }}>{teamAShort}</div>}
-                <div style={{ flex:twoTeam?undefined:1, textAlign:twoTeam?undefined:"center", padding:"5px 10px", fontSize:7, color:"var(--gold-text)", fontFamily:"monospace", fontWeight:700 }}>
+                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamAColor, letterSpacing:1, fontFamily:"var(--mono)" }}>{teamAShort}</div>}
+                <div style={{ flex:twoTeam?undefined:1, textAlign:twoTeam?undefined:"center", padding:"5px 10px", fontSize:7, color:"var(--gold-text)", fontFamily:"var(--mono)", fontWeight:700 }}>
                   {round.format?.toUpperCase()}{round.course?.name?` · ${courseLabel(round.course)}`:""}
                 </div>
-                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"monospace", textAlign:"right" }}>{teamBShort}</div>}
+                {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}</div>}
               </div>
             )}
             {roundMatches.map((m,i)=>(
@@ -258,19 +258,19 @@ function AdminPlayers({ initPlayers, teams, onSave, onBack }) {
             style={{flex:1,padding:"6px 8px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:12,outline:"none",minWidth:0}}/>
           <button onClick={()=>setPlayers(ps=>ps.map((x,j)=>j===i?{...x,team:nextTeam(x.team)}:x))}
             title="Tap to move to the next team"
-            style={{padding:"5px 9px",background:"none",border:`1px solid ${teamOf(p.team).colorDisp}`,borderRadius:6,color:teamOf(p.team).colorDisp,fontSize:10,fontWeight:800,cursor:"pointer",flexShrink:0,fontFamily:"monospace",maxWidth:78,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            style={{padding:"5px 9px",background:"none",border:`1px solid ${teamOf(p.team).colorDisp}`,borderRadius:6,color:teamOf(p.team).colorDisp,fontSize:10,fontWeight:800,cursor:"pointer",flexShrink:0,fontFamily:"var(--mono)",maxWidth:78,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
             {teamOf(p.team).short}
           </button>
           <div style={{display:"flex",flexShrink:0}}>
             <button onClick={()=>adj(i,-0.1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"4px 0 0 4px",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>−</button>
-            <div style={{width:48,height:28,background:CARD2,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"var(--gold-text)",fontFamily:"monospace"}}>{fmtH(p.hcp)}</div>
+            <div style={{width:48,height:28,background:CARD2,border:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"var(--gold-text)",fontFamily:"var(--mono)"}}>{fmtH(p.hcp)}</div>
             <button onClick={()=>adj(i,0.1)} style={{width:24,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"0 4px 4px 0",color:MUTED,cursor:"pointer",fontSize:13,lineHeight:1}}>+</button>
           </div>
           <button onClick={()=>setPlayers(ps=>ps.filter((_,j)=>j!==i))} style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:16,padding:"0 2px",flexShrink:0}}>×</button>
         </div>
       ))}
       <button onClick={()=>setPlayers(ps=>[...ps,{name:"",team:teams[0].id,hcp:0}])}
-        style={{width:"100%",marginTop:12,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"monospace"}}>
+        style={{width:"100%",marginTop:12,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"var(--mono)"}}>
         + ADD PLAYER
       </button>
     </div>
@@ -307,10 +307,10 @@ function AdminCourses({ initDays, onSave, onBack }) {
   return (
     <div>
       <AdminHeader title="Edit Courses" onBack={onBack} onSave={handleSave} saving={saving}/>
-      {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>{days.map((d,di)=><button key={di} onClick={()=>{setSelDay(di);setSelRound(0);}} style={{padding:"4px 10px",background:selDay===di?GOLD:"none",border:`1px solid ${selDay===di?GOLD:BORDER}`,borderRadius:6,color:selDay===di?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>{d.label}</button>)}</div>}
-      {days[selDay]?.rounds.length>1&&<div style={{display:"flex",gap:6,marginBottom:10}}>{days[selDay].rounds.map((_,ri)=><button key={ri} onClick={()=>setSelRound(ri)} style={{padding:"4px 10px",background:selRound===ri?GOLD:"none",border:`1px solid ${selRound===ri?GOLD:BORDER}`,borderRadius:6,color:selRound===ri?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>Round {ri+1}</button>)}</div>}
+      {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>{days.map((d,di)=><button key={di} onClick={()=>{setSelDay(di);setSelRound(0);}} style={{padding:"4px 10px",background:selDay===di?GOLD:"none",border:`1px solid ${selDay===di?GOLD:BORDER}`,borderRadius:6,color:selDay===di?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"var(--mono)"}}>{d.label}</button>)}</div>}
+      {days[selDay]?.rounds.length>1&&<div style={{display:"flex",gap:6,marginBottom:10}}>{days[selDay].rounds.map((_,ri)=><button key={ri} onClick={()=>setSelRound(ri)} style={{padding:"4px 10px",background:selRound===ri?GOLD:"none",border:`1px solid ${selRound===ri?GOLD:BORDER}`,borderRadius:6,color:selRound===ri?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"var(--mono)"}}>Round {ri+1}</button>)}</div>}
       <div style={{marginBottom:12}}>
-        <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>COURSE NAME</div>
+        <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:4}}>COURSE NAME</div>
         <CourseSearch key={`${selDay}-${selRound}`} query={course.name||""} onQueryChange={name=>updateCourse({name})}
           onTee={applyTee} selectedTee={course.teeName}/>
         <select value="" onChange={e=>{const c=BUILT_IN_COURSES.find(x=>x.name===e.target.value); if(!c) return; if(c.tees?.length) applyTee(c,c.tees[0]); else updateCourse({...courseFromTee(c),slope:null,rating:null,teeName:null});}}
@@ -318,53 +318,53 @@ function AdminCourses({ initDays, onSave, onBack }) {
           <option value="">…or load a saved course</option>
           {[...BUILT_IN_COURSES].sort((a,b)=>a.name.localeCompare(b.name)).map(c=><option key={c.name} value={c.name}>{c.name}</option>)}
         </select>
-        {course.teeName&&<div style={{fontSize:11,color:"var(--gold-text)",marginTop:8,fontFamily:"monospace"}}>Playing the {course.teeName} tees · Rating {course.rating} · Slope {course.slope} — hit RECALC HCPs in Edit Matchups to update strokes.</div>}
+        {course.teeName&&<div style={{fontSize:11,color:"var(--gold-text)",marginTop:8,fontFamily:"var(--mono)"}}>Playing the {course.teeName} tees · Rating {course.rating} · Slope {course.slope} — hit RECALC HCPs in Edit Matchups to update strokes.</div>}
       </div>
       <div style={{display:"flex",gap:10,marginBottom:12}}>
         <div style={{flex:1}}>
-          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>HOLES</div>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:4}}>HOLES</div>
           <div style={{display:"flex",gap:6}}>
             {[18,9].map(n=>(
               <button key={n} onClick={()=>updateRoundField("totalHoles",n===18?undefined:n)}
-                style={{flex:1,padding:"8px 0",background:(round.totalHoles||18)===n?GOLD:CARD2,border:`1px solid ${(round.totalHoles||18)===n?GOLD:BORDER}`,borderRadius:8,color:(round.totalHoles||18)===n?"#000":TEXT,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"monospace"}}>{n}</button>
+                style={{flex:1,padding:"8px 0",background:(round.totalHoles||18)===n?GOLD:CARD2,border:`1px solid ${(round.totalHoles||18)===n?GOLD:BORDER}`,borderRadius:8,color:(round.totalHoles||18)===n?"#000":TEXT,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"var(--mono)"}}>{n}</button>
             ))}
           </div>
         </div>
         <div style={{flex:1}}>
-          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>POINT VALUE</div>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:4}}>POINT VALUE</div>
           <input type="number" step={0.5} min={0.5} max={5}
             value={round.pointValue??1}
             onChange={e=>{const v=parseFloat(e.target.value); if(!isNaN(v)) updateRoundField("pointValue",v===1?undefined:v);}}
-            style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontWeight:700,fontFamily:"monospace"}}/>
+            style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontWeight:700,fontFamily:"var(--mono)"}}/>
         </div>
       </div>
-      {(round.totalHoles||18)===9&&<div style={{fontSize:10,color:MUTED,marginBottom:12,fontFamily:"monospace"}}>Set which 9 holes each match plays via its "start hole" field in the Matchups editor (hole 1 = front 9, hole 10 = back 9).</div>}
+      {(round.totalHoles||18)===9&&<div style={{fontSize:10,color:MUTED,marginBottom:12,fontFamily:"var(--mono)"}}>Set which 9 holes each match plays via its "start hole" field in the Matchups editor (hole 1 = front 9, hole 10 = back 9).</div>}
       <div style={{display:"flex",gap:10,marginBottom:12}}>
         {[["slope","SLOPE RATING",55,155,1],["rating","COURSE RATING",60,85,0.1]].map(([field,label,mn,mx,step])=>(
           <div key={field} style={{flex:1}}>
-            <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:4}}>{label}</div>
+            <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:4}}>{label}</div>
             <input type="number" step={step} min={mn} max={mx}
               value={course[field]??(field==="slope"?113:(course.par?.reduce((a,b)=>a+b,0)||72))}
               onChange={e=>{
                 const v=parseFloat(e.target.value); if(isNaN(v)) return;
                 setDays(ds=>ds.map((d,di)=>di!==selDay?d:{...d,rounds:d.rounds.map((r,ri)=>ri!==selRound?r:{...r,course:{...r.course,[field]:v}})}));
               }}
-              style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontWeight:700,fontFamily:"monospace"}}/>
+              style={{width:"100%",padding:"8px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontWeight:700,fontFamily:"var(--mono)"}}/>
           </div>
         ))}
         <div style={{textAlign:"center",paddingTop:18}}>
-          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>PAR</div>
-          <div style={{fontSize:15,fontWeight:900,color:TEXT,fontFamily:"monospace"}}>{course.par?.reduce((a,b)=>a+b,0)||"—"}</div>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)"}}>PAR</div>
+          <div style={{fontSize:15,fontWeight:900,color:TEXT,fontFamily:"var(--mono)"}}>{course.par?.reduce((a,b)=>a+b,0)||"—"}</div>
         </div>
       </div>
       {["par","hcp","yardage"].map(field=>(
         <div key={field} style={{marginBottom:12}}>
-          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>{field==="par"?"PAR PER HOLE":field==="hcp"?"HANDICAP INDEX":"YARDAGE"}</div>
+          <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:6}}>{field==="par"?"PAR PER HOLE":field==="hcp"?"HANDICAP INDEX":"YARDAGE"}</div>
           <div style={{overflowX:"auto"}}>
             <div style={{display:"flex",gap:3,minWidth:"max-content"}}>
               {Array.from({length:18},(_,i)=>(
                 <div key={i} style={{textAlign:"center"}}>
-                  <div style={{fontSize:8,color:MUTED,marginBottom:2,fontFamily:"monospace"}}>{i+1}</div>
+                  <div style={{fontSize:8,color:MUTED,marginBottom:2,fontFamily:"var(--mono)"}}>{i+1}</div>
                   <input type="number" min={field==="par"?3:field==="hcp"?1:1} max={field==="par"?5:field==="hcp"?18:700}
                     value={field==="yardage"?(course.yardage?.[i]??""):(course[field]?.[i]||(field==="par"?4:i+1))}
                     placeholder={field==="yardage"?"—":undefined}
@@ -431,32 +431,32 @@ function AdminRounds({ initDays, cupPlayers, onSave, onBack }) {
   const togglePlayer = (di, ri, gi, name) => setGroup(di, ri, gi, g=>({...g, players:g.players.includes(name)?g.players.filter(n=>n!==name):[...g.players,name]}));
 
   const chip = on => ({padding:"5px 9px",background:on?GOLD:"none",border:`1px solid ${on?GOLD:BORDER}`,borderRadius:6,color:on?"#000":MUTED,fontSize:11,cursor:"pointer",fontWeight:on?800:400});
-  const dashed = {flex:1,padding:"8px",background:"none",border:`1px dashed ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"};
+  const dashed = {flex:1,padding:"8px",background:"none",border:`1px dashed ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"var(--mono)"};
 
   return (
     <div>
       <AdminHeader title="Edit Rounds" onBack={onBack} onSave={handleSave} saving={saving}/>
       {days.map((day,di)=>(
         <div key={di} style={{marginBottom:16}}>
-          <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
+          <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
           {day.rounds.map((r,ri)=>(
             <div key={ri} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,padding:12,marginBottom:8}}>
               {day.rounds.length>1&&
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                  <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>ROUND {ri+1}</div>
+                  <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)"}}>ROUND {ri+1}</div>
                   <button onClick={()=>removeRound(di,ri)} title="Remove this round (deletes its matches and scores)"
                     style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
                 </div>}
               {isWarmup(r) ? (
                 <div>
-                  <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",marginBottom:8}}>WARMUP · no points · tee-time groups</div>
+                  <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",marginBottom:8}}>WARMUP · no points · tee-time groups</div>
                   {(r.groups||[]).map((g,gi)=>{
                     // A player can only be in one group per warmup.
                     const taken = new Set((r.groups||[]).flatMap((x,k)=>k===gi?[]:x.players||[]));
                     return (
                       <div key={gi} style={{borderTop:`1px solid ${BORDER}`,padding:"8px 0"}}>
                         <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
-                          <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>GROUP {gi+1}</div>
+                          <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)"}}>GROUP {gi+1}</div>
                           <input value={g.teeTime||""} placeholder="Tee time" onChange={e=>setGroup(di,ri,gi,x=>({...x,teeTime:e.target.value}))}
                             style={{flex:1,padding:"5px 8px",background:"none",border:`1px solid ${BORDER}`,borderRadius:6,color:TEXT,fontSize:12,outline:"none",minWidth:0}}/>
                           <button onClick={()=>setRound(di,ri,x=>({...x,groups:(x.groups||[]).filter((_,k)=>k!==gi)}))} title="Remove group"
@@ -476,7 +476,7 @@ function AdminRounds({ initDays, cupPlayers, onSave, onBack }) {
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 {["2v2 Best Ball","Singles","Scramble","Shamble"].map(f=>(
                   <button key={f} onClick={()=>setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,rounds:d.rounds.map((x,j)=>j!==ri?x:{...x,format:f})}))}
-                    style={{padding:"6px 12px",background:r.format===f?GOLD:"none",border:`1px solid ${r.format===f?GOLD:BORDER}`,borderRadius:6,color:r.format===f?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace",fontWeight:r.format===f?800:400}}>
+                    style={{padding:"6px 12px",background:r.format===f?GOLD:"none",border:`1px solid ${r.format===f?GOLD:BORDER}`,borderRadius:6,color:r.format===f?"#000":MUTED,fontSize:11,cursor:"pointer",fontFamily:"var(--mono)",fontWeight:r.format===f?800:400}}>
                     {f}
                   </button>
                 ))}
@@ -630,7 +630,7 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
             const n=parseFloat(e.target.value);
             if(isNaN(n)) setVal(0); else setVal(Math.round(n*10)/10);
           }}
-          style={{width:44,height:28,background:CARD2,border:`1px solid ${BORDER}`,borderLeft:"none",borderRight:"none",textAlign:"center",fontSize:12,fontWeight:800,color,fontFamily:"monospace",outline:"none",MozAppearance:"textfield"}}
+          style={{width:44,height:28,background:CARD2,border:`1px solid ${BORDER}`,borderLeft:"none",borderRight:"none",textAlign:"center",fontSize:12,fontWeight:800,color,fontFamily:"var(--mono)",outline:"none",MozAppearance:"textfield"}}
         />
         <button onClick={()=>adj(0.1)} style={{width:22,height:28,background:"none",border:`1px solid ${BORDER}`,borderRadius:"0 6px 6px 0",color:MUTED,cursor:"pointer",fontSize:12,lineHeight:1}}>+</button>
       </div>
@@ -642,10 +642,10 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
       <AdminHeader title="Edit Matchups" onBack={onBack} onSave={handleSave} saving={saving}/>
       {days.map((day,di)=>(
         <div key={di} style={{marginBottom:16}}>
-          <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
+          <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
           {day.rounds.map((r,ri)=>{
             if (isWarmup(r)) return (
-              <div key={ri} style={{marginBottom:10,fontSize:10,color:MUTED,fontFamily:"monospace"}}>ROUND {ri+1} · WARMUP — tee-time groups and scores only, no matches or points</div>
+              <div key={ri} style={{marginBottom:10,fontSize:10,color:MUTED,fontFamily:"var(--mono)"}}>ROUND {ri+1} · WARMUP — tee-time groups and scores only, no matches or points</div>
             );
             const rMs=day.matches.filter(m=>(m.roundIdx??0)===ri);
             const isSingles=r.format==="Singles";
@@ -654,10 +654,10 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
               <div key={ri} style={{marginBottom:10}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
                   {day.rounds.length>1
-                    ? <div style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>ROUND {ri+1} · {r.format}</div>
+                    ? <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)"}}>ROUND {ri+1} · {r.format}</div>
                     : <div/>}
                   <button onClick={()=>recalcHcps(di,ri)}
-                    style={{padding:"4px 10px",background:"none",border:`1px solid ${GOLD}`,borderRadius:6,color:"var(--gold-text)",fontSize:9,fontWeight:800,cursor:"pointer",fontFamily:"monospace",letterSpacing:0.5}}>
+                    style={{padding:"4px 10px",background:"none",border:`1px solid ${GOLD}`,borderRadius:6,color:"var(--gold-text)",fontSize:9,fontWeight:800,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:0.5}}>
                     ⟳ RECALC HCPs
                   </button>
                 </div>
@@ -666,11 +666,11 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
                       <div style={{display:"flex",alignItems:"center",gap:4}}>
                         <input value={m.teeTime||""} onChange={e=>setField(di,m.id,"teeTime",e.target.value)} placeholder="Tee time"
-                          style={{width:70,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"monospace"}}/>
+                          style={{width:70,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"var(--mono)"}}/>
                         <input type="number" min={1} max={18} value={(m.startHole||0)+1}
                           onChange={e=>{const n=parseInt(e.target.value,10); setField(di,m.id,"startHole", isNaN(n)?0:Math.min(18,Math.max(1,n))-1);}}
                           title="Starting hole (for shotgun/split starts — rest of the round follows in order from here)" placeholder="Hole 1"
-                          style={{width:44,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"monospace"}}/>
+                          style={{width:44,padding:"3px 6px",background:"none",border:`1px solid ${BORDER}`,borderRadius:4,color:TEXT,fontSize:10,outline:"none",fontFamily:"var(--mono)"}}/>
                         <div style={{display:"flex",flexDirection:"column",gap:1}}>
                           <button onClick={()=>moveMatch(di,m.id,-1,ri)} disabled={mi===0}
                             style={{width:20,height:18,background:"none",border:`1px solid ${BORDER}`,borderRadius:3,color:mi===0?"var(--faint)":MUTED,cursor:mi===0?"default":"pointer",fontSize:9,lineHeight:1,padding:0}}>▲</button>
@@ -686,9 +686,9 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
                           const t=side==="A"?sidesOf(m).a:sidesOf(m).b;
                           return (
                             <div key={side} style={{flex:1,display:"flex",alignItems:"center",gap:4,minWidth:0}}>
-                              {side==="B"&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",flexShrink:0}}>vs</span>}
+                              {side==="B"&&<span style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",flexShrink:0}}>vs</span>}
                               <select value={t.id} onChange={e=>setSideTeam(di,m.id,side,e.target.value)}
-                                style={{flex:1,padding:"4px 6px",background:CARD2,border:`1px solid ${t.colorDisp}`,borderRadius:6,color:t.colorDisp,fontSize:10,fontWeight:800,cursor:"pointer",minWidth:0,fontFamily:"monospace"}}>
+                                style={{flex:1,padding:"4px 6px",background:CARD2,border:`1px solid ${t.colorDisp}`,borderRadius:6,color:t.colorDisp,fontSize:10,fontWeight:800,cursor:"pointer",minWidth:0,fontFamily:"var(--mono)"}}>
                                 {teams.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}
                               </select>
                             </div>
@@ -697,7 +697,7 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
                       </div>
                     )}
                     <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:5}}>
-                      <span style={{fontSize:8,color:sidesOf(m).a.colorDisp,fontWeight:800,fontFamily:"monospace",width:pickTeams?24:10,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pickTeams?sidesOf(m).a.short:"A"}</span>
+                      <span style={{fontSize:8,color:sidesOf(m).a.colorDisp,fontWeight:800,fontFamily:"var(--mono)",width:pickTeams?24:10,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pickTeams?sidesOf(m).a.short:"A"}</span>
                       <PSel di={di} matchId={m.id} field="player1a" side="A" isScramble={isScramble} format={r.format}/>
                       {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={sidesOf(m).a.colorDisp}/>}
                       {!isSingles&&<PSel di={di} matchId={m.id} field="player1b" side="A" isScramble={isScramble} format={r.format}/>}
@@ -705,18 +705,18 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
                       {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp1a" color={sidesOf(m).a.colorDisp}/>}
                     </div>
                     <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                      <span style={{fontSize:8,color:sidesOf(m).b.colorDisp,fontWeight:800,fontFamily:"monospace",width:pickTeams?24:10,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pickTeams?sidesOf(m).b.short:"B"}</span>
+                      <span style={{fontSize:8,color:sidesOf(m).b.colorDisp,fontWeight:800,fontFamily:"var(--mono)",width:pickTeams?24:10,flexShrink:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pickTeams?sidesOf(m).b.short:"B"}</span>
                       <PSel di={di} matchId={m.id} field="player2a" side="B" isScramble={isScramble} format={r.format}/>
                       {!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={sidesOf(m).b.colorDisp}/>}
                       {!isSingles&&<PSel di={di} matchId={m.id} field="player2b" side="B" isScramble={isScramble} format={r.format}/>}
                       {!isSingles&&!isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2b" color={sidesOf(m).b.colorDisp}/>}
                       {isScramble&&<HcpStepper di={di} matchId={m.id} field="hcp2a" color={sidesOf(m).b.colorDisp}/>}
                     </div>
-                    {isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>Team HCP (lowest = 0)</div>}
-                    {!isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"monospace"}}>HCP · lowest = 0{r.format==="Shamble"?` · ${SHAMBLE_ALLOWANCE*100}% allowance`:""}</div>}
+                    {isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"var(--mono)"}}>Team HCP (lowest = 0)</div>}
+                    {!isScramble&&<div style={{fontSize:9,color:MUTED,marginTop:4,fontFamily:"var(--mono)"}}>HCP · lowest = 0{r.format==="Shamble"?` · ${SHAMBLE_ALLOWANCE*100}% allowance`:""}</div>}
                   </div>
                 ))}
-                <button onClick={()=>addMatch(di,ri)} style={{width:"100%",padding:"8px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"monospace"}}>+ ADD MATCH</button>
+                <button onClick={()=>addMatch(di,ri)} style={{width:"100%",padding:"8px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:11,cursor:"pointer",fontFamily:"var(--mono)"}}>+ ADD MATCH</button>
               </div>
             );
           })}
@@ -743,7 +743,7 @@ function AdminAdmins({ allPlayers, initAdminPlayers, onSave, onBack }) {
         Players with admin can edit matchups, scores, courses, and settings.
       </div>
       {allPlayers.length === 0 && (
-        <div style={{fontSize:12,color:MUTED,fontFamily:"monospace",padding:"8px 0"}}>No players found. Add players first.</div>
+        <div style={{fontSize:12,color:MUTED,fontFamily:"var(--mono)",padding:"8px 0"}}>No players found. Add players first.</div>
       )}
       {allPlayers.map(name => {
         const isOn = adminPlayers.includes(name);
@@ -751,7 +751,7 @@ function AdminAdmins({ allPlayers, initAdminPlayers, onSave, onBack }) {
           <div key={name} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
             <div style={{fontSize:13,color:TEXT,fontWeight:600}}>{name}</div>
             <button onClick={()=>toggle(name)}
-              style={{padding:"5px 16px",background:isOn?GOLD:"none",border:`1px solid ${isOn?GOLD:BORDER}`,borderRadius:8,color:isOn?"#000":MUTED,fontSize:11,fontWeight:800,cursor:"pointer",fontFamily:"monospace"}}>
+              style={{padding:"5px 16px",background:isOn?GOLD:"none",border:`1px solid ${isOn?GOLD:BORDER}`,borderRadius:8,color:isOn?"#000":MUTED,fontSize:11,fontWeight:800,cursor:"pointer",fontFamily:"var(--mono)"}}>
               {isOn?"ADMIN":"player"}
             </button>
           </div>
@@ -768,7 +768,7 @@ function AdminScores({ days, onOpenMatch, onBack }) {
       <AdminHeader title="Edit Scores" onBack={onBack}/>
       {days.map((day,di)=>(
         <div key={di} style={{marginBottom:16}}>
-          <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
+          <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>{day.label?.toUpperCase()}</div>
           {day.matches.length===0&&<div style={{fontSize:12,color:MUTED,padding:"8px 0"}}>No matches yet.</div>}
           {day.matches.map(m=>(
             <button key={m.id} onClick={()=>onOpenMatch(di,m)}
@@ -1233,7 +1233,7 @@ export default function CupView({ user }) {
   useEffect(()=>{ if(meta?.eventType==="live_match") setTab("matches"); },[meta?.eventType]);
 
   if (!meta||!loaded||isMember===null) {
-    return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><LiveBackground/><div style={{color:MUTED,fontFamily:"monospace"}}>Loading cup...</div></div>;
+    return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><LiveBackground/><div style={{color:MUTED,fontFamily:"var(--mono)"}}>Loading cup...</div></div>;
   }
 
   if (!isMember && meta.createdBy!==user?.uid) {
@@ -1247,14 +1247,14 @@ export default function CupView({ user }) {
       <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
         <LiveBackground/>
         <div style={{width:"100%",maxWidth:360,background:CARD,border:`1px solid ${BORDER}`,borderRadius:18,padding:24,textAlign:"center"}}>
-          <div style={{fontSize:20,fontWeight:900,color:"var(--gold-text)",fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>{meta.name}</div>
+          <div style={{fontSize:20,fontWeight:900,color:"var(--gold-text)",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:6}}>{meta.name}</div>
           <div style={{fontSize:12,color:MUTED,marginBottom:16}}>Enter the cup's invite code to join. The organiser can share it from the cup's admin page.</div>
           <input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} onKeyDown={e=>{if(e.key==="Enter")submitJoin();}}
             placeholder="INVITE CODE" autoCapitalize="characters"
-            style={{width:"100%",padding:"12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,color:TEXT,fontSize:16,fontFamily:"monospace",letterSpacing:3,textAlign:"center",outline:"none",boxSizing:"border-box"}}/>
+            style={{width:"100%",padding:"12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,color:TEXT,fontSize:16,fontFamily:"var(--mono)",letterSpacing:1.5,textAlign:"center",outline:"none",boxSizing:"border-box"}}/>
           {joinError&&<div style={{fontSize:11,color:"#e74c3c",marginTop:8}}>{joinError}</div>}
           <button onClick={submitJoin} disabled={joining||!joinCode.trim()}
-            style={{width:"100%",marginTop:12,padding:"12px",background:GOLD,border:"none",borderRadius:10,color:"#000",fontWeight:900,fontSize:13,cursor:"pointer",fontFamily:"monospace",opacity:joining||!joinCode.trim()?0.5:1}}>
+            style={{width:"100%",marginTop:12,padding:"12px",background:GOLD,border:"none",borderRadius:10,color:"#000",fontWeight:900,fontSize:13,cursor:"pointer",fontFamily:"var(--mono)",opacity:joining||!joinCode.trim()?0.5:1}}>
             {joining?"JOINING…":"JOIN CUP"}
           </button>
           <button onClick={()=>nav("/")} style={{width:"100%",marginTop:10,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>← Back to home</button>
@@ -1314,7 +1314,7 @@ export default function CupView({ user }) {
             {meta.logoUrl
               ? <img src={meta.logoUrl} alt="logo" style={{height:60,objectFit:"contain",marginBottom:8}}/>
               : <div style={{fontSize:40,marginBottom:8}}>⛳</div>}
-            <div style={{fontSize:22,fontWeight:900,color:"var(--gold-text)",fontFamily:"monospace",letterSpacing:2}}>{meta.name}</div>
+            <div style={{fontSize:22,fontWeight:900,color:"var(--gold-text)",fontFamily:"var(--mono)",letterSpacing:1}}>{meta.name}</div>
             <div style={{fontSize:12,color:MUTED,marginTop:6,display:"flex",flexWrap:"wrap",justifyContent:"center",alignItems:"center",gap:4}}>
               {teams.map((t,i)=>(
                 <span key={t.id}>
@@ -1381,14 +1381,14 @@ export default function CupView({ user }) {
   })();
 
   return (
-    <div style={{minHeight:"100vh",color:TEXT,paddingBottom:60,fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
+    <div style={{minHeight:"100vh",color:TEXT,paddingBottom:60,fontFamily:"var(--sans)"}}>
       <LiveBackground/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}@keyframes celebFade{to{opacity:0;pointer-events:none}}*{box-sizing:border-box;margin:0;padding:0}`}</style>
 
       {matchCelebration&&(
         <div style={{position:"fixed",inset:0,zIndex:1000,background:matchCelebration.color,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",animation:"celebFade 0.3s ease 1.2s forwards",pointerEvents:"none"}}>
-          <div style={{fontSize:42,fontWeight:900,color:"#fff",fontFamily:"monospace",letterSpacing:3,textAlign:"center",padding:"0 20px"}}>{matchCelebration.label}</div>
-          <div style={{fontSize:22,color:"rgba(255,255,255,0.85)",fontFamily:"monospace",marginTop:10}}>{matchCelebration.sublabel}</div>
+          <div style={{fontSize:42,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",letterSpacing:1.5,textAlign:"center",padding:"0 20px"}}>{matchCelebration.label}</div>
+          <div style={{fontSize:22,color:"rgba(255,255,255,0.85)",fontFamily:"var(--mono)",marginTop:10}}>{matchCelebration.sublabel}</div>
         </div>
       )}
 
@@ -1408,19 +1408,19 @@ export default function CupView({ user }) {
           <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
             {liveCount>0&&<div style={{fontSize:9,color:"#4caf50",fontWeight:700,animation:"pulse 2s infinite",letterSpacing:1}}>● {liveCount} LIVE</div>}
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
-              {offlineQueue.length>0&&<div style={{fontSize:8,color:"#f39c12",fontFamily:"monospace",fontWeight:700}}>⚡{offlineQueue.length}</div>}
-              {syncStatus==="synced"&&<div style={{fontSize:8,color:"#4caf50",fontFamily:"monospace"}}>✓</div>}
+              {offlineQueue.length>0&&<div style={{fontSize:8,color:"#f39c12",fontFamily:"var(--mono)",fontWeight:700}}>⚡{offlineQueue.length}</div>}
+              {syncStatus==="synced"&&<div style={{fontSize:8,color:"#4caf50",fontFamily:"var(--mono)"}}>✓</div>}
               {pushSupported&&<button onClick={()=>togglePush(pushState!=="on")} aria-label={pushState==="on"?"Turn off notifications":"Turn on notifications"}
                 style={{fontSize:14,background:"none",border:"none",cursor:"pointer",padding:"1px 4px",lineHeight:1,opacity:pushState==="on"?1:0.45}}>{pushState==="on"?"🔔":"🔕"}</button>}
               <button onClick={toggle} style={{fontSize:14,background:"none",border:"none",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>{theme==="dark"?"☀️":"🌙"}</button>
-              <button onClick={()=>setCurrentPlayer("")} style={{fontSize:9,padding:"3px 8px",background:`${playerTeamColor}22`,border:`1px solid ${playerTeamColor}55`,borderRadius:5,color:TEXT,cursor:"pointer",fontFamily:"monospace",whiteSpace:"nowrap"}}>
+              <button onClick={()=>setCurrentPlayer("")} style={{fontSize:9,padding:"3px 8px",background:`${playerTeamColor}22`,border:`1px solid ${playerTeamColor}55`,borderRadius:5,color:TEXT,cursor:"pointer",fontFamily:"var(--mono)",whiteSpace:"nowrap"}}>
                 👤 {currentPlayer} ✕
               </button>
             </div>
           </div>
         </div>
 
-        {winner&&<div style={{background:`${GOLD}22`,borderTop:`1px solid ${GOLD}44`,borderBottom:`1px solid ${GOLD}44`,padding:"7px",textAlign:"center"}}><div style={{fontSize:14,fontWeight:900,color:"var(--gold-text)",letterSpacing:2}}>🏆 {winner} {meta.eventType==="live_match"?"WINS THE MATCH!":"WINS THE CUP!"}</div></div>}
+        {winner&&<div style={{background:`${GOLD}22`,borderTop:`1px solid ${GOLD}44`,borderBottom:`1px solid ${GOLD}44`,padding:"7px",textAlign:"center"}}><div style={{fontSize:14,fontWeight:900,color:"var(--gold-text)",letterSpacing:1}}>🏆 {winner} {meta.eventType==="live_match"?"WINS THE MATCH!":"WINS THE CUP!"}</div></div>}
 
         {/* One-time offer of notifications, until this phone says yes or no
             (the bell in the header changes it later). */}
@@ -1428,7 +1428,7 @@ export default function CupView({ user }) {
           <div style={{display:"flex",alignItems:"center",gap:8,background:"var(--panel-c)",borderBottom:`1px solid ${BORDER}`,padding:"8px 10px"}}>
             <div style={{fontSize:16}}>🔔</div>
             <div style={{flex:1,fontSize:11,color:TEXT,lineHeight:1.35}}>Get notified as each match finishes, with standings at the end of every day.</div>
-            <button onClick={()=>togglePush(true)} style={{fontSize:10,fontWeight:900,padding:"6px 10px",background:GOLD,border:"none",borderRadius:6,color:"#000",cursor:"pointer",fontFamily:"monospace",whiteSpace:"nowrap"}}>TURN ON</button>
+            <button onClick={()=>togglePush(true)} style={{fontSize:10,fontWeight:900,padding:"6px 10px",background:GOLD,border:"none",borderRadius:6,color:"#000",cursor:"pointer",fontFamily:"var(--mono)",whiteSpace:"nowrap"}}>TURN ON</button>
             <button onClick={()=>togglePush(false)} aria-label="No thanks" style={{fontSize:12,background:"none",border:"none",color:MUTED,cursor:"pointer",padding:"4px"}}>✕</button>
           </div>
         )}
@@ -1439,18 +1439,18 @@ export default function CupView({ user }) {
           return (
             <div style={{display:"flex",alignItems:"stretch"}}>
               <div style={{flex:1,background:a.color,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",minWidth:0}}>
-                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(a.color)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{a.name}</div>
-                <div style={{fontSize:36,fontWeight:900,color:contrastText(a.color),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(pa.actual)}</div>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(a.color)}cc`,letterSpacing:1,fontFamily:"var(--mono)",lineHeight:1.2,wordBreak:"break-word"}}>{a.name}</div>
+                <div style={{fontSize:36,fontWeight:900,color:contrastText(a.color),fontFamily:"var(--mono)",lineHeight:1,marginTop:2}}>{fmt(pa.actual)}</div>
               </div>
               <div style={{background:"var(--panel-c)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 8px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:96}}>
-                <div style={{fontSize:8,color:"var(--muted2)",fontFamily:"monospace",letterSpacing:0.5,marginBottom:2,fontWeight:700}}>PROJECTED</div>
-                <div style={{fontSize:16,fontWeight:900,fontFamily:"monospace",color:pa.proj>pb.proj?a.colorDisp:pb.proj>pa.proj?b.colorDisp:"var(--text)",whiteSpace:"nowrap",fontVariantNumeric:"tabular-nums"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
-                {projWinner&&<div style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",marginTop:1,whiteSpace:"nowrap",fontWeight:700}}>→ {projWinner}</div>}
-                <div style={{fontSize:11,color:"var(--gold-text)",marginTop:4,fontFamily:"monospace",whiteSpace:"nowrap",fontWeight:800,background:`${GOLD}1f`,borderRadius:4,padding:"1px 6px"}}>WIN: {fmt(winTarget)}</div>
+                <div style={{fontSize:8,color:"var(--muted2)",fontFamily:"var(--mono)",letterSpacing:0.5,marginBottom:2,fontWeight:700}}>PROJECTED</div>
+                <div style={{fontSize:16,fontWeight:900,fontFamily:"var(--mono)",color:pa.proj>pb.proj?a.colorDisp:pb.proj>pa.proj?b.colorDisp:"var(--text)",whiteSpace:"nowrap",fontVariantNumeric:"tabular-nums"}}>{fmt(pa.proj)}–{fmt(pb.proj)}</div>
+                {projWinner&&<div style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",marginTop:1,whiteSpace:"nowrap",fontWeight:700}}>→ {projWinner}</div>}
+                <div style={{fontSize:11,color:"var(--gold-text)",marginTop:4,fontFamily:"var(--mono)",whiteSpace:"nowrap",fontWeight:800,background:`${GOLD}1f`,borderRadius:4,padding:"1px 6px"}}>WIN: {fmt(winTarget)}</div>
               </div>
               <div style={{flex:1,background:b.color,padding:"8px 10px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"flex-end",minWidth:0}}>
-                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(b.color)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{b.name}</div>
-                <div style={{fontSize:36,fontWeight:900,color:contrastText(b.color),fontFamily:"monospace",lineHeight:1,marginTop:2}}>{fmt(pb.actual)}</div>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(b.color)}cc`,letterSpacing:1,fontFamily:"var(--mono)",lineHeight:1.2,wordBreak:"break-word",textAlign:"right"}}>{b.name}</div>
+                <div style={{fontSize:36,fontWeight:900,color:contrastText(b.color),fontFamily:"var(--mono)",lineHeight:1,marginTop:2}}>{fmt(pb.actual)}</div>
               </div>
             </div>
           );
@@ -1461,8 +1461,8 @@ export default function CupView({ user }) {
         {meta.eventType!=="live_match"&&!twoTeam&&(
           <div>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"var(--panel-c)",padding:"4px 10px",borderBottom:`1px solid ${BORDER}`}}>
-              <div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace",letterSpacing:2}}>STANDINGS</div>
-              <div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace",letterSpacing:1}}>
+              <div style={{fontSize:7,color:"var(--muted)",fontFamily:"var(--mono)",letterSpacing:1}}>STANDINGS</div>
+              <div style={{fontSize:7,color:"var(--muted)",fontFamily:"var(--mono)",letterSpacing:1}}>
                 PTS · PROJ{projWinner?` · → ${projWinner}`:""}
               </div>
             </div>
@@ -1475,16 +1475,16 @@ export default function CupView({ user }) {
               const txt=contrastText(r.team.color);
               return (
                 <div key={r.team.id} style={{display:"flex",alignItems:"center",background:r.team.color,padding:"7px 10px",gap:8,borderBottom:i<teamRows.length-1?"1px solid #0006":"none"}}>
-                  <div style={{fontSize:9,fontWeight:900,color:`${txt}88`,fontFamily:"monospace",width:14,flexShrink:0}}>{rank}</div>
+                  <div style={{fontSize:9,fontWeight:900,color:`${txt}88`,fontFamily:"var(--mono)",width:14,flexShrink:0}}>{rank}</div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:11,fontWeight:900,color:txt,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.team.name}</div>
+                    <div style={{fontSize:11,fontWeight:900,color:txt,letterSpacing:1,fontFamily:"var(--mono)",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.team.name}</div>
                     {/* What this team needs to be sure of the cup — no fixed
                         target exists with 3+ teams, so each gets its own. */}
                     {!winner&&(r.out||r.toWin!=null)&&
-                      <div style={{fontSize:10,fontWeight:800,color:`${txt}dd`,fontFamily:"monospace",letterSpacing:0.5,marginTop:2}}>{r.out?"ELIMINATED":`WIN: ${fmt(r.toWin)}`}</div>}
+                      <div style={{fontSize:10,fontWeight:800,color:`${txt}dd`,fontFamily:"var(--mono)",letterSpacing:0.5,marginTop:2}}>{r.out?"ELIMINATED":`WIN: ${fmt(r.toWin)}`}</div>}
                   </div>
-                  <div style={{fontSize:9,color:`${txt}99`,fontFamily:"monospace",whiteSpace:"nowrap",flexShrink:0}}>proj {fmt(r.proj)}</div>
-                  <div style={{fontSize:24,fontWeight:900,color:txt,fontFamily:"monospace",lineHeight:1,minWidth:40,textAlign:"right",flexShrink:0}}>{fmt(r.actual)}</div>
+                  <div style={{fontSize:9,color:`${txt}99`,fontFamily:"var(--mono)",whiteSpace:"nowrap",flexShrink:0}}>proj {fmt(r.proj)}</div>
+                  <div style={{fontSize:24,fontWeight:900,color:txt,fontFamily:"var(--mono)",lineHeight:1,minWidth:40,textAlign:"right",flexShrink:0}}>{fmt(r.actual)}</div>
                   {isLead&&<div style={{fontSize:10,flexShrink:0}}>👑</div>}
                 </div>
               );
@@ -1500,17 +1500,17 @@ export default function CupView({ user }) {
           return (
             <div style={{display:"flex",alignItems:"stretch"}}>
               <div style={{flex:1,background:cup.teamAColor,padding:"8px 10px",minWidth:0}}>
-                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamAColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{cup.teamAName}</div>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamAColor)}cc`,letterSpacing:1,fontFamily:"var(--mono)",lineHeight:1.2,wordBreak:"break-word"}}>{cup.teamAName}</div>
               </div>
               <div style={{background:"var(--panel-c)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"6px 10px",borderLeft:`1px solid ${BORDER}`,borderRight:`1px solid ${BORDER}`,flexShrink:0,minWidth:80}}>
-                {!st||st.state==="pending"?<div style={{fontSize:8,color:"var(--muted)",fontFamily:"monospace",letterSpacing:1}}>NOT STARTED</div>:null}
-                {st?.state==="live"&&<><div style={{fontSize:7,color:"var(--muted)",fontFamily:"monospace"}}>THRU {st.holesPlayed}</div><div style={{fontSize:18,fontWeight:900,color:"#fff",fontFamily:"monospace",lineHeight:1}}>{!st.leader?"AS":`${st.up}UP`}</div><div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:3,animation:"pulse 1.5s infinite"}}/></>}
-                {st?.state==="complete"&&<><div style={{fontSize:7,color:"var(--gold-text)",fontFamily:"monospace",fontWeight:700}}>WIN</div><div style={{fontSize:14,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{st.sublabel}</div></>}
-                {st?.state==="halved"&&<div style={{fontSize:10,fontWeight:900,color:"var(--muted-b)",fontFamily:"monospace"}}>HALVED</div>}
-                {st?.state==="extra"&&<><div style={{fontSize:7,color:"var(--gold-text)",fontFamily:"monospace",fontWeight:700}}>PLAYOFF</div><div style={{fontSize:12,fontWeight:900,color:"#fff",fontFamily:"monospace"}}>{st.sublabel}</div></>}
+                {!st||st.state==="pending"?<div style={{fontSize:8,color:"var(--muted)",fontFamily:"var(--mono)",letterSpacing:1}}>NOT STARTED</div>:null}
+                {st?.state==="live"&&<><div style={{fontSize:7,color:"var(--muted)",fontFamily:"var(--mono)"}}>THRU {st.holesPlayed}</div><div style={{fontSize:18,fontWeight:900,color:"#fff",fontFamily:"var(--mono)",lineHeight:1}}>{!st.leader?"AS":`${st.up}UP`}</div><div style={{width:5,height:5,borderRadius:"50%",background:"#4caf50",marginTop:3,animation:"pulse 1.5s infinite"}}/></>}
+                {st?.state==="complete"&&<><div style={{fontSize:7,color:"var(--gold-text)",fontFamily:"var(--mono)",fontWeight:700}}>WIN</div><div style={{fontSize:14,fontWeight:900,color:"#fff",fontFamily:"var(--mono)"}}>{st.sublabel}</div></>}
+                {st?.state==="halved"&&<div style={{fontSize:10,fontWeight:900,color:"var(--muted-b)",fontFamily:"var(--mono)"}}>HALVED</div>}
+                {st?.state==="extra"&&<><div style={{fontSize:7,color:"var(--gold-text)",fontFamily:"var(--mono)",fontWeight:700}}>PLAYOFF</div><div style={{fontSize:12,fontWeight:900,color:"#fff",fontFamily:"var(--mono)"}}>{st.sublabel}</div></>}
               </div>
               <div style={{flex:1,background:cup.teamBColor,padding:"8px 10px",minWidth:0,textAlign:"right"}}>
-                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamBColor)}cc`,letterSpacing:1,fontFamily:"monospace",lineHeight:1.2,wordBreak:"break-word"}}>{cup.teamBName}</div>
+                <div style={{fontSize:10,fontWeight:900,color:`${contrastText(cup.teamBColor)}cc`,letterSpacing:1,fontFamily:"var(--mono)",lineHeight:1.2,wordBreak:"break-word"}}>{cup.teamBName}</div>
               </div>
             </div>
           );
@@ -1525,7 +1525,7 @@ export default function CupView({ user }) {
           ...(isAdmin?[["admin","⚙️ ADMIN"]]:[]),
           ...(meta.eventType!=="live_match"?[["leaderboard","🏌️ SCORES"]]:[]),
         ].map(([key,label])=>(
-          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:MUTED,fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"monospace"}}>{label}</button>
+          <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"11px 2px",background:"none",border:"none",borderBottom:tab===key?`2px solid ${GOLD}`:"2px solid transparent",color:tab===key?GOLD:MUTED,fontWeight:700,fontSize:9,letterSpacing:1,cursor:"pointer",fontFamily:"var(--mono)"}}>{label}</button>
         ))}
       </div>
 
@@ -1537,7 +1537,7 @@ export default function CupView({ user }) {
             {days.length>1&&<div style={{display:"flex",gap:6,marginBottom:12}}>
               {days.map((d,i)=>(
                 <button key={i} onClick={()=>setBoardDayOverride(i)}
-                  style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"var(--muted)",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
+                  style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"var(--muted)",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:1}}>
                   {d.label?.toUpperCase()||`DAY ${i+1}`}
                 </button>
               ))}
@@ -1553,7 +1553,7 @@ export default function CupView({ user }) {
             {/* Hole-by-hole breakdown */}
             {boardDay&&boardDay.matches.length>0&&(
               <div>
-                <div style={{marginTop:16,marginBottom:4,fontSize:9,color:"var(--gold-dim)",fontFamily:"monospace",letterSpacing:2,}}>HOLE BY HOLE</div>
+                <div style={{marginTop:16,marginBottom:4,fontSize:9,color:"var(--gold-dim)",fontFamily:"var(--mono)",letterSpacing:1,}}>HOLE BY HOLE</div>
                 {[...boardDay.matches].sort((a,b)=>{const toMin=teeMinutes;return toMin(a.teeTime)-toMin(b.teeTime);}).map((m,mi)=>{
                   const mRound=boardDay.rounds?.[m.roundIdx??0];
                   const course=getCourse(boardDay,m);
@@ -1592,7 +1592,7 @@ export default function CupView({ user }) {
               return (
                 <div>
                   <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:16,marginBottom:12}}>
-                    <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:2,marginBottom:8}}>{d.label?.toUpperCase()}</div>
+                    <div style={{fontSize:9,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>{d.label?.toUpperCase()}</div>
                     <MatchCard match={m} teams={teams} onOpen={()=>{}} canEdit={false} round={round} showTeamLabels={!twoTeam}/>
                     {companion&&(
                       <div style={{background:CARD2,borderRadius:8,padding:"8px 10px",marginBottom:10,fontSize:11,color:MUTED}}>
@@ -1602,25 +1602,25 @@ export default function CupView({ user }) {
                     <button onClick={()=>{
                       if(companion)setActiveGroup({dayIdx:playerMatch.dayIdx,matchIds:[m.id,companion.id]});
                       else setActiveMatch(playerMatch);
-                    }} style={{width:"100%",padding:"13px",background:`linear-gradient(135deg,${sides.teamAColor},${sides.teamBColor})`,border:"none",borderRadius:12,color:"#fff",fontWeight:900,fontSize:14,cursor:"pointer",letterSpacing:1,fontFamily:"monospace",marginTop:8}}>
+                    }} style={{width:"100%",padding:"13px",background:`linear-gradient(135deg,${sides.teamAColor},${sides.teamBColor})`,border:"none",borderRadius:12,color:"#fff",fontWeight:900,fontSize:14,cursor:"pointer",letterSpacing:1,fontFamily:"var(--mono)",marginTop:8}}>
                       {st.state==="pending"?"START SCORING":"ENTER SCORES →"}
                     </button>
                   </div>
-                  {meta.eventType!=="live_match"&&<div style={{textAlign:"center",fontSize:10,color:MUTED,fontFamily:"monospace"}}>{doneMatches}/{totalMatches} matches complete</div>}
+                  {meta.eventType!=="live_match"&&<div style={{textAlign:"center",fontSize:10,color:MUTED,fontFamily:"var(--mono)"}}>{doneMatches}/{totalMatches} matches complete</div>}
                   {meta.eventType==="live_match"&&meta.inviteCode&&(()=>{
                     const joinUrl=`https://dormie-golf.vercel.app/join/${meta.inviteCode}`;
                     const canShare=typeof navigator!=="undefined"&&!!navigator.share;
                     return (
                       <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginTop:4}}>
-                        <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>SHARE WITH SPECTATORS</div>
+                        <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:10}}>SHARE WITH SPECTATORS</div>
                         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                          <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{joinUrl}</div>
+                          <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"var(--mono)",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{joinUrl}</div>
                           <button onClick={()=>navigator.clipboard?.writeText(joinUrl)}
                             style={{padding:"9px 12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:"var(--gold-text)",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>Copy</button>
                         </div>
                         {canShare&&(
                           <button onClick={()=>navigator.share({url:joinUrl,title:meta.name})}
-                            style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${GOLD},${GOLD}88)`,border:"none",borderRadius:10,color:"#000",fontWeight:900,fontSize:13,cursor:"pointer",letterSpacing:1,fontFamily:"monospace"}}>
+                            style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${GOLD},${GOLD}88)`,border:"none",borderRadius:10,color:"#000",fontWeight:900,fontSize:13,cursor:"pointer",letterSpacing:1,fontFamily:"var(--mono)"}}>
                             ↗ Share Link
                           </button>
                         )}
@@ -1628,9 +1628,9 @@ export default function CupView({ user }) {
                           const watchUrl=`https://dormie-golf.vercel.app/watch/${cupId}`;
                           return (
                             <div style={{marginTop:14,paddingTop:14,borderTop:`1px solid ${BORDER}`}}>
-                              <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>VIEW-ONLY LINK · no sign-in needed</div>
+                              <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>VIEW-ONLY LINK · no sign-in needed</div>
                               <div style={{display:"flex",alignItems:"center",gap:8}}>
-                                <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{watchUrl}</div>
+                                <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"var(--mono)",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{watchUrl}</div>
                                 <button onClick={()=>navigator.clipboard?.writeText(watchUrl)}
                                   style={{padding:"9px 12px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:"var(--gold-text)",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>Copy</button>
                               </div>
@@ -1652,7 +1652,7 @@ export default function CupView({ user }) {
             {adminSection===null&&(<>
               {/* Logo */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>CUP LOGO</div>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:10}}>CUP LOGO</div>
                 <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
                   <div style={{width:56,height:56,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
                     {meta.logoUrl?<img src={meta.logoUrl} alt="logo" style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<div style={{fontSize:28}}>⛳</div>}
@@ -1680,15 +1680,15 @@ export default function CupView({ user }) {
                 const joinUrl = `https://dormie-golf.vercel.app/join/${meta.inviteCode}`;
                 return (
                   <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-                    <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:8}}>INVITE</div>
+                    <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:8}}>INVITE</div>
                     {/* Code display */}
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                      <div style={{flex:1,padding:"12px 14px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:26,fontWeight:900,color:"var(--gold-text)",letterSpacing:4,textAlign:"center"}}>{meta.inviteCode}</div>
+                      <div style={{flex:1,padding:"12px 14px",background:CARD2,borderRadius:8,fontFamily:"var(--mono)",fontSize:26,fontWeight:900,color:"var(--gold-text)",letterSpacing:4,textAlign:"center"}}>{meta.inviteCode}</div>
                       <button onClick={()=>navigator.clipboard?.writeText(meta.inviteCode)} style={{padding:"12px 14px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:"var(--gold-text)",fontSize:12,cursor:"pointer",fontWeight:700}}>Code</button>
                     </div>
                     {/* Share link */}
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-                      <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"monospace",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{joinUrl}</div>
+                      <div style={{flex:1,padding:"9px 12px",background:CARD2,borderRadius:8,fontFamily:"var(--mono)",fontSize:10,color:MUTED,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{joinUrl}</div>
                       <button onClick={()=>navigator.clipboard?.writeText(joinUrl)} style={{padding:"9px 14px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:"var(--gold-text)",fontSize:12,cursor:"pointer",fontWeight:700,flexShrink:0}}>Link</button>
                     </div>
                     {/* QR code */}
@@ -1704,12 +1704,12 @@ export default function CupView({ user }) {
 
               {/* Cup Settings */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>TEAMS</div>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:12}}>TEAMS</div>
                 {teams.map((t,ti)=>(
                   <div key={t.id} style={{marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${BORDER}`}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                       <div style={{width:12,height:12,borderRadius:"50%",background:t.color,flexShrink:0}}/>
-                      <div style={{fontSize:10,color:MUTED,fontFamily:"monospace",letterSpacing:1,flex:1}}>TEAM {ti+1}</div>
+                      <div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,flex:1}}>TEAM {ti+1}</div>
                       {teams.length>2&&(
                         <button onClick={()=>removeTeam(t)} title="Remove this team"
                           style={{background:"none",border:"none",color:"#e74c3c",cursor:"pointer",fontSize:15,lineHeight:1,padding:0}}>×</button>
@@ -1726,7 +1726,7 @@ export default function CupView({ user }) {
                         <div style={{fontSize:10,color:MUTED,marginBottom:4,fontWeight:700}}>NICKNAME</div>
                         <input defaultValue={t.short} maxLength={8} placeholder="auto"
                           onBlur={e=>saveTeam(ti,{short:e.target.value.trim()||autoShort(t.name,t.id)})}
-                          style={{width:"100%",padding:"7px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"monospace",fontWeight:700}}/>
+                          style={{width:"100%",padding:"7px 10px",background:CARD2,border:`1px solid ${BORDER}`,borderRadius:8,color:TEXT,fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"var(--mono)",fontWeight:700}}/>
                       </div>
                     </div>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
@@ -1744,7 +1744,7 @@ export default function CupView({ user }) {
                 ))}
                 {teams.length<MAX_TEAMS&&(
                   <button onClick={addTeam}
-                    style={{width:"100%",marginBottom:16,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"monospace"}}>
+                    style={{width:"100%",marginBottom:16,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:8,color:MUTED,fontSize:12,cursor:"pointer",fontFamily:"var(--mono)"}}>
                     + ADD TEAM
                   </button>
                 )}
@@ -1758,7 +1758,7 @@ export default function CupView({ user }) {
 
               {/* Admin sections grid */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-                <div style={{fontSize:11,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:12}}>MANAGE CUP</div>
+                <div style={{fontSize:11,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:12}}>MANAGE CUP</div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                   {[
                     {label:"Players & Handicaps",icon:"👥",key:"players"},
@@ -1779,15 +1779,15 @@ export default function CupView({ user }) {
 
               {/* Match score reset (destructive, kept separate) */}
               <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:16,marginBottom:12}}>
-                <div style={{fontSize:11,color:"#e74c3c",fontFamily:"monospace",letterSpacing:1,marginBottom:10}}>RESET SCORES</div>
+                <div style={{fontSize:11,color:"#e74c3c",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:10}}>RESET SCORES</div>
                 {days.map((day,di)=>(
                   <div key={di} style={{marginBottom:di<days.length-1?12:0}}>
-                    {days.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"monospace",marginBottom:6}}>{day.label?.toUpperCase()}</div>}
+                    {days.length>1&&<div style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)",marginBottom:6}}>{day.label?.toUpperCase()}</div>}
                     {(day.rounds||[]).filter(isWarmup).flatMap(r=>(r.groups||[]).map((g,gi)=>(
                       <div key={`${r.id}-${gi}`} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${BORDER}`}}>
                         <div style={{fontSize:11,color:TEXT}}>Warmup{g.teeTime?` ${g.teeTime}`:""} · {(g.players||[]).map(n=>n.split(" ")[0]).join(", ")}</div>
                         <button onClick={async()=>{if(!confirm(`Reset warmup scores for this group?`))return;await update(ref(db,`cups/${cupId}/warmupScores/${r.id}`),Object.fromEntries((g.players||[]).map(n=>[warmupKey(n),null])));}}
-                          style={{padding:"3px 8px",background:"none",border:"1px solid #e74c3c",borderRadius:6,color:"#e74c3c",fontSize:10,cursor:"pointer",fontFamily:"monospace",flexShrink:0,marginLeft:8}}>
+                          style={{padding:"3px 8px",background:"none",border:"1px solid #e74c3c",borderRadius:6,color:"#e74c3c",fontSize:10,cursor:"pointer",fontFamily:"var(--mono)",flexShrink:0,marginLeft:8}}>
                           Reset
                         </button>
                       </div>
@@ -1796,7 +1796,7 @@ export default function CupView({ user }) {
                       <div key={m.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${BORDER}`}}>
                         <div style={{fontSize:11,color:TEXT}}>{m.player1a}{m.player1b?` & ${m.player1b}`:""} vs {m.player2a}{m.player2b?` & ${m.player2b}`:""}</div>
                         <button onClick={async()=>{if(!confirm(`Reset scores for this match?`))return;await set(ref(db,`cups/${cupId}/scores/m${m.id}`),null);}}
-                          style={{padding:"3px 8px",background:"none",border:"1px solid #e74c3c",borderRadius:6,color:"#e74c3c",fontSize:10,cursor:"pointer",fontFamily:"monospace",flexShrink:0,marginLeft:8}}>
+                          style={{padding:"3px 8px",background:"none",border:"1px solid #e74c3c",borderRadius:6,color:"#e74c3c",fontSize:10,cursor:"pointer",fontFamily:"var(--mono)",flexShrink:0,marginLeft:8}}>
                           Reset
                         </button>
                       </div>
@@ -1885,12 +1885,12 @@ export default function CupView({ user }) {
             <div style={{paddingBottom:30}}>
               <div style={{display:"flex",gap:6,marginBottom:12}}>
                 {days.map((d,i)=>(
-                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"var(--muted)",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"monospace",letterSpacing:1}}>
+                  <button key={i} onClick={()=>setBoardDayOverride(i)} style={{flex:1,padding:"7px 4px",borderRadius:8,border:"none",background:boardDayIdx===i?`${GOLD}33`:CARD2,borderBottom:boardDayIdx===i?`2px solid ${GOLD}`:"2px solid transparent",color:boardDayIdx===i?GOLD:"var(--muted)",fontWeight:700,fontSize:9,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:1}}>
                     {d.label?.toUpperCase()||`DAY ${i+1}`}
                   </button>
                 ))}
               </div>
-              <div style={{fontSize:9,color:"var(--gold-dim)",fontFamily:"monospace",letterSpacing:2,marginBottom:10,}}>{lbDay.label?.toUpperCase()} · INDIVIDUAL SCORES</div>
+              <div style={{fontSize:9,color:"var(--gold-dim)",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:10,}}>{lbDay.label?.toUpperCase()} · INDIVIDUAL SCORES</div>
               {started.length===0&&notStarted.length===0?(
                 <div style={{textAlign:"center",padding:"40px 20px",color:"var(--muted)"}}><div style={{fontSize:24,marginBottom:8}}>⛳</div><div style={{fontSize:12}}>No scores entered yet</div></div>
               ):(
@@ -1903,7 +1903,7 @@ export default function CupView({ user }) {
                     const showOut=scoreView!=="back", showIn=scoreView!=="front", showTot=scoreView==="total";
                     const sumPar=(a,b)=>course.par.slice(a,b).reduce((x,y)=>x+y,0);
                     const half=(row,a,b)=>{const g=row.gross.slice(a,b),n=g.filter(x=>x!==null).length;if(!n)return{n,v:null,d:0};const v=g.reduce((x,y)=>x+(y||0),0);return{n,v,d:v-row.course.par.slice(a,b).reduce((x,y,i)=>g[i]!==null?x+y:x,0)};};
-                    const th={textAlign:"center",padding:"5px 1px",fontSize:8,color:"var(--muted)",fontFamily:"monospace",borderBottom:`1px solid ${BORDER}`};
+                    const th={textAlign:"center",padding:"5px 1px",fontSize:8,color:"var(--muted)",fontFamily:"var(--mono)",borderBottom:`1px solid ${BORDER}`};
                     const sumTh={...th,padding:"5px 3px",color:"var(--muted2)",borderLeft:`1px solid ${BORDER}`};
                     // The POS + PLAYER cells stay put while the holes scroll under them.
                     const pin=(bg,left)=>({position:"sticky",left,zIndex:1,background:bg});
@@ -1911,7 +1911,7 @@ export default function CupView({ user }) {
                       <>
                         <div style={{display:"flex",background:CARD2,borderRadius:8,padding:3,marginBottom:8,gap:3}}>
                           {[["front","FRONT 9"],["back","BACK 9"],["total","TOTAL"]].map(([v,l])=>(
-                            <button key={v} onClick={()=>setScoreView(v)} style={{flex:1,padding:"7px 0",border:"none",borderRadius:6,background:scoreView===v?`${GOLD}33`:"transparent",color:scoreView===v?"var(--gold-text)":"var(--muted2)",fontWeight:800,fontSize:10,fontFamily:"monospace",letterSpacing:1,cursor:"pointer"}}>{l}</button>
+                            <button key={v} onClick={()=>setScoreView(v)} style={{flex:1,padding:"7px 0",border:"none",borderRadius:6,background:scoreView===v?`${GOLD}33`:"transparent",color:scoreView===v?"var(--gold-text)":"var(--muted2)",fontWeight:800,fontSize:10,fontFamily:"var(--mono)",letterSpacing:1,cursor:"pointer"}}>{l}</button>
                           ))}
                         </div>
                         <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch",borderRadius:10,border:`1px solid ${BORDER}`}}>
@@ -1940,16 +1940,16 @@ export default function CupView({ user }) {
                             {started.map((row,ri)=>{
                               const bg=ri%2===0?CARD:CARD2;
                               const out=half(row,0,9), inn=half(row,9,18);
-                              const sumCell=(h)=><td style={{textAlign:"center",padding:"4px 3px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:h.n>0?parColor(h.d,h.n):MUTED,fontFamily:"monospace"}}>{h.n>0?h.v:"—"}</td>;
+                              const sumCell=(h)=><td style={{textAlign:"center",padding:"4px 3px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:700,color:h.n>0?parColor(h.d,h.n):MUTED,fontFamily:"var(--mono)"}}>{h.n>0?h.v:"—"}</td>;
                               return (
                                 <tr key={row.key} style={{background:bg,borderBottom:`1px solid ${BORDER}33`}}>
-                                  <td style={{...pin(bg,0),padding:"8px 6px",fontSize:10,fontWeight:800,color:"var(--muted2)",fontFamily:"monospace",whiteSpace:"nowrap"}}>{row.pos}</td>
-                                  <td style={{...pin(bg,24),padding:"8px 4px 8px 6px",maxWidth:holes.length?92:150}}><div style={{fontSize:12,fontWeight:700,color:teamColorOf(row.team),whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{row.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",marginLeft:5}}>R{row.roundIdx+1}</span>}</div></td>
+                                  <td style={{...pin(bg,0),padding:"8px 6px",fontSize:10,fontWeight:800,color:"var(--muted2)",fontFamily:"var(--mono)",whiteSpace:"nowrap"}}>{row.pos}</td>
+                                  <td style={{...pin(bg,24),padding:"8px 4px 8px 6px",maxWidth:holes.length?92:150}}><div style={{fontSize:12,fontWeight:700,color:teamColorOf(row.team),whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{row.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",marginLeft:5}}>R{row.roundIdx+1}</span>}</div></td>
                                   {holes.map(i=><td key={i} style={{textAlign:"center",padding:"4px 1px"}}><HoleScore gross={row.gross[i]} par={row.course.par?.[i]||4}/></td>)}
                                   {showOut&&sumCell(out)}
                                   {showIn&&sumCell(inn)}
-                                  {showTot&&<td style={{textAlign:"center",padding:"4px 3px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:800,color:parColor(row.toPar,row.holesPlayed),fontFamily:"monospace"}}>{row.holesPlayed>0?row.gross.filter(g=>g!==null).reduce((a,b)=>a+b,0):"—"}</td>}
-                                  {showTot&&<td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:12,fontWeight:900,color:parColor(row.toPar,row.holesPlayed),fontFamily:"monospace",whiteSpace:"nowrap"}}>{fmtPar(row.toPar,row.holesPlayed)}{row.holesPlayed<18&&row.holesPlayed>0?<span style={{fontSize:8,color:MUTED}}> ({row.holesPlayed})</span>:null}</td>}
+                                  {showTot&&<td style={{textAlign:"center",padding:"4px 3px",borderLeft:`1px solid ${BORDER}`,fontSize:11,fontWeight:800,color:parColor(row.toPar,row.holesPlayed),fontFamily:"var(--mono)"}}>{row.holesPlayed>0?row.gross.filter(g=>g!==null).reduce((a,b)=>a+b,0):"—"}</td>}
+                                  {showTot&&<td style={{textAlign:"center",padding:"4px 4px",borderLeft:`1px solid ${BORDER}`,fontSize:12,fontWeight:900,color:parColor(row.toPar,row.holesPlayed),fontFamily:"var(--mono)",whiteSpace:"nowrap"}}>{fmtPar(row.toPar,row.holesPlayed)}{row.holesPlayed<18&&row.holesPlayed>0?<span style={{fontSize:8,color:MUTED}}> ({row.holesPlayed})</span>:null}</td>}
                                 </tr>
                               );
                             })}
@@ -1960,11 +1960,11 @@ export default function CupView({ user }) {
                     );
                   })()}
                   {notStarted.length>0&&<div style={{marginTop:12}}>
-                    <div style={{fontSize:9,color:MUTED,fontFamily:"monospace",letterSpacing:1,marginBottom:6}}>NOT STARTED</div>
+                    <div style={{fontSize:9,color:MUTED,fontFamily:"var(--mono)",letterSpacing:1,marginBottom:6}}>NOT STARTED</div>
                     {notStarted.map(r=>(
                       <div key={r.key} style={{display:"flex",justifyContent:"space-between",padding:"8px 10px",background:CARD,borderRadius:6,marginBottom:4}}>
-                        <span style={{fontSize:12,fontWeight:700,color:teamColorOf(r.team)}}>{r.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"monospace",marginLeft:5}}>R{r.roundIdx+1}</span>}</span>
-                        <span style={{fontSize:10,color:MUTED,fontFamily:"monospace"}}>{r.teeTime||"—"}</span>
+                        <span style={{fontSize:12,fontWeight:700,color:teamColorOf(r.team)}}>{r.name}{multiRound&&<span style={{fontSize:8,color:MUTED,fontFamily:"var(--mono)",marginLeft:5}}>R{r.roundIdx+1}</span>}</span>
+                        <span style={{fontSize:10,color:MUTED,fontFamily:"var(--mono)"}}>{r.teeTime||"—"}</span>
                       </div>
                     ))}
                   </div>}

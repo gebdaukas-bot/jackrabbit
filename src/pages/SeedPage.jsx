@@ -35,7 +35,7 @@ export default function SeedPage({ user }) {
   return (
     <div style={{minHeight:"100vh",background:BG,color:TEXT,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{width:"100%",maxWidth:440}}>
-        <div style={{fontSize:20,fontWeight:900,color:"var(--gold-text)",fontFamily:"monospace",letterSpacing:2,marginBottom:4}}>CBS CUP 2027 SEED</div>
+        <div style={{fontSize:20,fontWeight:900,color:"var(--gold-text)",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:4}}>CBS CUP 2027 SEED</div>
         <div style={{fontSize:12,color:MUTED,marginBottom:24}}>Creates CBS Ryder Cup 2027 (Sea Pines) from src/seed/cbsCup2027.json. Re-run after the draft to load the new rosters and groups; it refuses once scores exist.</div>
 
         <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:20,marginBottom:16}}>
@@ -50,24 +50,24 @@ export default function SeedPage({ user }) {
         </div>
 
         {log.length>0&&(
-          <div style={{background:"var(--bg-b)",border:`1px solid ${BORDER}`,borderRadius:10,padding:14,marginBottom:16,fontFamily:"monospace",fontSize:11,color:"#4caf50",maxHeight:200,overflowY:"auto"}}>
+          <div style={{background:"var(--bg-b)",border:`1px solid ${BORDER}`,borderRadius:10,padding:14,marginBottom:16,fontFamily:"var(--mono)",fontSize:11,color:"#4caf50",maxHeight:200,overflowY:"auto"}}>
             {log.map((l,i)=><div key={i}>{l}</div>)}
           </div>
         )}
 
         {!done?(
           <button onClick={handleSeed} disabled={status==="running"}
-            style={{width:"100%",padding:"14px",background:status==="running"?CARD2:`linear-gradient(135deg,${GOLD},${GOLD}88)`,border:"none",borderRadius:12,color:status==="running"?MUTED:"#000",fontWeight:900,fontSize:14,cursor:status==="running"?"wait":"pointer",letterSpacing:1,fontFamily:"monospace"}}>
+            style={{width:"100%",padding:"14px",background:status==="running"?CARD2:`linear-gradient(135deg,${GOLD},${GOLD}88)`,border:"none",borderRadius:12,color:status==="running"?MUTED:"#000",fontWeight:900,fontSize:14,cursor:status==="running"?"wait":"pointer",letterSpacing:1,fontFamily:"var(--mono)"}}>
             {status==="running"?"SEEDING…":"RUN SEED"}
           </button>
         ):(
           <button onClick={()=>nav(`/cup/${CBS_2027_CUP_ID}`)}
-            style={{width:"100%",padding:"14px",background:`linear-gradient(135deg,${GOLD},${GOLD}88)`,border:"none",borderRadius:12,color:"#000",fontWeight:900,fontSize:14,cursor:"pointer",letterSpacing:1,fontFamily:"monospace"}}>
+            style={{width:"100%",padding:"14px",background:`linear-gradient(135deg,${GOLD},${GOLD}88)`,border:"none",borderRadius:12,color:"#000",fontWeight:900,fontSize:14,cursor:"pointer",letterSpacing:1,fontFamily:"var(--mono)"}}>
             OPEN CBS CUP 2027 →
           </button>
         )}
         <button onClick={async()=>{try{await fixCBSCup2026();setLog(l=>[...l,"✓ CBS 2026 names fixed — Saturday pairings and Hunter v Ryan."]);}catch(e){setLog(l=>[...l,`✗ ${e.message}`]);}}}
-          style={{width:"100%",marginTop:10,padding:"10px",background:"none",border:`1px solid ${GOLD}66`,borderRadius:10,color:"var(--gold-text)",fontSize:12,cursor:"pointer",fontFamily:"monospace"}}>FIX CBS 2026 PAIRINGS</button>
+          style={{width:"100%",marginTop:10,padding:"10px",background:"none",border:`1px solid ${GOLD}66`,borderRadius:10,color:"var(--gold-text)",fontSize:12,cursor:"pointer",fontFamily:"var(--mono)"}}>FIX CBS 2026 PAIRINGS</button>
         <button onClick={()=>nav("/")} style={{width:"100%",marginTop:10,padding:"10px",background:"none",border:`1px solid ${BORDER}`,borderRadius:10,color:MUTED,fontSize:12,cursor:"pointer"}}>← Back to home</button>
       </div>
     </div>

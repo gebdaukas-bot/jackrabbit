@@ -78,24 +78,24 @@ export default function WatchPage() {
       <LiveBackground/>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "20px 14px 40px" }}>
         <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 2 }}>DORMIE · VIEW ONLY</div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing:1 }}>DORMIE · VIEW ONLY</div>
           <div style={{ fontSize: 16, fontWeight: 900, marginTop: 4 }}>{meta.name}</div>
         </div>
 
         <div style={{ display: "flex", alignItems: "stretch", borderRadius: 10, overflow: "hidden", border: `1px solid ${BORDER}`, marginBottom: 16 }}>
           <div style={{ flex: 1, background: sides.teamAColor, padding: "12px 14px", minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: `${contrastText(sides.teamAColor)}cc`, letterSpacing: 1, fontFamily: "monospace" }}>{sides.teamAName}</div>
+            <div style={{ fontSize: 10, fontWeight: 900, color: `${contrastText(sides.teamAColor)}cc`, letterSpacing: 1, fontFamily: "var(--mono)" }}>{sides.teamAName}</div>
           </div>
           <div style={{ background: "var(--panel-c)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "10px 14px", flexShrink: 0, minWidth: 100 }}>
-            {st.state === "pending" && <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "monospace" }}>NOT STARTED</div>}
-            {st.state === "live" && <><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "monospace" }}>THRU {st.holesPlayed}</div><div style={{ fontSize: 22, fontWeight: 900, fontFamily: "monospace" }}>{!st.leader ? "AS" : `${st.up}UP`}</div></>}
-            {st.state === "extra" && <><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "monospace" }}>PLAYOFF</div><div style={{ fontSize: 14, fontWeight: 900, fontFamily: "monospace" }}>{st.sublabel}</div></>}
-            {st.state === "halved" && <div style={{ fontSize: 12, fontWeight: 900, color: "var(--muted-b)", fontFamily: "monospace" }}>HALVED</div>}
-            {st.state === "complete" && <><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "monospace", fontWeight: 700 }}>FINAL</div><div style={{ fontSize: 16, fontWeight: 900, fontFamily: "monospace" }}>{st.sublabel}</div></>}
-            {st.state === "gap" && <div style={{ fontSize: 9, color: "#e67e22", fontFamily: "monospace" }}>⚠ MISSING</div>}
+            {st.state === "pending" && <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "var(--mono)" }}>NOT STARTED</div>}
+            {st.state === "live" && <><div style={{ fontSize: 8, color: "var(--muted)", fontFamily: "var(--mono)" }}>THRU {st.holesPlayed}</div><div style={{ fontSize: 22, fontWeight: 900, fontFamily: "var(--mono)" }}>{!st.leader ? "AS" : `${st.up}UP`}</div></>}
+            {st.state === "extra" && <><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "var(--mono)" }}>PLAYOFF</div><div style={{ fontSize: 14, fontWeight: 900, fontFamily: "var(--mono)" }}>{st.sublabel}</div></>}
+            {st.state === "halved" && <div style={{ fontSize: 12, fontWeight: 900, color: "var(--muted-b)", fontFamily: "var(--mono)" }}>HALVED</div>}
+            {st.state === "complete" && <><div style={{ fontSize: 8, color: "var(--gold-text)", fontFamily: "var(--mono)", fontWeight: 700 }}>FINAL</div><div style={{ fontSize: 16, fontWeight: 900, fontFamily: "var(--mono)" }}>{st.sublabel}</div></>}
+            {st.state === "gap" && <div style={{ fontSize: 9, color: "#e67e22", fontFamily: "var(--mono)" }}>⚠ MISSING</div>}
           </div>
           <div style={{ flex: 1, background: sides.teamBColor, padding: "12px 14px", minWidth: 0, textAlign: "right" }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: `${contrastText(sides.teamBColor)}cc`, letterSpacing: 1, fontFamily: "monospace" }}>{sides.teamBName}</div>
+            <div style={{ fontSize: 10, fontWeight: 900, color: `${contrastText(sides.teamBColor)}cc`, letterSpacing: 1, fontFamily: "var(--mono)" }}>{sides.teamBName}</div>
           </div>
         </div>
 
@@ -105,10 +105,10 @@ export default function WatchPage() {
         </div>
 
         {/* Hole by hole */}
-        <div style={{ fontSize: 9, color: "var(--gold-text)", fontFamily: "monospace", letterSpacing: 2, opacity: 0.7, marginBottom: 6 }}>HOLE BY HOLE</div>
+        <div style={{ fontSize: 9, color: "var(--gold-text)", fontFamily: "var(--mono)", letterSpacing:1, opacity: 0.7, marginBottom: 6 }}>HOLE BY HOLE</div>
         <HoleByHoleTable match={match} course={course} totalHoles={round.totalHoles || 18}
           teamAColor={sides.teamAColor} teamBColor={sides.teamBColorDisp}/>
-        <div style={{ textAlign: "center", fontSize: 10, color: "var(--muted)", marginTop: 16, fontFamily: "monospace" }}>Updates live · view only</div>
+        <div style={{ textAlign: "center", fontSize: 10, color: "var(--muted)", marginTop: 16, fontFamily: "var(--mono)" }}>Updates live · view only</div>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
 
   // Same tiers as the scorecards: par plain, bogey a soft tint, double or worse a
   // solid red box, birdie a circle, eagle a double circle — shape as well as color.
-  const box = { width: 42, height: 42, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, fontFamily: "monospace", fontVariantNumeric: "tabular-nums" };
+  const box = { width: 42, height: 42, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, fontFamily: "var(--mono)", fontVariantNumeric: "tabular-nums" };
   let scoreDisplay;
   if (diff <= -2) scoreDisplay = <div style={{ ...box, borderRadius: "50%", border: "4px double #FFD700", color: "#FFD700" }}>{value}</div>;
   else if (diff === -1) scoreDisplay = <div style={{ ...box, borderRadius: "50%", border: "2px solid #4caf50", color: "#4caf50" }}>{value}</div>;
@@ -19,10 +19,10 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
       {/* Names get a fixed two-line slot and the handicap line is always reserved, so
           the steppers side by side line up even when only one name wraps. */}
-      <div style={{fontSize:11,fontWeight:700,color:labelColor||color,fontFamily:"monospace",textAlign:"center",maxWidth:130,lineHeight:"13px",height:26,display:"flex",alignItems:"flex-end",justifyContent:"center",overflow:"hidden"}}>
+      <div style={{fontSize:13,fontWeight:700,color:labelColor||color,textAlign:"center",maxWidth:130,lineHeight:"13px",height:26,display:"flex",alignItems:"flex-end",justifyContent:"center",overflow:"hidden"}}>
         <span style={{display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{labelColor ? `${"★".repeat(strokes)} ${label}` : label}</span>
       </div>
-      <div style={{fontSize:9,color:"var(--gold-text)",fontFamily:"monospace",height:11,visibility:hcp > 0 ? "visible" : "hidden"}}>HCP {Number(hcp || 0).toFixed(1)}</div>
+      <div style={{fontSize:9,color:"var(--gold-text)",fontFamily:"var(--mono)",height:11,visibility:hcp > 0 ? "visible" : "hidden"}}>HCP {Number(hcp || 0).toFixed(1)}</div>
       <div style={{display:"flex",alignItems:"center",gap:0}}>
         <button onClick={()=>onChange(Math.max(1,value-1))} style={{width:48,height:52,fontSize:22,background:CARD2,border:`1px solid ${BORDER}`,borderRadius:"7px 0 0 7px",color:"var(--muted2-b)",cursor:"pointer"}}>−</button>
         <div style={{width:52,height:52,background:BG,border:`1px solid ${BORDER}`,borderTop:`3px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -36,7 +36,7 @@ export default function ScoreInput({ label, hcp, value, onChange, color, labelCo
           {[["BIRDIE",-1,"#4caf50"],["PAR",0,"var(--text)"],["BOGEY",1,"var(--bogey-ink)"]].map(([l,d,c])=>{
             const on = diff === d;
             return (
-              <button key={l} onClick={()=>onChange(par + d)} style={{minWidth:44,height:30,padding:"0 6px",borderRadius:6,border:`1px solid ${on?c:BORDER}`,background:on?"var(--panel-a)":"transparent",color:on?c:"var(--muted2)",fontSize:9,fontWeight:800,fontFamily:"monospace",letterSpacing:0.3,cursor:"pointer"}}>{l}</button>
+              <button key={l} onClick={()=>onChange(par + d)} style={{minWidth:44,height:30,padding:"0 6px",borderRadius:6,border:`1px solid ${on?c:BORDER}`,background:on?"var(--panel-a)":"transparent",color:on?c:"var(--muted2)",fontSize:9,fontWeight:800,fontFamily:"var(--mono)",letterSpacing:0.3,cursor:"pointer"}}>{l}</button>
             );
           })}
         </div>
