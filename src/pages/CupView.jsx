@@ -540,9 +540,11 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
   const setField = (di, matchId, field, val) => setDays(ds=>ds.map((d,i)=>i!==di?d:{...d,matches:d.matches.map(m=>{
     if (m.id!==matchId) return m;
     if (!field.startsWith("player")) return {...m,[field]:val};
-    const player=cupPlayers.find(p=>p.name===val);
-    const hcpKey=field.replace("player","hcp");
-    return {...m,[field]:val||"",[hcpKey]:player?.hcp||0};
+    // Picking a player re-strokes the match off its low man (see matchStrokes).
+    const next={...m,[field]:val||""};
+    const round=ds[di].rounds?.[m.roundIdx??0];
+    if (!round?.course?.par?.length||!next.player1a||!next.player2a) return next;
+    return {...next,...matchStrokes(next,n=>cupPlayers.find(p=>p.name===n)?.hcp||0,round.course,next.format||round.format,round.totalHoles||18)};
   })}));
 
   const moveMatch = (di, matchId, direction, ri) => setDays(ds=>ds.map((d,i)=>{

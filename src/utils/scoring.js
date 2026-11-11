@@ -60,7 +60,11 @@ export function matchStrokes(m, indexOf, course, format, totalHoles = 18) {
     const [a, b] = strokesOffLow([p1a, p2a]);
     return { hcp1a: a, hcp1b: 0, hcp2a: b, hcp2b: 0 };
   }
-  const [a1, b1, a2, b2] = strokesOffLow([p1a, p1b, p2a, p2b]);
+  // Empty slots (a pairing not filled in yet) don't count toward the low man.
+  const named = [m.player1a, m.player1b, m.player2a, m.player2b].map(Boolean);
+  const vals = [p1a, p1b, p2a, p2b];
+  const low = Math.min(...vals.filter((_, i) => named[i]));
+  const [a1, b1, a2, b2] = vals.map((v, i) => (named[i] ? v - low : 0));
   return { hcp1a: a1, hcp1b: b1, hcp2a: a2, hcp2b: b2 };
 }
 

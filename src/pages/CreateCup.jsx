@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set, get, apiUrl } from "../firebase";
-import { GOLD, courseHcp, playingHcp } from "../utils/scoring";
+import { GOLD, courseHcp, playingHcp, matchStrokes } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import { teamsToMeta, matchTeams, MAX_TEAMS, TEAM_IDS, DEFAULT_TEAM_COLORS, DEFAULT_TEAM_NAMES } from "../utils/teams";
 import LiveBackground from "../components/LiveBackground";
@@ -903,6 +903,13 @@ export default function CreateCup({ user }) {
           round.matches.forEach((m, mi) => {
             const matchId = (di+1)*1000 + (ri+1)*100 + mi + 1;
             const { a:sideA, b:sideB } = matchTeams(data.teams, m);
+            // Strokes from each player's index on these tees, lowest in the match
+            // playing off zero (scramble keeps the team handicaps set by hand).
+            const fmt = m.format||round.format;
+            const strokes = fmt!=="Scramble" && m.player1a && m.player2a && round.par?.length
+              ? matchStrokes(m, n=>data.players.find(p=>p.name===n)?.hcp||0, { par:round.par, hcp:round.hcp, slope:round.slope, rating:round.rating }, fmt, round.totalHoles||18)
+              : {};
+            m = { ...m, ...strokes };
             allMatches[`m${matchId}`] = {
               teeTime: m.teeTime||"",
               format: m.format||round.format,

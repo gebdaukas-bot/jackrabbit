@@ -19,6 +19,7 @@
 
 import { db, ref, set, get } from "../firebase";
 import { teamsToMeta } from "../utils/teams";
+import { matchStrokes } from "../utils/scoring";
 import sheet from "./cbsCup2027.json";
 
 export const CBS_2027_CUP_ID = "cbs-ryder-cup-2027";
@@ -75,6 +76,12 @@ function single(g, m, companionId) {
   };
 }
 
+// Strokes off the low man in each match. With the placeholder courses that's
+// just the rounded indexes; loading the real tees in Admin → Courses re-strokes
+// every match that hasn't started, from slope and rating.
+const stroked = (m, round) => (m.player1a && m.player2a
+  ? { ...m, ...matchStrokes(m, hcpOf, round.course, m.format) } : m);
+
 function buildMatches() {
   const matches = {};
   fri.groups.forEach((g, i) => { matches[`m${1101 + i}`] = bestBall(g); });
@@ -85,6 +92,8 @@ function buildMatches() {
     matches[`m${id}`] = single(g, g.matches[0], id + 1);
     matches[`m${id + 1}`] = single(g, g.matches[1], id);
   });
+  const roundOf = id => { const n = parseInt(id.slice(1)); return days[Math.floor(n / 1000) - 1].rounds[Math.floor((n % 1000) / 100) - 1]; };
+  for (const id of Object.keys(matches)) matches[id] = stroked(matches[id], roundOf(id));
   return matches;
 }
 

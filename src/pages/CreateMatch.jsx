@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { db, ref, set, get, apiUrl } from "../firebase";
 import { teamsToMeta, DEFAULT_TEAM_COLORS } from "../utils/teams";
-import { GOLD, playingHcp, SHAMBLE_ALLOWANCE } from "../utils/scoring";
+import { GOLD, playingHcp, SHAMBLE_ALLOWANCE, matchStrokes } from "../utils/scoring";
 import { BUILT_IN_COURSES } from "../utils/courses";
 import LiveBackground from "../components/LiveBackground";
 import CourseSearch from "../components/CourseSearch";
@@ -235,6 +235,9 @@ export default function CreateMatch({ user }) {
         player2b: is2v2 ? names.b2.trim() : null, hcp2b: is2v2 ? matchHcp(hcps.b2 || 0) : 0,
         companionId: null,
       };
+      // Strokes: course handicaps from the chosen tees, lowest player off zero.
+      const idx = { [match.player1a]: hcps.a1 || 0, [match.player1b]: hcps.a2 || 0, [match.player2a]: hcps.b1 || 0, [match.player2b]: hcps.b2 || 0 };
+      Object.assign(match, matchStrokes(match, n => idx[n] || 0, { par, hcp, ...(selectedTee ? { slope: selectedTee.slope, rating: selectedTee.rating } : {}) }, matchFormat, 18));
 
       await set(ref(db, `cups/${cupId}/meta`), meta);
       await set(ref(db, `cups/${cupId}/players`), playersObj);
