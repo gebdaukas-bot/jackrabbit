@@ -8,7 +8,7 @@
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 0,
-      "backgroundColor": "#060e1c"
+      "backgroundColor": "#0B1530"
     },
     "FirebaseAuthentication": {
       "skipNativeAuth": true,
