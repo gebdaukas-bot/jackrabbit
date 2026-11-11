@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { DormieMark } from "../components/Icon";
 import { auth, googleProvider, isNative } from "../firebase";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import {
@@ -160,7 +161,7 @@ export default function Login() {
 
       <div style={{ position:"relative", zIndex:10, width:"100%", maxWidth:400 }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
-          <div style={{ fontSize:56, marginBottom:8, lineHeight:1 }}>⛳</div>
+          <div style={{ marginBottom:10, display:"flex", justifyContent:"center" }}><DormieMark size={72}/></div>
           <div className="login-title" style={{ fontSize:42, fontWeight:900, color:GOLD, fontFamily:"var(--mono)", letterSpacing:6, lineHeight:1 }}>DORMIE</div>
           <div style={{ fontSize:12, color:"#6a8a7a", marginTop:10, letterSpacing:1, fontFamily:"var(--mono)" }}>MATCH PLAY · LIVE SCORING</div>
         </div>

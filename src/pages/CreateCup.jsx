@@ -996,7 +996,7 @@ export default function CreateCup({ user }) {
           ):(
             <button onClick={handleCreate} disabled={saving}
               style={{ width:"100%", padding:"15px", background:`linear-gradient(135deg,${GOLD},${GOLD}88)`, border:"none", borderRadius:14, color:"#000", fontWeight:900, fontSize:15, cursor:"pointer", letterSpacing:1, fontFamily:"var(--mono)" }}>
-              {saving?"CREATING...":"CREATE CUP ⛳"}
+              {saving?"CREATING...":"CREATE CUP →"}
             </button>
           )}
         </div>

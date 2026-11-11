@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DormieMark } from "../components/Icon";
 import { useParams, useNavigate } from "react-router-dom";
 import { joinCup } from "../utils/joinCup";
 import { useTheme } from "../context/ThemeContext";
@@ -35,7 +36,7 @@ export default function JoinPage({ user }) {
       <div style={{ background:"var(--glass-85)", backdropFilter:"blur(12px)", border:`1px solid ${BORDER}`, borderRadius:20, padding:"32px 28px", width:"100%", maxWidth:340, textAlign:"center" }}>
         {status === "joining" && (
           <>
-            <div style={{ fontSize:36, marginBottom:12 }}>⛳</div>
+            <div style={{ marginBottom:12, display:"flex", justifyContent:"center" }}><DormieMark size={48}/></div>
             <div style={{ fontSize:16, fontWeight:800, color:"var(--gold-text)", fontFamily:"var(--mono)", letterSpacing:1, marginBottom:8 }}>DORMIE</div>
             <div style={{ fontSize:13, color:MUTED }}>Joining cup…</div>
           </>

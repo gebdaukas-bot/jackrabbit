@@ -491,7 +491,7 @@ export default function CreateMatch({ user }) {
             )}
             <button onClick={handleCreate} disabled={creating || !step3Ok}
               style={{ padding:"16px", background:step3Ok?`linear-gradient(135deg,${GOLD},${GOLD}88)`:"none", border:`1px solid ${step3Ok?GOLD:BORDER}`, borderRadius:14, color:step3Ok?"#000":MUTED, fontWeight:900, fontSize:15, cursor:(creating||!step3Ok)?"default":"pointer", letterSpacing:1, fontFamily:"var(--mono)", boxShadow:step3Ok?`0 4px 18px ${GOLD}33`:"none", marginTop:4, opacity:step3Ok?1:0.4 }}>
-              {creating ? "CREATING..." : "START MATCH ⛳"}
+              {creating ? "CREATING..." : "START MATCH →"}
             </button>
           </div>
         )}

@@ -15,13 +15,16 @@ export default function Icon({ name, size = 16, strokeWidth = 2, style }) {
   );
 }
 
-// The Dormie mark: a pin flag, for headers where the ⛳ emoji used to be.
+// The Dormie mark: a bold D with a pin flag standing in its counter — the same
+// art as the app icon (assets/icon.svg).
 export function DormieMark({ size = 22 }) {
   return (
-    <svg aria-hidden width={size} height={size} viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-      <ellipse cx="12" cy="20.5" rx="7" ry="1.8" fill="var(--glow)" stroke="#C4A44A" strokeWidth="1" opacity="0.9" />
-      <path d="M8 20.5V3" stroke="#C4A44A" strokeWidth="2" strokeLinecap="round" />
-      <path d="M8 3.5h9l-2.2 3.5L17 10.5H8z" fill="#C4A44A" />
+    <svg aria-hidden width={size} height={size} viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
+      <defs><linearGradient id="dormie-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#F0D888" /><stop offset="1" stopColor="#B8913A" /></linearGradient></defs>
+      <path fill="url(#dormie-gold)" fillRule="evenodd" d="M14 10 H46 A40 40 0 0 1 46 90 H14 Z M30 25 H45 A25 25 0 0 1 45 75 H30 Z" />
+      <rect x="41.5" y="34" width="3.6" height="33" rx="1.8" fill="url(#dormie-gold)" />
+      <path d="M45 34.5 L60 40.5 L45 46.5 Z" fill="url(#dormie-gold)" />
+      <ellipse cx="43.3" cy="67.5" rx="7.5" ry="2" fill="url(#dormie-gold)" opacity="0.55" />
     </svg>
   );
 }
