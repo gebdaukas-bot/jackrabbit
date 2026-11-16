@@ -20,7 +20,7 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.error) {
       return (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, background: "#020c18", color: "#dde", textAlign: "center", fontFamily: "var(--mono)" }}>
+        <div style={{ minHeight: "var(--page-h)", boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, background: "#020c18", color: "#dde", textAlign: "center", fontFamily: "var(--mono)" }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>⛳</div>
           <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 8 }}>Something went wrong</div>
           <div style={{ fontSize: 12, color: "#8899aa", marginBottom: 20, maxWidth: 320 }}>

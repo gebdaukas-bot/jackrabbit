@@ -48,7 +48,7 @@ export default function WatchPage() {
 
   if (notFound) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, color: TEXT }}>
+      <div style={{ minHeight: "var(--page-h)", boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, color: TEXT }}>
         <LiveBackground/>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
@@ -60,7 +60,7 @@ export default function WatchPage() {
 
   if (!meta || !day || !match) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: TEXT }}>
+      <div style={{ minHeight: "var(--page-h)", boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", color: TEXT }}>
         <LiveBackground/>
         <div style={{ fontSize: 13, color: MUTED }}>Loading match…</div>
       </div>
@@ -74,7 +74,7 @@ export default function WatchPage() {
   const sides = cupSidesFor(getTeams(meta), match);
   const st = computeMatchStatus(match.scores || Array(18).fill(null), sides.teamAName, sides.teamBName, match.startHole || 0, round.totalHoles || 18, round.pointValue || 1, round.allowExtraHoles || false, match.extra || []);
   return (
-    <div style={{ minHeight: "100vh", color: TEXT }}>
+    <div style={{ minHeight: "var(--page-h)", boxSizing: "border-box", color: TEXT }}>
       <LiveBackground/>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "20px 14px 40px" }}>
         <div style={{ textAlign: "center", marginBottom: 16 }}>

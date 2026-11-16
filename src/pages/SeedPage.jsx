@@ -33,7 +33,7 @@ export default function SeedPage({ user }) {
   };
 
   return (
-    <div style={{minHeight:"100vh",background:BG,color:TEXT,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+    <div style={{minHeight: "var(--page-h)", boxSizing: "border-box",background:BG,color:TEXT,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{width:"100%",maxWidth:440}}>
         <div style={{fontSize:20,fontWeight:900,color:"var(--gold-text)",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:4}}>CBS CUP 2027 SEED</div>
         <div style={{fontSize:12,color:MUTED,marginBottom:24}}>Creates CBS Ryder Cup 2027 (Sea Pines) from src/seed/cbsCup2027.json. Re-run after the draft to load the new rosters and groups; it refuses once scores exist.</div>

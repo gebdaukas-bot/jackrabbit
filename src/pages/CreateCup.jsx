@@ -960,7 +960,7 @@ export default function CreateCup({ user }) {
   };
 
   return (
-    <div style={{ minHeight:"100vh", color:TEXT }}>
+    <div style={{ minHeight: "var(--page-h)", boxSizing: "border-box", color:TEXT }}>
       <LiveBackground/>
       <div style={{ background:"var(--glass-85)", backdropFilter:"blur(8px)", borderBottom:`1px solid ${BORDER}`, padding:"12px 16px", display:"flex", alignItems:"center", gap:12 }}>
         <button onClick={()=>step>1?setStep(s=>s-1):nav("/")}

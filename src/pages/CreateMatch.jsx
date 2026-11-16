@@ -266,7 +266,7 @@ export default function CreateMatch({ user }) {
   );
 
   return (
-    <div style={{ minHeight:"100vh", color:TEXT }}>
+    <div style={{ minHeight: "var(--page-h)", boxSizing: "border-box", color:TEXT }}>
       <LiveBackground/>
 
       {/* Top bar */}

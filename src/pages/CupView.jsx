@@ -113,11 +113,10 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
     else if (halved){ badgeBg="var(--faint-c)";   badgeTop="HALVED"; badgeBot=pointValue===1?"½pt":`${pointValue/2}pt`; }
     // A match teeing off with the one above it (same group) doesn't repeat the time.
     else if (sameTeeAsAbove){ badgeBot=""; }
-    // Two singles sharing a tee time (neither started): the time sits on the line
-    // between the two cards, beside all four names, rather than on the top one.
+    // Two singles sharing a tee time (neither started): DayBlock draws the time once,
+    // in a center column spanning both cards (TeePair), rather than on the top one.
     else if (teeBetween){ badgeBot=""; }
     else if (match.teeTime){ badgeTop="TEE"; badgeBot=match.teeTime; }
-    const sharedTee = teeBetween && !aWin && !bWin && !halved;
     return (
       <div onClick={canEdit?()=>onOpen(match.id):undefined} style={{ display:"flex", alignItems:"stretch", cursor:canEdit?"pointer":"default", borderBottom:"1px solid var(--sep)", opacity:canEdit?1:0.85, position:"relative", animation:flashing?"flash 1.2s ease-out":"none" }}>
         <div style={{ flex:1, background:aBg, padding:"10px 10px", minWidth:0 }}>
@@ -133,10 +132,6 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
           {isScramble&&(match.hcp1a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3}}>Team HCP: {fmtHcp(match.hcp1a||0)}</div>}
         </div>
         <div style={{ background:badgeBg, width:64, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"4px", flexShrink:0, position:"relative" }}>
-          {sharedTee&&<div style={{ position:"absolute", left:0, right:0, bottom:0, transform:"translateY(50%)", zIndex:2, display:"flex", flexDirection:"column", alignItems:"center", padding:"4px 0", background:badgeBg }}>
-            <div style={{ fontSize:7, fontWeight:800, color:"var(--strong-dim)", fontFamily:"var(--mono)", letterSpacing:0.5 }}>TEE</div>
-            <div style={{ fontSize:match.teeTime.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"var(--mono)", lineHeight:1 }}>{match.teeTime}</div>
-          </div>}
           {badgeTop&&<div style={{ fontSize:7, fontWeight:800, color:(aWin||bWin)?"#FFD700":"var(--strong-dim)", fontFamily:"var(--mono)", letterSpacing:0.5 }}>{badgeTop}</div>}
           <div style={{ fontSize:badgeBot.length>4?11:14, fontWeight:900, color:badgeTextColor, fontFamily:"var(--mono)", lineHeight:1 }}>{badgeBot}</div>
           {(isScramble||isShamble)&&<div style={{ fontSize:6, color:"#aaa", fontFamily:"var(--mono)", marginTop:1, letterSpacing:0.5 }}>{isScramble?"SCRAMBLE":"SHAMBLE"}</div>}
@@ -185,6 +180,29 @@ function MatchCard({ match, teams, onOpen, canEdit, round, showTeamLabels, sameT
           <div style={{fontSize:12,fontWeight:800,color:bNameColor,lineHeight:1.3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,textAlign:"right"}}>{match.player2b}</div>
         </div>}
         {isScramble&&(match.hcp2a||0)!==0&&<div style={{fontSize:11,fontWeight:800,color:"var(--muted2-b)",fontFamily:"var(--mono)",marginTop:3,textAlign:"right"}}>Team HCP: {fmtHcp(match.hcp2a||0)}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Two matches (not started) that tee off together and aren't part of a bigger
+// group: their shared time is shown once, between the two cards.
+function teePairStarts(ms, i) {
+  const m = ms[i], n = ms[i+1];
+  return !!m?.teeTime && n?.teeTime===m.teeTime && (i===0||ms[i-1].teeTime!==m.teeTime)
+    && [m,n].every(x=>!(x.scores||[]).some(v=>v!=null));
+}
+
+// The time sits in its own center column spanning both cards (the cards leave
+// theirs blank), so it lines up beside all four names and never covers them.
+function TeePair({ time, children }) {
+  return (
+    <div style={{ position:"relative", isolation:"isolate" }}>
+      {children}
+      <div style={{ position:"absolute", top:0, bottom:1, left:"50%", width:64, marginLeft:-32, zIndex:1, pointerEvents:"none",
+        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3, background:"var(--panel-e)" }}>
+        <div style={{ fontSize:8, fontWeight:800, color:"var(--muted2-b)", fontFamily:"var(--mono)", letterSpacing:1 }}>TEE</div>
+        <div style={{ fontSize:time.length>4?12:14, fontWeight:900, color:"var(--strong)", fontFamily:"var(--mono)", lineHeight:1.1, textAlign:"center", whiteSpace:"nowrap" }}>{time}</div>
       </div>
     </div>
   );
@@ -241,11 +259,16 @@ function DayBlock({ day, dayIdx, contests = {}, teams, onOpen, canEdit, warmupSc
                 {twoTeam && <div style={{ flex:1, padding:"5px 10px", fontSize:8, fontWeight:800, color:teamBColorDisp, letterSpacing:1, fontFamily:"var(--mono)", textAlign:"right" }}>{teamBShort}<TeamChip color={teamBColorDisp} style={{marginLeft:5}}/></div>}
               </div>
             )}
-            {roundMatches.map((m,i)=>(
-              <MatchCard key={m.id} match={m} teams={teams} onOpen={onOpen} canEdit={canEdit(m.id)} round={round} showTeamLabels={!twoTeam}
-                sameTeeAsAbove={!!m.teeTime&&i>0&&roundMatches[i-1].teeTime===m.teeTime}
-                teeBetween={!!m.teeTime&&roundMatches[i+1]?.teeTime===m.teeTime&&(i===0||roundMatches[i-1].teeTime!==m.teeTime)&&[m,roundMatches[i+1]].every(x=>!(x.scores||[]).some(v=>v!=null))}/>
-            ))}
+            {roundMatches.map((m,i)=>{
+              const card = (mm, j, teeBetween) => (
+                <MatchCard key={mm.id} match={mm} teams={teams} onOpen={onOpen} canEdit={canEdit(mm.id)} round={round} showTeamLabels={!twoTeam}
+                  sameTeeAsAbove={!!mm.teeTime&&j>0&&roundMatches[j-1].teeTime===mm.teeTime} teeBetween={teeBetween}/>
+              );
+              const pairedWithAbove = i>0&&teePairStarts(roundMatches, i-1);
+              if (pairedWithAbove) return null;
+              if (!teePairStarts(roundMatches, i)) return card(m, i, false);
+              return <TeePair key={m.id} time={m.teeTime}>{card(m, i, true)}{card(roundMatches[i+1], i+1, false)}</TeePair>;
+            })}
             {/* Side contests for this round and who leads them. */}
             {["ld","ctp"].some(t=>round.contests?.[t]!=null)&&(
               <div style={{ display:"flex", gap:6, padding:"8px", borderTop:`1px solid ${BORDER}`, background:"var(--panel-d)" }}>
@@ -1313,7 +1336,7 @@ export default function CupView({ user }) {
     // Placeholder shapes of the header, tabs and match cards while the cup loads.
     const bone=(h,extra)=>({height:h,borderRadius:10,background:"var(--panel-f)",animation:"shimmer 1.4s ease-in-out infinite",...extra});
     return (
-      <div style={{minHeight:"100vh"}}><LiveBackground/>
+      <div style={{minHeight: "var(--page-h)", boxSizing: "border-box"}}><LiveBackground/>
         <div style={{padding:"16px 14px",display:"flex",alignItems:"center",gap:10}}><div style={bone(24,{width:24,borderRadius:6})}/><div style={bone(18,{width:160})}/></div>
         <div style={bone(92,{borderRadius:0})}/>
         <div style={{display:"flex",gap:6,padding:"8px"}}>{[0,1,2,3].map(i=><div key={i} style={bone(34,{flex:1})}/>)}</div>
@@ -1330,7 +1353,7 @@ export default function CupView({ user }) {
       finally { setJoining(false); }
     };
     return (
-      <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{minHeight: "var(--page-h)", boxSizing: "border-box",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
         <LiveBackground/>
         <div style={{width:"100%",maxWidth:360,background:CARD,border:`1px solid ${BORDER}`,borderRadius:18,padding:24,textAlign:"center"}}>
           <div style={{fontSize:20,fontWeight:900,color:"var(--gold-text)",fontFamily:"var(--mono)",letterSpacing:1,marginBottom:6}}>{meta.name}</div>
@@ -1393,7 +1416,7 @@ export default function CupView({ user }) {
   // Login screen
   if (!currentPlayer) {
     return (
-      <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{minHeight: "var(--page-h)", boxSizing: "border-box",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
         <LiveBackground/>
         <div style={{width:"100%",maxWidth:360}}>
           <div style={{textAlign:"center",marginBottom:28}}>
@@ -1503,7 +1526,7 @@ export default function CupView({ user }) {
   })();
 
   return (
-    <div style={{minHeight:"100vh",color:TEXT,paddingBottom:60,fontFamily:"var(--sans)"}}>
+    <div style={{minHeight: "var(--page-h)", boxSizing: "border-box",color:TEXT,paddingBottom:60,fontFamily:"var(--sans)"}}>
       <LiveBackground/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}@keyframes celebFade{to{opacity:0;pointer-events:none}}*{box-sizing:border-box;margin:0;padding:0}`}</style>
 

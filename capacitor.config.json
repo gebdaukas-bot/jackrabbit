@@ -3,7 +3,8 @@
   "appName": "Dormie",
   "webDir": "dist",
   "ios": {
-    "contentInset": "never"
+    "contentInset": "never",
+    "backgroundColor": "#060e1c"
   },
   "plugins": {
     "SplashScreen": {
@@ -34,5 +35,6 @@
         }
       }
     }
-  }
+  },
+  "backgroundColor": "#060e1c"
 }

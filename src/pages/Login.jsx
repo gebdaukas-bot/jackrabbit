@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { DormieMark } from "../components/Icon";
 import { auth, googleProvider, isNative } from "../firebase";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
+import { StatusBar, Style } from "@capacitor/status-bar";
 import {
   signInWithPopup,
   signInWithCredential,
@@ -27,6 +28,15 @@ export default function Login() {
   const [error, setError] = useState("");
   const recaptchaRef = useRef(null);
   const recaptchaVerifierRef = useRef(null);
+
+  // White status-bar text over the navy, even in the light theme; put it back on the way out.
+  useEffect(() => {
+    if (!isNative) return;
+    StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+    return () => {
+      StatusBar.setStyle({ style: document.documentElement.dataset.theme === "light" ? Style.Light : Style.Dark }).catch(() => {});
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -147,7 +157,13 @@ export default function Login() {
   });
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden", background:"#060e1c" }}>
+    // Pinned to the screen edges (above the status-bar strip in index.html, which is light
+    // in the light theme) and painted navy all the way out, under the clock and the home
+    // indicator. It only scrolls if it has to (a small phone with the keyboard up), and
+    // never rubber-bands. The board and other pages scroll as usual.
+    <div style={{ position:"fixed", inset:0, zIndex:2001, display:"flex", flexDirection:"column", boxSizing:"border-box",
+      padding:"max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom))",
+      overflowX:"hidden", overflowY:"auto", overscrollBehavior:"none", background:"#060e1c" }}>
       <style>{`
         @keyframes titleGlow { 0%,100%{text-shadow:0 0 20px ${GOLD}44,0 0 40px ${GOLD}22} 50%{text-shadow:0 0 30px ${GOLD}88,0 0 60px ${GOLD}44,0 0 80px ${GOLD}22} }
         @keyframes cardFloat { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-6px)} }
@@ -157,9 +173,9 @@ export default function Login() {
       `}</style>
 
       {/* Same quiet backdrop as the rest of the app: flat navy, a soft glow up top. */}
-      <div style={{ position:"absolute", inset:0, zIndex:0, background:`radial-gradient(120% 60% at 50% -10%, rgba(46,92,170,0.22) 0%, transparent 60%), radial-gradient(60% 40% at 50% 30%, ${GOLD}14 0%, transparent 70%)` }}/>
+      <div style={{ position:"fixed", inset:0, zIndex:0, pointerEvents:"none", background:`radial-gradient(120% 60% at 50% -10%, rgba(46,92,170,0.22) 0%, transparent 60%), radial-gradient(60% 40% at 50% 30%, ${GOLD}14 0%, transparent 70%)` }}/>
 
-      <div style={{ position:"relative", zIndex:10, width:"100%", maxWidth:400 }}>
+      <div style={{ position:"relative", zIndex:10, width:"100%", maxWidth:400, margin:"auto" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <div style={{ marginBottom:10, display:"flex", justifyContent:"center" }}><DormieMark size={72}/></div>
           <div className="login-title" style={{ fontSize:42, fontWeight:900, color:GOLD, fontFamily:"var(--mono)", letterSpacing:6, lineHeight:1 }}>DORMIE</div>

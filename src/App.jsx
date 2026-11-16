@@ -252,7 +252,7 @@ function PlayerSelect({ onSelect }) {
   };
 
   return (
-    <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
+    <div style={{minHeight: "var(--page-h)", boxSizing: "border-box",background:BG,display:"flex",flexDirection:"column",fontFamily:"'Arial Narrow','Arial',sans-serif"}}>
       <style>{`*{box-sizing:border-box;margin:0;padding:0}`}</style>
       <div style={{background:`linear-gradient(180deg,${CARD} 0%,${BG} 100%)`,padding:"30px 20px 20px",textAlign:"center",borderBottom:`1px solid ${BORDER}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,justifyContent:"center",marginBottom:4}}>
@@ -1649,7 +1649,7 @@ export default function App() {
 
   // Loading screen
   if (!loaded) return (
-    <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"var(--mono)",color:MUTED}}>
+    <div style={{minHeight: "var(--page-h)", boxSizing: "border-box",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"var(--mono)",color:MUTED}}>
       <div style={{marginBottom:16}}>{CBS_LOGO_LG}</div>
       <div style={{fontSize:12,letterSpacing:1.5,animation:"pulse 1.5s infinite"}}>CONNECTING...</div>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}*{box-sizing:border-box;margin:0;padding:0}`}</style>
@@ -1716,7 +1716,7 @@ export default function App() {
   const playerTeamColor = playerInfo?.team==="A" ? TEAM_A_COLOR : TEAM_B_COLOR;
 
   return (
-    <div style={{minHeight:"100vh",background:BG,fontFamily:"'Arial Narrow','Arial',sans-serif",color:TEXT,paddingBottom:60}}>
+    <div style={{minHeight: "var(--page-h)", boxSizing: "border-box",background:BG,fontFamily:"'Arial Narrow','Arial',sans-serif",color:TEXT,paddingBottom:60}}>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}@keyframes celebFade{to{opacity:0;pointer-events:none}}*{box-sizing:border-box;margin:0;padding:0}html,body{background:${BG};}`}</style>
 
       {/* Match completion celebration overlay */}

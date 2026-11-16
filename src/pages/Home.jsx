@@ -103,7 +103,7 @@ export default function Home({ user }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", color: TEXT }}>
+    <div style={{ minHeight: "var(--page-h)", boxSizing: "border-box", color: TEXT }}>
       <LiveBackground/>
       {/* Top bar */}
       <div style={{ background: "var(--glass-85)", backdropFilter:"blur(8px)", borderBottom: `1px solid ${BORDER}`, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>

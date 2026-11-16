@@ -65,6 +65,13 @@
       @keyframes flash { 0% { box-shadow: 0 0 0 2px #C4A44Acc, 0 0 18px #C4A44A88; } 100% { box-shadow: 0 0 0 0 transparent; } }
       @keyframes shimmer { 0%,100% { opacity: .45; } 50% { opacity: .85; } }
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+      /* The page fills the screen exactly: no default body margin, and the safe-area padding
+         counts inside the height. --page-h is what a full-screen page's min height should be
+         (the screen less the padding above and below it); 100dvh where supported, else 100svh. */
+      :root { --page-h: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+      @supports (height: 100dvh) { :root { --page-h: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); } }
+      html { background: var(--bg); }
+      html, body { margin: 0; }
       body { background: var(--bg); padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
       button, input, select, textarea { font-family: inherit; }
       body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--bg); z-index: 2000; }

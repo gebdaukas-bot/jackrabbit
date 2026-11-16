@@ -31,7 +31,7 @@ export default function JoinPage({ user }) {
   if (!user) return <Login />;
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+    <div style={{ minHeight: "var(--page-h)", boxSizing: "border-box", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
       <LiveBackground/>
       <div style={{ background:"var(--glass-85)", backdropFilter:"blur(12px)", border:`1px solid ${BORDER}`, borderRadius:20, padding:"32px 28px", width:"100%", maxWidth:340, textAlign:"center" }}>
         {status === "joining" && (
