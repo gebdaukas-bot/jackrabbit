@@ -13,7 +13,8 @@ import SeedPage from "./pages/SeedPage";
 import JoinPage from "./pages/JoinPage";
 import WatchPage from "./pages/WatchPage";
 import Privacy from "./pages/Privacy";
-import { onPushTapped } from "./utils/push";
+import { onPushTapped, shouldAskPush } from "./utils/push";
+import PushSetup from "./components/PushSetup";
 
 function AuthGate() {
   const [user, setUser] = useState(undefined); // undefined = loading
@@ -24,6 +25,15 @@ function AuthGate() {
     const unsub = onAuthStateChanged(auth, u => setUser(u || null));
     return () => unsub();
   }, []);
+
+  // Once signed in (iOS app), offer notifications for all their cups, once per phone.
+  const [askPush, setAskPush] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    let live = true;
+    shouldAskPush().then(ask => { if (live) setAskPush(ask); });
+    return () => { live = false; };
+  }, [user?.uid]);
 
   if (user === undefined) return null; // splash while Firebase resolves auth
 
@@ -39,6 +49,8 @@ function AuthGate() {
   }
 
   return (
+    <>
+    {askPush && <PushSetup uid={user.uid} onDone={() => setAskPush(false)} />}
     <Routes>
       <Route path="/" element={<Home user={user} />} />
       <Route path="/create" element={<CreateCup user={user} />} />
@@ -50,6 +62,7 @@ function AuthGate() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
 

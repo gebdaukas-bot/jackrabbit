@@ -11,7 +11,7 @@ import HoleByHoleTable from "../components/HoleByHoleTable";
 import CourseSearch from "../components/CourseSearch";
 import { isWarmup, warmupKey, WarmupRound, WarmupEntry } from "../components/Warmup";
 import { joinCup } from "../utils/joinCup";
-import { pushSupported, pushPref, enablePush, disablePush, refreshPush, notifyCup } from "../utils/push";
+import { pushSupported, pushPref, pushAllPref, enablePush, disablePush, refreshPush, notifyCup } from "../utils/push";
 import { courseFromTee } from "../utils/courseLookup";
 import LiveBackground from "../components/LiveBackground";
 import TeamChip from "../components/TeamChip";
@@ -1313,7 +1313,10 @@ export default function CupView({ user }) {
   },[days,meta]);
 
   // This phone's notification sign-up for the cup: "on", "off", or null (not asked yet).
-  const [pushState,setPushState]=useState(()=>pushSupported?pushPref(cupId):"off");
+  // A phone that said yes to notifications after signing in starts out signed up
+  // for every cup it opens (see the effect below), so it isn't asked again here.
+  const autoPush=()=>pushSupported&&pushPref(cupId)==null&&pushAllPref()==="on";
+  const [pushState,setPushState]=useState(()=>!pushSupported?"off":autoPush()?"on":pushPref(cupId));
   const togglePush=async on=>{
     if (on) setPushState(await enablePush(user.uid,cupId).catch(()=>false)?"on":"off");
     else { await disablePush(user.uid,cupId); setPushState("off"); }
@@ -1325,7 +1328,8 @@ export default function CupView({ user }) {
   useEffect(()=>{
     if (!canNotify) return;
     notifyCup(cupId);
-    refreshPush(user.uid,cupId);
+    if (autoPush()) enablePush(user.uid,cupId).then(ok=>setPushState(ok?"on":"off")).catch(()=>{});
+    else refreshPush(user.uid,cupId);
   },[canNotify,cupId]);
 
   useEffect(()=>{ try{if(currentPlayer)localStorage.setItem(`jr_player_${cupId}`,currentPlayer);else localStorage.removeItem(`jr_player_${cupId}`);}catch{} },[currentPlayer,cupId]);
