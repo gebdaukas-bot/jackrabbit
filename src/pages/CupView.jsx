@@ -633,7 +633,7 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
     const round = days[di]?.rounds[ri];
     if (!round?.course?.par?.length) return;
     const indexOf = name => cupPlayers.find(p=>p.name===name)?.hcp||0;
-    setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>(m.roundIdx??0)!==ri?m:{...m,...matchStrokes(m,indexOf,round.course,m.format||round.format,round.totalHoles||18)})}));
+    setDays(ds=>ds.map((d,dii)=>dii!==di?d:{...d,matches:d.matches.map(m=>(m.roundIdx??0)!==ri||(m.format&&m.format!==round.format)?m:{...m,...matchStrokes(m,indexOf,round.course,m.format||round.format,round.totalHoles||18)})}));
   };
 
   const handleSave = async () => {
@@ -664,6 +664,7 @@ function AdminMatchups({ initDays, cupPlayers, teams, onSave, onBack }) {
           const next={...mx,[field]:val||""};
           const round=days[di].rounds[mx.roundIdx??0];
           if(!round?.course?.par?.length||!next.player1a||!next.player2a) return next;
+          if(mx.format&&mx.format!==round.format) return next; // its own format keeps its own strokes
           return {...next,...matchStrokes(next,n=>cupPlayers.find(p=>p.name===n)?.hcp||0,round.course,format||round.format,round.totalHoles||18)};
         })}));
       }}
@@ -1037,6 +1038,9 @@ export default function CupView({ user }) {
       if ((m.scores||[]).some(v=>v!=null) || !m.player1a || !m.player2a) return;
       const round = roundsByDay[di]?.[m.roundIdx??0];
       if (!round?.course?.par?.length || isWarmup(round)) return;
+      // A match given its own format (a no-strokes scramble in a best-ball round)
+      // keeps the strokes it was set up with.
+      if (m.format && round.format && m.format!==round.format) return;
       const st = matchStrokes(m, indexOf, round.course, m.format||round.format, round.totalHoles||18);
       for (const k of ["hcp1a","hcp1b","hcp2a","hcp2b"]) if ((m[k]||0)!==st[k]) updates[`matches/m${m.id}/${k}`]=st[k];
     }));
@@ -1172,6 +1176,7 @@ export default function CupView({ user }) {
           player1b:m.player1b||null, hcp1b:m.hcp1b||0,
           player2a:m.player2a||"", hcp2a:m.hcp2a||0,
           player2b:m.player2b||null, hcp2b:m.hcp2b||0,
+          ...(m.format?{format:m.format}:{}),
         });
       }
     }
@@ -1515,7 +1520,7 @@ export default function CupView({ user }) {
       const withHoles=[m,companion].map(x=>({...x,totalHoles:d?.rounds?.[x.roundIdx??0]?.totalHoles||18}));
       return <><GroupHoleEntry matches={withHoles} course={getCourse(d,m)} cups={withHoles.map(cupSidesOf)} onSave={(mi,upd)=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)} onHoleConfirmed={h=>askContests(activeMatch.dayIdx,withHoles,h)}/>{contestPrompt}</>;
     }}
-    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <><HoleEntry match={{...m,format:mRound?.format||"",totalHoles:mRound?.totalHoles||18,allowExtraHoles:mRound?.allowExtraHoles||false}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cupSidesOf(m)} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)} onHoleConfirmed={h=>askContests(activeMatch.dayIdx,[m],h)}/>{contestPrompt}</>; }
+    if (m) { const mRound=d?.rounds?.[m.roundIdx??0]; return <><HoleEntry match={{...m,format:m.format||mRound?.format||"",totalHoles:mRound?.totalHoles||18,allowExtraHoles:mRound?.allowExtraHoles||false}} isSingles={!m.player1b} course={getCourse(d,m)} cup={cupSidesOf(m)} onSave={upd=>updateMatch(activeMatch.dayIdx,upd)} onClose={()=>setActiveMatch(null)} onHoleConfirmed={h=>askContests(activeMatch.dayIdx,[m],h)}/>{contestPrompt}</>; }
   }
 
   const playerTeamColor=(()=>{
