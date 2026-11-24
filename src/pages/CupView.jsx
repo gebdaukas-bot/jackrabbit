@@ -238,8 +238,8 @@ function DayBlock({ day, dayIdx, contests = {}, teams, onOpen, canEdit, warmupSc
         </div>
       )}
       {/* Rounds */}
-      {/* Warmups are played before the cup's matches, so they're listed first */}
-      {rounds.map((round, ri)=>({round, ri})).sort((a,b)=>isWarmup(b.round)-isWarmup(a.round)).map(({round, ri})=>{
+      {/* In the day's playing order, warmups included (one can come after the matches) */}
+      {rounds.map((round, ri)=>{
         if (isWarmup(round)) return (
           <div key={ri} style={{ borderTop:ri>0||rounds.length===1?"none":`1px solid ${BORDER}` }}>
             <WarmupRound round={round} scores={warmupScores?.[round.id]} teamColorOf={teamColorOf}
